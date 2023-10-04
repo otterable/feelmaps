@@ -42,17 +42,22 @@
 
 		<button id="aboutBtn" class="button-menu" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
 
-<div id="current-selection" class="current">Ausgewählt: <span id="selected-pin-type">None</span></div>
-<img src="static/overlay.jpg" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-bottom: 0px;     border-radius: 10px;">
 
+
+
+<img src="static/overlay.jpg" class="hide-on-mobile" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-bottom: 0px; border-radius: 10px;">
 <!-- Mappy Container -->
 <div id="mappy-container">
-    <div id="mapMobile" style="flex-basis: 70%; border-radius: 0px"></div>
+    <div id="mapMobile"></div>
 </div>
         <!-- Pin Menu -->
 
 <div class="centered-text-container" style="margin-bottom: 0px;">
 	</div>
+	<div class="current-total">
+<div id="current-selection" class="current">Ausgewählt: <span id="selected-pin-type">...</span></div>
+</div>
+	
 	<div id="pin-menu-desktop">
 
 <div class="pin-menu" data-color="FFB100" style="background-color: #FFB100;">
@@ -75,19 +80,33 @@
     <h3>Diesem Ort fehlt ein Service.</h3>
 	</div>
 		</div>
-<div id="pin-menu-mobile">
-<div class="centered-text-container" style="margin-bottom: 0px;">
-<h3>Wählen Sie eine Option:</h3>
+
+
+<div class="dropdown">
+    <button id="dropdown-button" class="dropdown-menu">Ausgewählt: ...</button>
+    <div id="dropdown-options" class="options">
+        <div class="pin-menu" data-color="FFB100" style="background-color: #FFB100;">
+            <h3>Auf diesen Ort bin ich stolz.</h3>
+        </div>
+        <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
+            <h3>Hier fühle ich mich unsicher.</h3>
+        </div>
+        <div class="pin-menu" data-color="133873" style="background-color: #133873;">
+            <h3>Hier gibt es Probleme mit dem Parken.</h3>
+        </div>
+        <div class="pin-menu" data-color="358400" style="background-color: #358400;">
+            <h3>Hier verbringe ich gerne meine Freizeit.</h3>
+        </div>
+        <div class="pin-menu" data-color="431307" style="background-color: #431307;">
+            <h3>Dieser Ort braucht eine Verbesserung.</h3>
+        </div>
+        <div class="pin-menu" data-color="070707" style="background-color: #070707;">
+            <h3>Diesem Ort fehlt ein Service.</h3>
+        </div>
+    </div>
 </div>
-    <select id="pin-dropdown" onchange="applyColor()">
-        <option value="" selected disabled>Select a pin</option>
-        <option data-color="FFB100" style="background-color: #FFB100;">Auf diesen Ort bin ich stolz.</option>
-        <option data-color="9A031E" style="background-color: #9A031E;">Hier fühle ich mich unsicher.</option>
-        <option data-color="133873" style="background-color: #133873;">Hier gibt es Probleme mit dem Parken.</option>
-        <option data-color="358400" style="background-color: #358400;">Hier verbringe ich gerne meine Freizeit.</option>
-        <option data-color="431307" style="background-color: #431307;">Dieser Ort braucht eine Verbesserung.</option>
-    </select>
-</div>
+
+
 
 
 	</div>
@@ -104,6 +123,8 @@
    
 const map = L.map('map').setView([48.0827, 16.4388], 16);
 const mapMobile = L.map('mapMobile').setView([48.0827, 16.4388], 16);
+setTimeout(() => mapMobile.invalidateSize(true), 300);  // Adjust the size after the map has been initialized.
+
 map.doubleClickZoom.disable();
 
 let currentPopupLatLng = null;
@@ -296,6 +317,70 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </script>
 
+<!-- LOGIC - DROPDOWN MOBILE -->
+
+<script>
+document.querySelector('#dropdown-button').addEventListener('click', function() {
+    let options = document.querySelector('#dropdown-options');
+    if (options.style.display === 'none' || !options.style.display) {
+        options.style.display = 'block';
+    } else {
+        options.style.display = 'none';
+    }
+});
+
+let pinMenus = document.querySelectorAll('.pin-menu');
+pinMenus.forEach(function(menu) {
+    menu.addEventListener('click', function() {
+        let color = this.getAttribute('data-color');
+        let text = this.querySelector('h3').textContent;
+        document.querySelector('#dropdown-button').textContent = text;
+        document.querySelector('#dropdown-button').style.backgroundColor = '#' + color;
+        
+        document.addEventListener('DOMContentLoaded', function () {
+    const dropdownButton = document.getElementById('dropdown-button');
+    const dropdownOptions = document.getElementById('dropdown-options');
+    const pinMenus = document.querySelectorAll('.pin-menu');
+    const allPins = document.querySelectorAll('.pin'); // Assuming all pins have a class of 'pin'
+
+    // Toggle the visibility of the dropdown options when the button is clicked
+    dropdownButton.addEventListener('click', function () {
+        dropdownOptions.style.display = dropdownOptions.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Add a click event for each pin menu option
+    pinMenus.forEach(function (menu) {
+        menu.addEventListener('click', function (e) {
+            const selectedText = e.target.closest('.pin-menu').querySelector('h3').textContent; // Get the text of the selected option
+
+            dropdownButton.textContent = `Ausgewählt: ${selectedText}`; // Update the button text
+
+            const selectedColor = e.currentTarget.getAttribute('data-color');
+            showPins(selectedColor); // Activate the corresponding pins
+
+            // Close the dropdown after selection
+            dropdownOptions.style.display = 'none';
+        });
+    });
+
+    function showPins(colorCode) {
+        // Hide all pins by default
+        allPins.forEach(pin => pin.style.display = 'none');
+
+        // Show only the pins that match the selected color code
+        const matchingPins = document.querySelectorAll(`.pin[data-color="${colorCode}"]`);
+        matchingPins.forEach(pin => pin.style.display = 'block');
+    }
+});
+
+    });
+});
+</script>
+
+
+
+
+
 
 <script>
 
@@ -353,9 +438,7 @@ updateFontSize();
 
 
 <script>
-// Existing map initialization
-const map = L.map('map').setView([48.0827, 16.4388], 16);
-...
+
 
 </script>
 
@@ -368,6 +451,56 @@ const map = L.map('map').setView([48.0827, 16.4388], 16);
 </style>
 
 <style>
+.options {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 0;
+    width: 100%;
+}
+
+.dropdown:hover .options {
+    display: block;
+}
+
+.pin-menu h3 {
+    color: white;
+}
+
+
+/* Hide desktop version by default */
+.current-desktop {
+    display: none;
+}
+
+/* Hide mobile version by default */
+.current-mobile {
+    display: none;
+}
+
+/* On larger screens, only show the desktop version */
+@media screen and (min-width: 811px) {
+    .current-desktop {
+        display: block;
+    }
+    .current-mobile {
+        display: none;
+    }
+}
+
+/* On smaller screens (or equal to 810px), only show the mobile version */
+@media screen and (max-width: 810px) {
+    .current-desktop {
+        display: none;
+    }
+    .current-mobile {
+        display: block;
+    }
+}
+
+
+
 
 /* Hide mappy-container by default */
 #mappy-container {
@@ -379,7 +512,6 @@ const map = L.map('map').setView([48.0827, 16.4388], 16);
     #mappy-container {
         display: block;
         margin: 3px;
-        height: 1500px;
         width: calc(100% - 6px); /* Minus margin from both sides */
     }
 
@@ -387,9 +519,15 @@ const map = L.map('map').setView([48.0827, 16.4388], 16);
         height: 400px;
         width: 100%;
     }
+	
+	 .hide-on-mobile {
+        display: none !important;
+    }
+
 }
 
-
+}
+}
 
 
 /* Hide mobile dropdown by default */
@@ -457,6 +595,8 @@ const map = L.map('map').setView([48.0827, 16.4388], 16);
     background-color: #ddd;
     padding: 10px;
     margin-bottom: 0px;
+	margin-top: -5px;
+
 }
 
 .pin-style {
@@ -541,13 +681,32 @@ const map = L.map('map').setView([48.0827, 16.4388], 16);
     text-align: center; /* Center the text */
 }
 
+
+#current-selection {
+    font-weight: bold;
+    border: 5px solid white;
+    padding: 10px 0;
+    margin: 2px 0;
+    cursor: pointer;
+    font-size: 20px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    background-color: white;
+    color: black;
+}
+
+
+
 .button-menu {
     font-weight: bold;
     border: 5px solid white;
-
-    margin-top: -5px 0;
-	    line-height: 1.7;  /* Adjust line-height */
-
+    padding: 10px 0;
+    margin: 2px 0;
     cursor: pointer;
     font-size: 20px;
     text-decoration: none;
@@ -560,13 +719,13 @@ const map = L.map('map').setView([48.0827, 16.4388], 16);
     color: white;
 }
 
+
 .centered-text-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    height: 100%;
 }
 
 
@@ -715,6 +874,11 @@ body {
 
 
 /* MOBILE CSS */
+.leaflet-container .leaflet-tile {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
 
 
 
@@ -742,9 +906,7 @@ body {
     }
 
     #map {
-        width: 100%;
-        height: 100%;
-		   border: 2px solid red; /* temporary border */
+        display: none;
 
     }
 }
@@ -774,6 +936,7 @@ body {
     /* Headings next to logo */
     div > h2 {
         margin-left: 0;
+		
         text-align: center;
         padding: 10px 0;
     }
@@ -786,7 +949,9 @@ body {
     .button-menu, .pin-menu, #aboutBtn, #current-selection {
         display: block;
         width: 100%;
-        margin: 10px 0;
+        margin-top: 10px 0;
+		        margin-bottom: 0px 0;
+
         box-sizing: border-box;
     }
     
@@ -874,14 +1039,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function loadPins(pins) {
     pins.forEach(pin => {
-        L.marker([pin.lat, pin.lon], {
+        const marker = L.marker([pin.lat, pin.lon], {
             icon: L.divIcon({
                 className: `pin-style pin-${pin.pin_type}`,
                 iconSize: [24, 24]
             })
-        }).bindPopup(pin.description).addTo(map);
+        }).bindPopup(pin.description);
+        marker.addTo(map);
+        marker.addTo(mapMobile);
     });
 }
+
 
 </script>
 
