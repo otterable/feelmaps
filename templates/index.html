@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+	<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <title>Stimmungskarte Himberg</title>
+</head>
+<body>
+
+<!-- POPUP -->
+
+
+
+<div class="main-container">
+
+<div style="display: flex; height: 100vh">
+    <div id="map" style="flex-basis: 70%; border-radius: 0px"></div>
+
+    <div id="sidebar" style="flex-basis: 30%; padding: 10px; background-color: #ffffff; margin-bottom: 20px;">
+
+<div style="display: flex; align-items: center;">
+
+<div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:810;">
+
+</div>
+</div>
+
+
+<img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-bottom: 0px; margin-top: 10px;     border-radius: 0px;">
+<div class="centered-text-container">
+    <h2>Wie stehen Sie zu den Orten in Ihrer Gemeinde?</h2>
+    <h2>Lassen Sie es uns auf dieser Karte wissen.</h2>
+</div>
+
+
+		<button id="aboutBtn" class="button-menu" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
+
+<div id="current-selection" class="current">Ausgewählt: <span id="selected-pin-type">None</span></div>
+<img src="static/overlay.jpg" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-bottom: 0px;     border-radius: 10px;">
+
+<!-- Mappy Container -->
+<div id="mappy-container">
+    <div id="mapMobile" style="flex-basis: 70%; border-radius: 0px"></div>
+</div>
+        <!-- Pin Menu -->
+
+<div class="centered-text-container" style="margin-bottom: 0px;">
+	</div>
+	<div id="pin-menu-desktop">
+
+<div class="pin-menu" data-color="FFB100" style="background-color: #FFB100;">
+    <h3>Auf diesen Ort bin ich stolz.</h3>
+</div>
+<div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
+    <h3>Hier fühle ich mich unsicher.</h3>
+</div>
+<div class="pin-menu" data-color="133873" style="background-color: #133873;">
+    <h3>Hier gibt es Probleme mit dem Parken.</h3>
+</div>
+<div class="pin-menu" data-color="358400" style="background-color: #358400;">
+    <h3>Hier verbringe ich gerne meine Freizeit.</h3>
+</div>
+<div class="pin-menu" data-color="431307" style="background-color: #431307;">
+    <h3>Dieser Ort braucht eine Verbesserung.</h3>
+</div>
+<div class="pin-menu" data-color="070707" style="background-color: #070707;">
+
+    <h3>Diesem Ort fehlt ein Service.</h3>
+	</div>
+		</div>
+<div id="pin-menu-mobile">
+<div class="centered-text-container" style="margin-bottom: 0px;">
+<h3>Wählen Sie eine Option:</h3>
+</div>
+    <select id="pin-dropdown" onchange="applyColor()">
+        <option value="" selected disabled>Select a pin</option>
+        <option data-color="FFB100" style="background-color: #FFB100;">Auf diesen Ort bin ich stolz.</option>
+        <option data-color="9A031E" style="background-color: #9A031E;">Hier fühle ich mich unsicher.</option>
+        <option data-color="133873" style="background-color: #133873;">Hier gibt es Probleme mit dem Parken.</option>
+        <option data-color="358400" style="background-color: #358400;">Hier verbringe ich gerne meine Freizeit.</option>
+        <option data-color="431307" style="background-color: #431307;">Dieser Ort braucht eine Verbesserung.</option>
+    </select>
+</div>
+
+
+	</div>
+	</div>
+	
+	</div>
+</body>
+
+<!-- LOGIC -->
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+   // Initialize the map
+   
+const map = L.map('map').setView([48.0827, 16.4388], 16);
+const mapMobile = L.map('mapMobile').setView([48.0827, 16.4388], 16);
+map.doubleClickZoom.disable();
+
+let currentPopupLatLng = null;
+
+setTimeout(function() {
+        map.invalidateSize();
+    }, 300);
+
+
+// OpenStreetMap Layer
+var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(mapMobile); // This will be the default layer when the map loads
+
+
+
+// Satellite Layer from Esri
+var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+
+// Add a Layer Control to the map
+var layerControl = L.control.layers({
+    "Standardkarte": osmLayer,
+    "Satellit": satelliteLayer
+}).addTo(map);
+
+// Add a listener for when the base layer changes
+map.on('baselayerchange', function(eventLayer) {
+    if (eventLayer.name === 'Satellit') {
+        // When the satellite view is selected
+        setSatelliteStyle();
+    } else {
+        // When switching back to another view
+        resetStyle();
+    }
+});
+
+function setSatelliteStyle() {
+    const mapContainer = map.getContainer();
+    mapContainer.classList.add("satellite-view");
+}
+
+function resetStyle() {
+    const mapContainer = map.getContainer();
+    mapContainer.classList.remove("satellite-view");
+}
+
+
+// Define a function to calculate a point 10km from the center in all directions
+function calculateBounds(lat, lng, distanceInKm) {
+    const R = 6371; // Earth radius in kilometers
+    const dLat = distanceInKm / R;
+    const dLng = distanceInKm / (R * Math.cos((Math.PI * lat) / 180));
+
+    return [
+        [lat - dLat, lng - dLng],
+        [lat + dLat, lng + dLng]
+    ];
+}
+
+// Calculate the bounds 10km from Himberg
+const bounds = calculateBounds(48.0827, 16.4388, 16);
+
+// Set the bounds to restrict map movement
+map.setMaxBounds(bounds);
+
+
+    // Add OSM layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+	
+	
+
+    // Pins and descriptions
+const pins = {
+    "FFB100": "Something to be proud of",
+    "9A031E": "Unsafe area",
+    "133873": "Parking issues",
+    "358400": "Nice to spend free time at",
+    "431307": "Needs improvement",
+    "070707": "Missing service"
+};
+
+	
+	
+	let selectedColor = null;
+
+document.querySelectorAll(".pin-menu").forEach(menu => {
+    menu.addEventListener("click", function() {
+        selectedColor = this.getAttribute("data-color");
+        document.getElementById("selected-pin-type").innerText = pins[selectedColor];
+        document.getElementById("selected-pin-type").style.color = selectedColor;
+    });
+});
+
+map.on('click', function(e) {
+
+	// Check if there's a current popup at the same LatLng
+		if (currentPopupLatLng && currentPopupLatLng.equals(e.latlng)) {
+			return; // Prevent creating a new popup if one already exists at the same LatLng
+		}
+		currentPopupLatLng = e.latlng;
+		if (selectedColor) {
+        // Calculate the dynamic font size here
+        const containerWidth = document.querySelector('#sidebar').offsetWidth;
+        const fontSize = Math.max(12, containerWidth / 30); // Adjust the formula as needed
+
+        const popupContent = `
+            <textarea id="feedbackText" rows="4" cols="40" placeholder="Wie denkst du über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
+            <button id="postFeedback" style="font-size: ${fontSize}px;">Post</button>
+            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Cancel</button>
+        `;
+		
+		
+
+        const popup = L.popup()
+            .setLatLng(e.latlng)
+            .setContent(popupContent)
+            .openOn(map);
+
+        document.getElementById('postFeedback').addEventListener('click', function() {
+            const feedback = document.getElementById('feedbackText').value;
+            if (feedback.length >= 10) {
+                L.marker(e.latlng, {
+                    icon: L.divIcon({
+                        className: `pin-style pin-${selectedColor}`,
+                        iconSize: [24, 24]
+                    })
+                }).bindPopup(feedback).addTo(map);
+
+                // Send data to server
+                fetch('/add_pin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        lat: e.latlng.lat,
+                        lon: e.latlng.lng,
+                        pin_type: selectedColor,
+                        description: feedback
+                    })
+                });
+
+                map.closePopup();
+            } else {
+                alert("Bitte geben Sie mindestens 10 Buchstaben ein.");
+            }
+        });
+
+        document.getElementById('cancelFeedback').addEventListener('click', function() {
+            popup._close();
+
+        });
+    }
+});
+
+
+
+	
+	function loadPins(pins) {
+    pins.forEach(pin => {
+        L.marker([pin.lat, pin.lon], {
+            icon: L.divIcon({
+                className: `pin-${pin.pin_type}`,
+                iconSize: [24, 24]
+            })
+        }).bindPopup(pin.description).addTo(map);
+    });
+}
+
+    
+
+// Add this at the end of your script to load pins from the server:
+document.addEventListener("DOMContentLoaded", function() {
+    fetch('/')
+    .then(response => response.json())
+    .then(data => loadPins(data.pins));
+});
+
+
+ map.once('popupclose', function() {
+        currentPopupLatLng = null;
+    });
+	
+	
+
+
+</script>
+
+
+<script>
+
+<!-- LOGIC - COLOR OF CURRENTLY CHOSEN TEXT -->
+document.addEventListener("DOMContentLoaded", function() {
+    // Get all pin-menu elements
+    var pinMenus = document.querySelectorAll('.pin-menu');
+
+    // Add click event to each pin-menu
+    pinMenus.forEach(function(menu) {
+        menu.addEventListener('click', function() {
+            // Get the color from the clicked pin-menu
+            var color = menu.getAttribute('data-color');
+
+            // Update the color and text of the 'selected-pin-type' span
+            var selectedPinType = document.getElementById('selected-pin-type');
+            selectedPinType.style.color = "#" + color;
+            selectedPinType.innerText = menu.querySelector('h3').innerText;
+        });
+    });
+});
+
+</script>
+<script>
+window.addEventListener("resize", function() {
+    mapMobile.invalidateSize();
+});
+
+</script>
+<!-- LOGIC - BUTTON RESIZING -->
+<script>
+function updateFontSize() {
+    const containerWidth = document.querySelector('#sidebar').offsetWidth;
+    const baseFontSize = Math.max(12, containerWidth / 30);
+
+    document.querySelectorAll('.pin-menu h3, #aboutBtn, #current-selection').forEach(el => {
+        el.style.fontSize = `${baseFontSize}px`;
+    });
+
+    const regularH2FontSize = Math.min(30, baseFontSize);
+    document.querySelectorAll('#sidebar h2:not(.centered-text-container h2)').forEach(h2 => {
+        h2.style.fontSize = `${regularH2FontSize}px`;
+    });
+
+    const centeredH2FontSize = Math.max(15, containerWidth / 25);
+    document.querySelectorAll('.centered-text-container h2').forEach(h2 => {
+        h2.style.fontSize = `${centeredH2FontSize}px`;
+    });
+}
+
+window.addEventListener('resize', updateFontSize);
+updateFontSize();
+
+</script>
+
+
+<script>
+// Existing map initialization
+const map = L.map('map').setView([48.0827, 16.4388], 16);
+...
+
+</script>
+
+<!-- CSS PINS -->
+<style>
+.custom-popup .leaflet-popup-content {
+    font-size: 40px; /* Adjust size as needed */
+}
+
+</style>
+
+<style>
+
+/* Hide mappy-container by default */
+#mappy-container {
+    display: none;
+}
+
+/* Show mappy-container only on smaller screens */
+@media (max-width: 810px) {
+    #mappy-container {
+        display: block;
+        margin: 3px;
+        height: 1500px;
+        width: calc(100% - 6px); /* Minus margin from both sides */
+    }
+
+    #mapMobile {
+        height: 400px;
+        width: 100%;
+    }
+}
+
+
+
+
+/* Hide mobile dropdown by default */
+#pin-menu-mobile {
+    display: none;
+}
+
+/* Show mobile dropdown and hide desktop menu on smaller screens */
+@media (max-width: 810px) {
+    #pin-menu-desktop {
+        display: none;
+    }
+    #pin-menu-mobile {
+        display: block;
+    }
+}
+
+.leaflet-control-layers-toggle {
+    background-image: none !important;
+    font-size: 20px;
+    line-height: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Custom Layer Control styles */
+.leaflet-control-layers-toggle {
+    background-image: url(static/mapicon.png);
+    background-color: transparent !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 36px; /* Adjust as needed */
+    height: 36px; /* Adjust as needed */
+}
+
+
+.leaflet-popup .leaflet-popup-content-wrapper .leaflet-popup-content {
+    font-size: 20px !important;  /* Adjust size as desired */
+}
+
+    h2 {
+        margin-top: 0px;    /* Adjust as needed */
+        margin-bottom: 0px; /* Adjust as needed */
+    }
+	
+	
+    .info-title {
+        font-weight: bold;
+        font-size: 25px;
+        margin: 10px;
+    }
+
+ .info-subtitle {
+        font-weight: bold;
+        font-size: 24px;
+        margin: 10px;
+    }
+
+    .info-text {
+        font-size: 20px; /* Adjust the font size as needed */
+    }
+
+
+#current-selection {
+    background-color: #ddd;
+    padding: 10px;
+    margin-bottom: 0px;
+}
+
+.pin-style {
+    border: 3px solid transparent; /* Default transparent border */
+    box-sizing: content-box; /* So that the border doesn't affect the pin's size */
+    background: radial-gradient(circle, transparent 30%, transparent 100%);
+    border-radius: 40%; 
+    width: 24px; 
+    height: 24px;
+}
+
+
+.satellite-view .pin-FFB100 {
+    background-image: radial-gradient(circle, #FFB100 50%, rgba(255, 177, 0, 0.7) 50%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.satellite-view .pin-9A031E {
+    background-image: radial-gradient(circle, #9A031E 50%, rgba(154, 3, 30, 0.7) 50%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.satellite-view .pin-133873 {
+    background-image: radial-gradient(circle, #133873 50%, rgba(19, 56, 115, 0.7) 50%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.satellite-view .pin-358400 {
+    background-image: radial-gradient(circle, #358400 50%, rgba(53, 134, 0, 0.7) 50%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.satellite-view .pin-431307 {
+    background-image: radial-gradient(circle, #431307 50%, rgba(67, 19, 7, 0.7) 50%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.satellite-view .pin-070707 {
+    background-image: radial-gradient(circle, #070707 50%, rgba(7, 7, 7, 0.7) 50%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+
+.pin-FFB100 {
+    color: #FFB100;
+    background-image: radial-gradient(circle, #FFB100 30%, rgba(255, 177, 0, 0.2) 40%);
+}
+
+.pin-9A031E {
+    color: #9A031E;
+    background-image: radial-gradient(circle, #9A031E 30%, rgba(154, 3, 30, 0.2) 40%);
+}
+
+.pin-133873 {
+    color: #133873;
+    background-image: radial-gradient(circle, #133873 30%, rgba(19, 56, 115, 0.2) 40%);
+}
+
+.pin-358400 {
+    color: #358400;
+    background-image: radial-gradient(circle, #358400 30%, rgba(53, 134, 0, 0.2) 40%);
+}
+
+.pin-431307 {
+    color: #431307;
+    background-image: radial-gradient(circle, #431307 30%, rgba(67, 19, 7, 0.2) 40%);
+}
+
+.pin-070707 {
+    color: #070707;
+    background-image: radial-gradient(circle, #070707 30%, rgba(7, 7, 7, 0.2) 40%);
+}
+
+
+
+
+.info-field {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    text-align: center; /* Center the text */
+}
+
+.button-menu {
+    font-weight: bold;
+    border: 5px solid white;
+
+    margin-top: -5px 0;
+	    line-height: 1.7;  /* Adjust line-height */
+
+    cursor: pointer;
+    font-size: 20px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    color: white;
+}
+
+.centered-text-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+}
+
+
+#sidebar h2 {
+    margin: 0px 0;
+}
+
+
+.pin-FFB100 { color: #FFB100; }
+.pin-9A031E { color: #9A031E; }
+.pin-133873 { color: #133873; }
+.pin-358400 { color: #358400; }
+.pin-431307 { color: #431307; }
+.pin-070707 { color: #070707; }
+
+.pin-menu {
+    font-weight: bold;
+    border: 5px solid white;
+    margin: -1px 0;
+	    line-height: 0;  /* Adjust line-height */
+
+    cursor: pointer;
+    font-size: 20px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    color: white;
+}
+
+.pin-menu:hover {
+    background-color: #e0e0e0;
+}
+
+
+
+
+#sidebar img {
+    max-width: 100%;
+    height: auto;
+    border: 5px solid white;
+    display: block;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertically center the contents */
+    align-items: center;     /* Horizontally center the contents */
+    flex-basis: 20%;
+    padding: 20px;
+    background-color: ##405F5E;  /* Updated this line */
+    margin: 2.5%;
+    border-radius: 10px;
+	
+}
+.current {
+    font-weight: bold;
+    border: 5px solid white;
+    padding: 3px 0;
+    margin: 2px 0;
+    cursor: pointer;
+    font-size: 15px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 10px;
+    box-sizing: border-box;
+    text-align: center;
+       background-color: white;
+    color: black;
+}
+
+.current:hover {
+    background-color: #e0e0e0;
+}
+
+
+#feedbackText {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 10px;
+    transition: background-color 0.2s ease-in-out;
+    resize: none; /* Disables resizing of the textarea */
+}
+
+#postFeedback {
+    background-color: #5DA271;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#postFeedback:hover {
+    background-color: #4D8A5D;
+}
+
+#cancelFeedback {
+    background-color: #C84630;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#cancelFeedback:hover {
+    background-color: #AD3A26;
+}
+
+
+
+/* Make sure the HTML and body take up the full viewport height */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+
+
+
+
+
+
+/* MOBILE CSS */
+
+
+
+@media screen and (max-width: 810px) {
+    ...
+
+    .main-container {
+    display: flex;
+        height: 100%; /* Use 100% height on mobile */
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+	#sidebar {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box; /* Consider the padding and border in the total width */
+        height: auto; /* Allow the height to grow based on content */
+    }
+
+    #mapContainer {
+        width: 90%;  /* 5% margin on each side */
+        height: 300px;  /* Fixed height for mobile, adjust if necessary */
+        margin: 5% auto;  /* Center the map container horizontally */
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+		   border: 2px solid red; /* temporary border */
+
+    }
+}
+
+
+
+@media screen and (max-width: 810px) {
+   
+   div[style="display: flex; height: 100vh"] {
+        flex-direction: column;
+        align-items: center;     
+        justify-content: flex-start;
+    }
+    
+    /* Logo at the top */
+    img[src="static/logo_long.png"] {
+        display: block;
+        max-width: 90%;
+		        width: 90%;
+
+		        height: auto;
+                margin-left: auto;
+        margin-right: auto;
+		
+    }
+    
+    /* Headings next to logo */
+    div > h2 {
+        margin-left: 0;
+        text-align: center;
+        padding: 10px 0;
+    }
+    
+    /* Map below headings */
+
+
+
+    /* Buttons and menu items stacked below map */
+    .button-menu, .pin-menu, #aboutBtn, #current-selection {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        box-sizing: border-box;
+    }
+    
+    /* Container adjustment */
+    div[style="display: flex; height: 100vh"] {
+        flex-direction: column;
+    }
+
+
+
+
+    /* Adjust pin menu items */
+    .pin-menu {
+        margin: 10px 0;
+        border: 1px solid #ddd;
+    }
+}
+
+
+
+
+
+
+.cursor-pin-FFB100 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23FFB100" /></svg>'), auto; 
+}
+.cursor-pin-9A031E { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%239A031E" /></svg>'), auto; 
+}
+.cursor-pin-133873 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23133873" /></svg>'), auto; 
+}
+.cursor-pin-358400 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23358400" /></svg>'), auto; 
+}
+.cursor-pin-431307 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23431307" /></svg>'), auto; 
+}
+.cursor-pin-070707 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23070707" /></svg>'), auto; 
+}
+
+</style>
+
+<script>
+function applyColor() {
+    let selectedOption = $('#pin-dropdown option:selected');
+    let color = selectedOption.data('color');
+    // Handle your color or functionality here
+    console.log(color);  // For testing purposes
+}
+</script>
+
+<!-- PIN CARRYING UPON CLICK -->
+<script>
+document.querySelectorAll(".pin-menu").forEach(menu => {
+    menu.addEventListener("click", function() {
+        selectedColor = this.getAttribute("data-color");
+        document.getElementById("selected-pin-type").innerText = pins[selectedColor];
+        document.getElementById("selected-pin-type").style.color = "#" + selectedColor;
+
+        // Update cursor style
+        map.getContainer().classList.remove(...Array.from(map.getContainer().classList).filter(c => c.startsWith('cursor-pin-')));
+        map.getContainer().classList.add(`cursor-pin-${selectedColor}`);
+    });
+});
+
+map.on('click', function(e) {
+    // Rest of your existing logic
+
+    // Remove custom cursor after pin is placed
+    map.getContainer().classList.remove(...Array.from(map.getContainer().classList).filter(c => c.startsWith('cursor-pin-')));
+});
+</script>
+
+
+<!-- PIN RETRIEVAL -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    fetch('/get_pins')  // Assuming '/get_pins' is the endpoint that returns all pins
+    .then(response => response.json())
+    .then(data => loadPins(data.pins));
+});
+
+function loadPins(pins) {
+    pins.forEach(pin => {
+        L.marker([pin.lat, pin.lon], {
+            icon: L.divIcon({
+                className: `pin-style pin-${pin.pin_type}`,
+                iconSize: [24, 24]
+            })
+        }).bindPopup(pin.description).addTo(map);
+    });
+}
+
+</script>
+
+<script>
+document.getElementById('aboutBtn').addEventListener('click', function() {
+    document.getElementById('infoModal').style.display = 'flex';
+});
+
+// Close the modal when clicking outside the info field
+document.getElementById('infoModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        this.style.display = 'none';
+    }
+});
+</script>
+
+
+
+
+</html>

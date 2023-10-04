@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Menu</title>
+</head>
+<body>
+    <h1>Admin Menu</h1>
+    <button id="deleteAllPins">Delete All Pins</button>
+    <button id="deleteSelectedPins">Delete Selected Pins</button>
+    <script src="static/admin.js"></script>
+</body>
+</html>
+<script>
+document.getElementById('deleteAllPins').addEventListener('click', function() {
+    fetch('/delete_all_pins', { method: 'POST' })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        for (const pin of Object.values(mapPins)) {
+            map.removeLayer(pin);
+        }
+        mapPins = {};
+    });
+});
+
+document.getElementById('deleteSelectedPins').addEventListener('click', function() {
+    fetch('/delete_selected_pins', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ selected_ids: Array.from(selectedPins) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        for (const pinId of selectedPins) {
+            map.removeLayer(mapPins[pinId]);
+            delete mapPins[pinId];
+        }
+        selectedPins.clear();
+    });
+});
+</script>
