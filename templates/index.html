@@ -9,8 +9,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 	<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 	<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+	<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
 
-    <title>Stimmungskarte Himberg</title>
+
+
+    <title>Stimmungskarte Krems | MUSTER</title>
 </head>
 <body>
 
@@ -19,25 +23,36 @@
 
 
 <div class="main-container">
+<!-- Add this button where you want it to appear on your HTML page -->
+
 
 <div style="display: flex; height: 100vh">
     <div id="map" style="flex-basis: 70%; border-radius: 0px"></div>
 
-    <div id="sidebar" style="flex-basis: 30%; padding: 10px; background-color: #ffffff; margin-bottom: 20px;">
+    <div id="sidebar" style="flex-basis: 30%; padding: 10px; background-color: #ffffff; margin-bottom: 0px;">
+
 
 <div style="display: flex; align-items: center;">
 
-<div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:810;">
+<div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
+    <div class="info-field" id="conditionsField">
+            <div class="info-subtitle" style="margin-bottom: 30px">Willkommen auf unserer Stimmungskarte!</div> 
+            <div class="info-text" >Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.</div>
+			            <div class="info-text" style="margin-bottom: 30px">Sie können Hinweise an Orten anbringen, die Sie entweder angenehm oder problematisch finden.</div>  
 
+                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Die Verwendung ist sehr einfach!</span></div>
+            <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.</div> 
+          <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie es auf der Karte.</div> 
+          <div class="info-subtitle"style="margin-bottom: 30px"><span style="color: #f77f00; font-weight: bold;">3.</span> Schreiben Sie auf, was Sie darüber denken!</div> 
+            <div class="info-text"> <span style="font-weight: bold;">Diese Hinweise können von der Gemeinde überprüft und zur Verbesserung des öffentlichen Raums genutzt werden.</div> 
+        </div>
 </div>
 </div>
 
 
-<img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-bottom: 0px; margin-top: 10px;     border-radius: 0px;">
-<div class="centered-text-container">
+<img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-top: -5px;     border-radius: 0px;">
     <h2>Wie stehen Sie zu den Orten in Ihrer Gemeinde?</h2>
-    <h2>Lassen Sie es uns auf dieser Karte wissen.</h2>
-</div>
+    <h2>Lassen Sie es uns auf dieser Karte wissen. </h2>
 
 
 		<button id="aboutBtn" class="button-menu" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
@@ -45,7 +60,7 @@
 
 
 
-<img src="static/overlay.jpg" class="hide-on-mobile" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-bottom: 0px; border-radius: 10px;">
+<img src="static/overlay.jpg" class="hide-on-mobile" style="max-width: 98%; height: auto; border: 5px solid white; display: block; margin-bottom: -4px; border-radius: 30px;">
 <!-- Mappy Container -->
 <div id="mappy-container">
     <div id="mapMobile"></div>
@@ -54,13 +69,37 @@
 
 <div class="centered-text-container" style="margin-bottom: 0px;">
 	</div>
-	<div class="current-total">
+	<div class="current-desktop">
 <div id="current-selection" class="current">Ausgewählt: <span id="selected-pin-type">...</span></div>
 </div>
 	
+	<div class="dropdown-container">
+
+    <div id="dropdown-options" class="options">
+        <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
+            <h3>Auf diesen Ort bin ich stolz.</h3>
+        </div>
+        <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
+            <h3>Hier fühle ich mich unsicher.</h3>
+        </div>
+        <div class="pin-menu" data-color="133873" style="background-color: #133873;">
+            <h3>Hier gibt es Probleme mit dem Parken.</h3>
+        </div>
+        <div class="pin-menu" data-color="358400" style="background-color: #358400;">
+            <h3>Hier verbringe ich gerne meine Freizeit.</h3>
+        </div>
+        <div class="pin-menu" data-color="431307" style="background-color: #431307;">
+            <h3>Dieser Ort braucht eine Verbesserung.</h3>
+        </div>
+        <div class="pin-menu" data-color="070707" style="background-color: #070707;">
+            <h3>Diesem Ort fehlt ein Service.</h3>
+        </div>
+    </div>
+</div>
+
 	<div id="pin-menu-desktop">
 
-<div class="pin-menu" data-color="FFB100" style="background-color: #FFB100;">
+<div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
     <h3>Auf diesen Ort bin ich stolz.</h3>
 </div>
 <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
@@ -82,29 +121,6 @@
 		</div>
 
 
-<div class="dropdown">
-    <button id="dropdown-button" class="dropdown-menu">Ausgewählt: ...</button>
-    <div id="dropdown-options" class="options">
-        <div class="pin-menu" data-color="FFB100" style="background-color: #FFB100;">
-            <h3>Auf diesen Ort bin ich stolz.</h3>
-        </div>
-        <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
-            <h3>Hier fühle ich mich unsicher.</h3>
-        </div>
-        <div class="pin-menu" data-color="133873" style="background-color: #133873;">
-            <h3>Hier gibt es Probleme mit dem Parken.</h3>
-        </div>
-        <div class="pin-menu" data-color="358400" style="background-color: #358400;">
-            <h3>Hier verbringe ich gerne meine Freizeit.</h3>
-        </div>
-        <div class="pin-menu" data-color="431307" style="background-color: #431307;">
-            <h3>Dieser Ort braucht eine Verbesserung.</h3>
-        </div>
-        <div class="pin-menu" data-color="070707" style="background-color: #070707;">
-            <h3>Diesem Ort fehlt ein Service.</h3>
-        </div>
-    </div>
-</div>
 
 
 
@@ -117,205 +133,284 @@
 
 <!-- LOGIC -->
 
+
+
+
+
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
-   // Initialize the map
-   
-const map = L.map('map').setView([48.0827, 16.4388], 16);
-const mapMobile = L.map('mapMobile').setView([48.0827, 16.4388], 16);
-setTimeout(() => mapMobile.invalidateSize(true), 300);  // Adjust the size after the map has been initialized.
+// Initialize main map
+    const map = L.map('map').setView([48.4102, 15.6022], 10);
+    map.setMinZoom(15);
 
-map.doubleClickZoom.disable();
+    // Initialize mobile map
+    const mapMobile = L.map('mapMobile').setView([48.4102, 15.6022], 10);
+    mapMobile.setMinZoom(14);
 
-let currentPopupLatLng = null;
+    setTimeout(() => {
+        mapMobile.invalidateSize(true);
+        map.invalidateSize(true);
+    }, 600);
 
-setTimeout(function() {
-        map.invalidateSize();
-    }, 300);
+    map.doubleClickZoom.disable();
 
-
-// OpenStreetMap Layer
-var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(mapMobile); // This will be the default layer when the map loads
-
-
-
-// Satellite Layer from Esri
-var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-});
-
-// Add a Layer Control to the map
-var layerControl = L.control.layers({
-    "Standardkarte": osmLayer,
-    "Satellit": satelliteLayer
-}).addTo(map);
-
-// Add a listener for when the base layer changes
-map.on('baselayerchange', function(eventLayer) {
-    if (eventLayer.name === 'Satellit') {
-        // When the satellite view is selected
-        setSatelliteStyle();
-    } else {
-        // When switching back to another view
-        resetStyle();
-    }
-});
-
-function setSatelliteStyle() {
-    const mapContainer = map.getContainer();
-    mapContainer.classList.add("satellite-view");
-}
-
-function resetStyle() {
-    const mapContainer = map.getContainer();
-    mapContainer.classList.remove("satellite-view");
-}
-
-
-// Define a function to calculate a point 10km from the center in all directions
-function calculateBounds(lat, lng, distanceInKm) {
-    const R = 6371; // Earth radius in kilometers
-    const dLat = distanceInKm / R;
-    const dLng = distanceInKm / (R * Math.cos((Math.PI * lat) / 180));
-
-    return [
-        [lat - dLat, lng - dLng],
-        [lat + dLat, lng + dLng]
-    ];
-}
-
-// Calculate the bounds 10km from Himberg
-const bounds = calculateBounds(48.0827, 16.4388, 16);
-
-// Set the bounds to restrict map movement
-map.setMaxBounds(bounds);
-
-
-    // Add OSM layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-	
-	
 
-    // Pins and descriptions
-const pins = {
-    "FFB100": "Something to be proud of",
-    "9A031E": "Unsafe area",
-    "133873": "Parking issues",
-    "358400": "Nice to spend free time at",
-    "431307": "Needs improvement",
-    "070707": "Missing service"
-};
+    const osmLayerMobile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapMobile);
 
-	
-	
-	let selectedColor = null;
-
-document.querySelectorAll(".pin-menu").forEach(menu => {
-    menu.addEventListener("click", function() {
-        selectedColor = this.getAttribute("data-color");
-        document.getElementById("selected-pin-type").innerText = pins[selectedColor];
-        document.getElementById("selected-pin-type").style.color = selectedColor;
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
     });
-});
+	
+	
 
-map.on('click', function(e) {
+    L.control.layers({
+        "Standardkarte": osmLayer,
+        "Satellit": satelliteLayer
+    }).addTo(map);
 
-	// Check if there's a current popup at the same LatLng
-		if (currentPopupLatLng && currentPopupLatLng.equals(e.latlng)) {
-			return; // Prevent creating a new popup if one already exists at the same LatLng
-		}
-		currentPopupLatLng = e.latlng;
-		if (selectedColor) {
-        // Calculate the dynamic font size here
+    L.control.layers({
+        "Standardkarte": osmLayerMobile,
+        "Satellit": satelliteLayer
+    }).addTo(mapMobile);
+	
+	
+
+    map.on('baselayerchange', function(eventLayer) {
+        if (eventLayer.name === 'Satellit') {
+            setSatelliteStyle(map);
+        } else {
+            resetStyle(map);
+        }
+    });
+
+    mapMobile.on('baselayerchange', function(eventLayer) {
+        if (eventLayer.name === 'Satellit') {
+            setSatelliteStyle(mapMobile);
+        } else {
+            resetStyle(mapMobile);
+        }
+    });
+
+    function setSatelliteStyle(mapInstance) {
+        const mapContainer = mapInstance.getContainer();
+        mapContainer.classList.add("satellite-view");
+    }
+
+    function resetStyle(mapInstance) {
+        const mapContainer = mapInstance.getContainer();
+        mapContainer.classList.remove("satellite-view");
+    }
+
+    map.on('click', handleMapClick);
+    mapMobile.on('click', handleMapClick);
+
+    const latlng = [48.4102, 15.6022];
+    const distanceInKm = Math.sqrt(10);
+    const point = turf.point([latlng[1], latlng[0]]);
+    const buffered = turf.buffer(point, distanceInKm / 2, { units: 'kilometers' });
+    const squareCoords = turf.bboxPolygon(turf.bbox(buffered)).geometry.coordinates[0];
+
+function keepInView(mapInstance, boundaryPolygon) {
+    mapInstance.on('moveend', function() {
+        if (!boundaryPolygon.getBounds().contains(mapInstance.getBounds())) {
+            mapInstance.fitBounds(boundaryPolygon.getBounds());
+        }
+    });
+}
+
+
+
+// Create the boundary polygons
+const squareForMap = L.polygon([
+    [squareCoords[0][1], squareCoords[0][0]],
+    [squareCoords[1][1], squareCoords[1][0]],
+    [squareCoords[2][1], squareCoords[2][0]],
+    [squareCoords[3][1], squareCoords[3][0]],
+    [squareCoords[4][1], squareCoords[4][0]]
+], {color: 'grey', weight: 1, fillColor: 'none'}).addTo(map);
+
+const squareForMapMobile = L.polygon([
+    [squareCoords[0][1], squareCoords[0][0]],
+    [squareCoords[1][1], squareCoords[1][0]],
+    [squareCoords[2][1], squareCoords[2][0]],
+    [squareCoords[3][1], squareCoords[3][0]],
+    [squareCoords[4][1], squareCoords[4][0]]
+], {color: 'grey', weight: 1, fillColor: 'none'}).addTo(mapMobile);
+
+// Apply the keepInView function to both map instances
+keepInView(map, squareForMap);
+keepInView(mapMobile, squareForMapMobile);
+
+
+
+
+// Add a light grey overlay for the main map
+const outerBounds = [
+  [-90, -180],
+  [-90, 180],
+  [90, 180],
+  [90, -180]
+];
+
+const overlay = L.polygon([outerBounds, [
+    [squareCoords[0][1], squareCoords[0][0]],
+    [squareCoords[1][1], squareCoords[1][0]],
+    [squareCoords[2][1], squareCoords[2][0]],
+    [squareCoords[3][1], squareCoords[3][0]],
+    [squareCoords[4][1], squareCoords[4][0]]
+]], {
+    color: 'none',
+    fillColor: 'grey',
+    fillOpacity: 0.0  // Reduced opacity to 0.1
+}).addTo(map);
+
+const overlayMobile = L.polygon([outerBounds, [
+    [squareCoords[0][1], squareCoords[0][0]],
+    [squareCoords[1][1], squareCoords[1][0]],
+    [squareCoords[2][1], squareCoords[2][0]],
+    [squareCoords[3][1], squareCoords[3][0]],
+    [squareCoords[4][1], squareCoords[4][0]]
+]], {
+    color: 'none',
+    fillColor: 'grey',
+    fillOpacity: 0.0  // Reduced opacity to 0.1
+}).addTo(mapMobile);
+
+
+
+    function calculateBounds(lat, lng, distanceInKm) {
+        const R = 6371;
+        const dLat = distanceInKm / R;
+        const dLng = distanceInKm / (R * Math.cos((Math.PI * lat) / 180));
+        return [
+            [lat - dLat, lng - dLng],
+            [lat + dLat, lng + dLng]
+        ];
+    }
+
+	// Add this line to declare currentPopupLatLng
+	let currentPopupLatLng = null;
+    
+    function handleMapClick(e) {
+    const targetSquare = e.target === map ? squareForMap : squareForMapMobile;
+    
+    if (selectedColor === null) {
+        alert("Wählen Sie zunächst eine Option aus.");
+        return;
+    }
+
+    if (targetSquare.getBounds().contains(e.latlng)) {
+        // Add this check to see if a popup is already open at the clicked position
+        if (currentPopupLatLng && currentPopupLatLng.equals(e.latlng)) {
+            return;
+        }
+        currentPopupLatLng = e.latlng;
+
         const containerWidth = document.querySelector('#sidebar').offsetWidth;
-        const fontSize = Math.max(12, containerWidth / 30); // Adjust the formula as needed
+        const fontSize = Math.max(12, containerWidth / 30);
 
         const popupContent = `
-            <textarea id="feedbackText" rows="4" cols="40" placeholder="Wie denkst du über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
+            <textarea id="feedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
             <button id="postFeedback" style="font-size: ${fontSize}px;">Post</button>
             <button id="cancelFeedback" style="font-size: ${fontSize}px;">Cancel</button>
         `;
-		
-		
 
         const popup = L.popup()
             .setLatLng(e.latlng)
             .setContent(popupContent)
-            .openOn(map);
+            .openOn(e.target);
 
-        document.getElementById('postFeedback').addEventListener('click', function() {
-            const feedback = document.getElementById('feedbackText').value;
-            if (feedback.length >= 10) {
-                L.marker(e.latlng, {
-                    icon: L.divIcon({
-                        className: `pin-style pin-${selectedColor}`,
-                        iconSize: [24, 24]
-                    })
-                }).bindPopup(feedback).addTo(map);
+            document.getElementById('postFeedback').addEventListener('click', function() {
+                const feedback = document.getElementById('feedbackText').value;
+                if (feedback.length >= 10) {
+                    L.marker(e.latlng, {
+                        icon: L.divIcon({
+                            className: `pin-style pin-${selectedColor}`,
+                            iconSize: [24, 24]
+                        })
+                    }).bindPopup(feedback).addTo(e.target);
 
-                // Send data to server
-                fetch('/add_pin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        lat: e.latlng.lat,
-                        lon: e.latlng.lng,
-                        pin_type: selectedColor,
-                        description: feedback
-                    })
-                });
+                    fetch('/add_pin', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            lat: e.latlng.lat,
+                            lon: e.latlng.lng,
+                            pin_type: selectedColor,
+                            description: feedback
+                        })
+                    });
 
-                map.closePopup();
-            } else {
-                alert("Bitte geben Sie mindestens 10 Buchstaben ein.");
-            }
-        });
+                    e.target.closePopup();
+                } else {
+                    alert("Bitte geben Sie mindestens 10 Buchstaben ein.");
+                }
+            });
 
-        document.getElementById('cancelFeedback').addEventListener('click', function() {
-            popup._close();
+            document.getElementById('cancelFeedback').addEventListener('click', function() {
+                popup._close();
+            });
+        } else {
+            alert("Sie dürfen Notizen nur innerhalb des Stadtgebiets platzieren.");
+        }
+    }
 
+    function loadPins(pins) {
+        pins.forEach(pin => {
+            L.marker([pin.lat, pin.lon], {
+                icon: L.divIcon({
+                    className: `pin-${pin.pin_type}`,
+                    iconSize: [24, 24]
+                })
+            }).bindPopup(pin.description).addTo(map);
         });
     }
-});
 
 
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-	
-	function loadPins(pins) {
-    pins.forEach(pin => {
-        L.marker([pin.lat, pin.lon], {
-            icon: L.divIcon({
-                className: `pin-${pin.pin_type}`,
-                iconSize: [24, 24]
-            })
-        }).bindPopup(pin.description).addTo(map);
+    const pins = {
+        "ff5c00": "Something to be proud of",
+        "9A031E": "Unsafe area",
+        "133873": "Parking issues",
+        "358400": "Nice to spend free time at",
+        "431307": "Needs improvement",
+        "070707": "Missing service"
+    };
+
+    let selectedColor = null;
+
+    document.querySelectorAll(".pin-menu").forEach(menu => {
+        menu.addEventListener("click", function() {
+            selectedColor = this.getAttribute("data-color");
+            document.getElementById("selected-pin-type").innerText = pins[selectedColor];
+            document.getElementById("selected-pin-type").style.color = selectedColor;
+        });
     });
-}
 
-    
-
-// Add this at the end of your script to load pins from the server:
-document.addEventListener("DOMContentLoaded", function() {
-    fetch('/')
-    .then(response => response.json())
-    .then(data => loadPins(data.pins));
-});
-
-
- map.once('popupclose', function() {
-        currentPopupLatLng = null;
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch('/')
+            .then(response => response.json())
+            .then(data => loadPins(data.pins));
     });
 	
-	
-
 
 </script>
+
+
+
+
+
+<script>
 
 <!-- LOGIC - DROPDOWN MOBILE -->
 
@@ -414,9 +509,13 @@ window.addEventListener("resize", function() {
 <script>
 function updateFontSize() {
     const containerWidth = document.querySelector('#sidebar').offsetWidth;
-    const baseFontSize = Math.max(12, containerWidth / 30);
+    const isMobile = window.innerWidth <= 900; // Check if the device is mobile
 
-    document.querySelectorAll('.pin-menu h3, #aboutBtn, #current-selection').forEach(el => {
+    const baseFontSize = isMobile ? 
+                         Math.max(16, containerWidth / 20) :  
+                         Math.max(12, containerWidth / 30);
+
+    document.querySelectorAll('.pin-menu h3, #aboutBtn, #dropdown-button, #current-selection').forEach(el => {
         el.style.fontSize = `${baseFontSize}px`;
     });
 
@@ -429,6 +528,13 @@ function updateFontSize() {
     document.querySelectorAll('.centered-text-container h2').forEach(h2 => {
         h2.style.fontSize = `${centeredH2FontSize}px`;
     });
+
+    // Adjust the pin-menu font size on mobile
+    if (isMobile) {
+        document.querySelectorAll('.pin-menu h3').forEach(el => {
+            el.style.fontSize = `${Math.max(12, baseFontSize * 0.8)}px`; // You can adjust the factor "0.8" as required
+        });
+    }
 }
 
 window.addEventListener('resize', updateFontSize);
@@ -436,11 +542,136 @@ updateFontSize();
 
 </script>
 
-
+<!-- DELETE FUNCTION - INDIVIDUAL PIN REMOVAL -->
 <script>
+document.addEventListener("DOMContentLoaded", function () {
+    let deleteMode = false;
+    let map = L.map('map').setView([0, 0], 2);
+    let markers = {};
 
+    // Fetch initial pins from the server
+    fetch('/get_pins')
+    .then(response => response.json())
+    .then(data => {
+        data.pins.forEach(addPin);
+    });
+
+	function addPin(pin) {
+		const marker = L.marker([pin.lat, pin.lon]).addTo(map);
+		marker.pin_id = pin.id;  // Assign id to marker
+		markers[pin.id] = marker; // Save marker by id
+
+        const idLabel = L.divIcon({
+            className: 'pin-label',
+            html: `<div>${pin.id}</div>`,
+            iconSize: [30, 15],
+            iconAnchor: [15, 0]
+        });
+
+        const labelMarker = L.marker([pin.lat, pin.lon], { icon: idLabel, clickable: false }).addTo(map);
+        labelMarker._icon.style.zIndex = 500; // make labels appear above markers
+
+        if (deleteMode) {
+            labelMarker.addTo(map);
+        }
+
+        marker.on('click', function() {
+            if (deleteMode) {
+                fetch(`/delete_pin/${pin.id}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        map.removeLayer(marker);
+                        map.removeLayer(labelMarker);
+                        delete markers[pin.id];
+                    }
+                });
+            }
+        });
+    }
+
+    document.getElementById("deleteSelectedPins").addEventListener("click", function() {
+        deleteMode = !deleteMode;
+
+        if (deleteMode) {
+            // Open the window to enter pin IDs for mass deletion
+            const pinIDs = window.prompt('Enter pin IDs to delete, separated by commas');
+            if (pinIDs) {
+                const ids = pinIDs.split(',').map(id => parseInt(id.trim()));
+                ids.forEach(id => {
+                    fetch(`/delete_pin/${id}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && markers[id]) {
+                            map.removeLayer(markers[id]);
+                            delete markers[id];
+                        }
+                    });
+                });
+            }
+        }
+
+        // Toggle display of label markers based on deleteMode
+        Object.keys(markers).forEach(pin_id => {
+            const marker = markers[pin_id];
+            marker.getPopup().setContent(deleteMode ? `${marker.getPopup().getContent()} <br> ID: ${pin_id}` : pin_id);
+        });
+
+        this.textContent = deleteMode ? 'Cancel Delete' : 'Delete Selected Pins';
+    });
+});
 
 </script>
+
+
+<!--DELETE FUNCTION - PIN REMOVAL -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteAllPinsButton = document.getElementById('deleteAllPins');
+
+    deleteAllPinsButton.addEventListener('click', function() {
+        const confirmDelete = confirm("Are you sure you want to delete all pins?");
+        
+        if (confirmDelete) {
+            // Remove from frontend
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            mapMobile.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    mapMobile.removeLayer(layer);
+                }
+            });
+
+            // Remove from backend
+            fetch('/delete_all_pins', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("All pins deleted successfully");
+                } else {
+                    console.log("Failed to delete pins");
+                }
+            })
+            .catch(error => {
+                console.log("An error occurred while deleting pins:", error);
+            });
+        }
+    });
+});
+
+</script>
+
+
 
 <!-- CSS PINS -->
 <style>
@@ -451,6 +682,31 @@ updateFontSize();
 </style>
 
 <style>
+
+
+
+.pin-label {
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: red;
+}
+
+.delete-button {
+    background-color: black;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    border: none;
+}
+
+#pin-menu-desktop {
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+}
+
+
 .options {
     display: none;
     position: absolute;
@@ -464,15 +720,14 @@ updateFontSize();
     display: block;
 }
 
+
+
 .pin-menu h3 {
     color: white;
 }
 
 
-/* Hide desktop version by default */
-.current-desktop {
-    display: none;
-}
+
 
 /* Hide mobile version by default */
 .current-mobile {
@@ -480,25 +735,27 @@ updateFontSize();
 }
 
 /* On larger screens, only show the desktop version */
-@media screen and (min-width: 811px) {
-    .current-desktop {
-        display: block;
-    }
+@media screen and (min-width: 901px) {
+
     .current-mobile {
         display: none;
     }
+	   #dropdown-options {
+        display: none !important; /* Using !important to ensure this rule takes precedence over inline styles or other conflicting styles */
+    }
 }
 
-/* On smaller screens (or equal to 810px), only show the mobile version */
-@media screen and (max-width: 810px) {
-    .current-desktop {
-        display: none;
-    }
+/* On smaller screens (or equal to 900px), only show the mobile version */
+@media screen and (max-width: 900px) {
+
     .current-mobile {
         display: block;
     }
 }
 
+.options {
+    display: block; /* This shows the dropdown on mobile devices by default */
+}
 
 
 
@@ -508,7 +765,7 @@ updateFontSize();
 }
 
 /* Show mappy-container only on smaller screens */
-@media (max-width: 810px) {
+@media (max-width: 900px) {
     #mappy-container {
         display: block;
         margin: 3px;
@@ -518,6 +775,7 @@ updateFontSize();
     #mapMobile {
         height: 400px;
         width: 100%;
+		border-radius: 30px;
     }
 	
 	 .hide-on-mobile {
@@ -536,7 +794,7 @@ updateFontSize();
 }
 
 /* Show mobile dropdown and hide desktop menu on smaller screens */
-@media (max-width: 810px) {
+@media (max-width: 900px) {
     #pin-menu-desktop {
         display: none;
     }
@@ -545,8 +803,9 @@ updateFontSize();
     }
 }
 
+/* Remove conflicting styles, if any */
 .leaflet-control-layers-toggle {
-    background-image: none !important;
+    background-image: none;
     font-size: 20px;
     line-height: 24px;
     font-weight: bold;
@@ -555,12 +814,12 @@ updateFontSize();
 
 /* Custom Layer Control styles */
 .leaflet-control-layers-toggle {
-    background-image: url(static/mapicon.png);
-    background-color: transparent !important;
+    background-image: url('static/mapicon.png');  /* Check if this path is correct */
+    background-color: transparent;
     background-repeat: no-repeat;
     background-position: center;
-    width: 36px; /* Adjust as needed */
-    height: 36px; /* Adjust as needed */
+    width: 36px;
+    height: 36px;
 }
 
 
@@ -609,8 +868,8 @@ updateFontSize();
 }
 
 
-.satellite-view .pin-FFB100 {
-    background-image: radial-gradient(circle, #FFB100 50%, rgba(255, 177, 0, 0.7) 50%);
+.satellite-view .pin-ff5c00 {
+    background-image: radial-gradient(circle, #ff5c00 50%, rgba(255, 177, 0, 0.7) 50%);
     border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
@@ -640,9 +899,9 @@ updateFontSize();
 }
 
 
-.pin-FFB100 {
-    color: #FFB100;
-    background-image: radial-gradient(circle, #FFB100 30%, rgba(255, 177, 0, 0.2) 40%);
+.pin-ff5c00 {
+    color: #ff5c00;
+    background-image: radial-gradient(circle, #ff5c00 30%, rgba(255, 177, 0, 0.2) 40%);
 }
 
 .pin-9A031E {
@@ -693,40 +952,92 @@ updateFontSize();
     display: block;
     width: 100%;
     transition: background-color 0.2s ease-in-out;
-    border-radius: 10px;
+    border-radius: 30px;
     box-sizing: border-box;
     text-align: center;
     background-color: white;
     color: black;
 }
 
+.dropdown-menu2 {
 
+    font-weight: bold;
+    border: 5px solid white;
+    margin: -1px 0;
+	padding: 0px 10px;
+    line-height: 0;  /* Adjust line-height */
+    cursor: pointer;
+    font-size: 24px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+    padding: 0px 10px; /* Adjust padding as per design requirement */
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    box-sizing: border-box;
+    text-align: center;
+}
 
 .button-menu {
     font-weight: bold;
     border: 5px solid white;
-    padding: 10px 0;
+    padding: 7px 0;
     margin: 2px 0;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 24px;
     text-decoration: none;
     display: block;
     width: 100%;
     transition: background-color 0.2s ease-in-out;
-    border-radius: 10px;
+    border-radius: 30px;
     box-sizing: border-box;
     text-align: center;
     color: white;
 }
 
 
+    font-weight: bold;
+    border: 4px solid white;
+    margin: -1px 0;
+	padding: 0px 10px;
+    line-height: 0;  /* Adjust line-height */
+    cursor: pointer;
+    font-size: 24px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+    padding: 0px 10px; /* Adjust padding as per design requirement */
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    box-sizing: border-box;
+    text-align: center;
+}
 .centered-text-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
+    width: 100%; /* Ensure it takes up the full width of its parent. */
 }
+
+.centered-text-container h2 {
+    font-size: 4vw; /* This will make the font size 4% of the viewport width. Adjust this as necessary. */
+}
+
+@media screen and (max-width: 900px) {
+    .centered-text-container h2 {
+        font-size: 5vw; /* Increase font size on smaller screens. Adjust as necessary. */
+    }
+}
+
+.centered-text-container h2 {
+    margin: 0; /* Removes default margins. Adjust if you need some spacing between them. */
+    padding: 0; /* Removes any default padding. */
+}
+
 
 
 #sidebar h2 {
@@ -734,7 +1045,7 @@ updateFontSize();
 }
 
 
-.pin-FFB100 { color: #FFB100; }
+.pin-ff5c00 { color: #ff5c00; }
 .pin-9A031E { color: #9A031E; }
 .pin-133873 { color: #133873; }
 .pin-358400 { color: #358400; }
@@ -743,21 +1054,24 @@ updateFontSize();
 
 .pin-menu {
     font-weight: bold;
-    border: 5px solid white;
+    border: 4px solid white;
     margin: -1px 0;
-	    line-height: 0;  /* Adjust line-height */
-
+	padding: 0px 10px;
+    line-height: 0;  /* Adjust line-height */
     cursor: pointer;
-    font-size: 20px;
+    font-size: 24px;
     text-decoration: none;
     display: block;
     width: 100%;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+    padding: 0px 10px; /* Adjust padding as per design requirement */
     transition: background-color 0.2s ease-in-out;
-    border-radius: 10px;
+    border-radius: 30px;
     box-sizing: border-box;
     text-align: center;
-    color: white;
 }
+
+
 
 .pin-menu:hover {
     background-color: #e0e0e0;
@@ -783,14 +1097,18 @@ updateFontSize();
     flex-basis: 20%;
     padding: 20px;
     background-color: ##405F5E;  /* Updated this line */
-    margin: 2.5%;
+    margin-top: 1.5%;
+	    margin-bottom: 1.5%;
+    margin-left: 2.5%;
+    margin-right: 2.5%;
+
     border-radius: 10px;
 	
 }
 .current {
     font-weight: bold;
     border: 5px solid white;
-    padding: 3px 0;
+    padding: 50px 0;
     margin: 2px 0;
     cursor: pointer;
     font-size: 15px;
@@ -874,29 +1192,140 @@ body {
 
 
 /* MOBILE CSS */
+
+
+h2 {
+    text-align: center; /* Center text horizontally */
+
+    /* If you want to center the h2 vertically within its container, you can use these properties, but they might not be necessary for all use cases: */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
 .leaflet-container .leaflet-tile {
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
 }
 
+@media screen and (min-width: 901px) {
+    #dropdown-button {
+        display: none;
+		margin-top:10px;
+
+    }
+	
+	
+}
+
+@media screen and (max-width: 900px) {
+    .pin-menu {
+	 font-size: 2vw; /* adjust as needed */
+        max-height: calc(2em + 14px); /* 2 times the font size + 2 times the padding */
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        box-sizing: border-box;
+		 display: flex;
+        justify-content: center;
+        align-items: center;
+        height: auto;  // This ensures the container grows with its content
+        padding: 7px;
+    }
+}
+
+@media screen and (min-width: 901px) {
+    #dropdown-options {
+        display: none !important; /* Important can ensure that this rule takes precedence over inline styles */
+    }
+}
+
+@media screen and (max-width: 900px) {
 
 
-@media screen and (max-width: 810px) {
+.dropdown-container {
+    width: 100%; /* Ensure the container takes full width of its parent */
+    padding: 0;  /* Remove padding so children can stretch fully */
+    box-sizing: border-box; /* This will include any padding and borders in the element's total width */
+	   position: relative;
+}
     ...
+.clearfix::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Dropdown button */
+   #dropdown-button {
+           font-weight: bold;
+    border: 5px solid white;
+    padding: 7px 0;
+    margin: 2px 0;
+    cursor: pointer;
+    font-size: 24px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    box-sizing: border-box;
+    text-align: center;
+    color: white;
+	    z-index: 2;  /* Ensure it's above the dropdown-options in stacking order */
+
+}
+
+	
+/* Dropdown icon (you can use an actual icon; this is just for demonstration) */
+#dropdown-button:after {
+    content: "▼"; /* A downward arrow; you can replace this with an SVG or another icon */
+    width: 100%; /* Stretching across the entire boundaries */
+        margin-left: 0; /* Removing left margin */
+        margin-right: 0; /* Removing right margin */
+    }
+
+
+/* Options that appear on dropdown click */
+#dropdown-options {
+    border-top: none; /* Remove top border to blend with dropdown button */
+    border-radius: 0 0 10px 10px; /* Only round bottom corners */
+	max-width: 100%;
+    top: 100%;  /* Positioning it right below the dropdown-button */
+		  width: 100%;
+        left: 0;
+        right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        box-sizing: border-box;
+	    z-index: 1;  /* Ensure it's above the dropdown-options in stacking order */
+
+}
+
+
+
+    h2 + h2 {
+        margin-top: -10px; /* Adjust this value to control the gap. Negative values bring the lines closer together. */
+    }
 
     .main-container {
-    display: flex;
-        height: 100%; /* Use 100% height on mobile */
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-}
-	#sidebar {
-        width: 100%;
+        display: flex;
+        width: 100%;  /* Ensure this container takes the full width */
+        height: 100%;
+        flex-direction: column;
+        align-items: center; 
+        justify-content: flex-start;
+        padding: 0;  /* Ensure no padding */
+        margin: 0;  /* Ensure no margin */
+    }
+ #sidebar {
+        width: 90%; 
+        max-width: 90%;  /* Ensure it doesn't go beyond this width */
         padding: 10px;
-        box-sizing: border-box; /* Consider the padding and border in the total width */
-        height: auto; /* Allow the height to grow based on content */
+        box-sizing: border-box; 
+        height: auto; 
+        margin: 0 auto;  /* Centering shorthand */
     }
 
     #mapContainer {
@@ -913,7 +1342,7 @@ body {
 
 
 
-@media screen and (max-width: 810px) {
+@media screen and (max-width: 900px) {
    
    div[style="display: flex; height: 100vh"] {
         flex-direction: column;
@@ -933,27 +1362,11 @@ body {
 		
     }
     
-    /* Headings next to logo */
-    div > h2 {
-        margin-left: 0;
-		
-        text-align: center;
-        padding: 10px 0;
-    }
-    
+   
     /* Map below headings */
 
 
 
-    /* Buttons and menu items stacked below map */
-    .button-menu, .pin-menu, #aboutBtn, #current-selection {
-        display: block;
-        width: 100%;
-        margin-top: 10px 0;
-		        margin-bottom: 0px 0;
-
-        box-sizing: border-box;
-    }
     
     /* Container adjustment */
     div[style="display: flex; height: 100vh"] {
@@ -963,11 +1376,6 @@ body {
 
 
 
-    /* Adjust pin menu items */
-    .pin-menu {
-        margin: 10px 0;
-        border: 1px solid #ddd;
-    }
 }
 
 
@@ -975,8 +1383,8 @@ body {
 
 
 
-.cursor-pin-FFB100 { 
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23FFB100" /></svg>'), auto; 
+.cursor-pin-ff5c00 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ff5c00" /></svg>'), auto; 
 }
 .cursor-pin-9A031E { 
     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%239A031E" /></svg>'), auto; 
@@ -1004,6 +1412,12 @@ function applyColor() {
     console.log(color);  // For testing purposes
 }
 </script>
+
+<!-- HAMBURGER MENU CLOSING LOGIC -->
+<script>
+
+</script>
+
 
 <!-- PIN CARRYING UPON CLICK -->
 <script>
@@ -1034,23 +1448,79 @@ map.on('click', function(e) {
 document.addEventListener("DOMContentLoaded", function() {
     fetch('/get_pins')  // Assuming '/get_pins' is the endpoint that returns all pins
     .then(response => response.json())
-    .then(data => loadPins(data.pins));
+    .then(data => {
+        if(data && data.pins) {
+            loadPins(data.pins);
+        }
+    });
 });
 
 function loadPins(pins) {
     pins.forEach(pin => {
-        const marker = L.marker([pin.lat, pin.lon], {
-            icon: L.divIcon({
-                className: `pin-style pin-${pin.pin_type}`,
-                iconSize: [24, 24]
-            })
-        }).bindPopup(pin.description);
-        marker.addTo(map);
-        marker.addTo(mapMobile);
+        const markerIcon = L.divIcon({
+            className: `pin-style pin-${pin.pin_type}`,
+            iconSize: [24, 24]
+        });
+
+        const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(pin.description);
+        const markerMapMobile = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(pin.description);
+
+        markerMap.addTo(map);
+        markerMapMobile.addTo(mapMobile);
     });
 }
 
+function applyColor() {
+    let selectedOption = document.querySelector('#pin-dropdown option:checked');
+    let color = selectedOption.getAttribute('data-color');
+    console.log(color);  // For testing purposes
+}
 
+document.querySelectorAll(".pin-menu").forEach(menu => {
+    menu.addEventListener("click", function() {
+        let selectedColor = this.getAttribute("data-color");
+        document.getElementById("selected-pin-type").innerText = pins[selectedColor];
+        document.getElementById("selected-pin-type").style.color = "#" + selectedColor;
+
+        // Update cursor style for both maps
+        map.getContainer().classList.remove(...Array.from(map.getContainer().classList).filter(c => c.startsWith('cursor-pin-')));
+        mapMobile.getContainer().classList.remove(...Array.from(mapMobile.getContainer().classList).filter(c => c.startsWith('cursor-pin-')));
+        
+        map.getContainer().classList.add(`cursor-pin-${selectedColor}`);
+        mapMobile.getContainer().classList.add(`cursor-pin-${selectedColor}`);
+    });
+});
+
+// Handle pin placement for both maps
+function handleMapClick(mapInstance) {
+    mapInstance.on('click', function(e) {
+        const markerIcon = L.divIcon({
+            className: `pin-style pin-${selectedColor}`,  // Assuming 'selectedColor' is the selected pin color
+            iconSize: [24, 24]
+        });
+        
+        const marker = L.marker([e.latlng.lat, e.latlng.lon], { icon: markerIcon }).bindPopup('Description Here'); // Replace 'Description Here' as needed
+        marker.addTo(mapInstance);
+
+        // Optionally, add logic to save the pin to your server
+    });
+    
+    // Remove custom cursor after pin is placed
+    mapInstance.getContainer().classList.remove(...Array.from(mapInstance.getContainer().classList).filter(c => c.startsWith('cursor-pin-')));
+}
+
+handleMapClick(map);
+handleMapClick(mapMobile);
+
+document.getElementById('aboutBtn').addEventListener('click', function() {
+    document.getElementById('infoModal').style.display = 'flex';
+});
+
+document.getElementById('infoModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        this.style.display = 'none';
+    }
+});
 </script>
 
 <script>

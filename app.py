@@ -12,38 +12,26 @@ class Pin(db.Model):
     pin_type = db.Column(db.String(20), nullable=False)
     description = db.Column(db.String(200), nullable=True)
 
+@app.route('/delete_pin/<int:pin_id>', methods=['POST'])
+def delete_pin(pin_id):
+    pin_to_delete = Pin.query.get(pin_id)
+    if pin_to_delete:
+        db.session.delete(pin_to_delete)
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False})
 
-@app.route('/delete_all_pins', methods=['DELETE'])
+@app.route('/delete_all_pins', methods=['POST'])
 def delete_all_pins():
-    try:
-        db.session.query(Pin).delete()
-        db.session.commit()
-        return jsonify({"message": "All pins deleted!"}), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
-
-@app.route('/delete_selected_pins', methods=['DELETE'])
-def delete_selected_pins():
-    data = request.get_json()
-    selected_pin_ids = data.get('pin_ids', [])
-
-    try:
-        for pin_id in selected_pin_ids:
-            pin_to_delete = Pin.query.get(pin_id)
-            if pin_to_delete:
-                db.session.delete(pin_to_delete)
-        db.session.commit()
-        return jsonify({"message": f"Deleted {len(selected_pin_ids)} pins!"}), 200
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
-
-
+    db.session.query(Pin).delete()
+    db.session.commit()
+    return jsonify({'success': True})
 
 @app.route('/')
 def index():
     pins = Pin.query.all()
     return render_template('index.html', pins=pins)
-    
+
 @app.route('/admin')
 def admin():
     return render_template('admin.html')
@@ -55,7 +43,7 @@ def add_pin():
     db.session.add(new_pin)
     db.session.commit()
     return jsonify({"message": "Pin added!"})
-    
+
 @app.route('/get_pins', methods=['GET'])
 def get_pins():
     pins = Pin.query.all()
@@ -66,7 +54,7 @@ def get_pins():
         'description': pin.description
     } for pin in pins])
 
-
 if __name__ == "__main__":
-    db.create_all()
+    with app.app_context():  # This line pushes an application context
+        db.create_all()  # Now inside an app context, this should work
     app.run(debug=True)
