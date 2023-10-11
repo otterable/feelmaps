@@ -11,6 +11,8 @@
 	<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 	<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 
 
@@ -65,6 +67,8 @@
 <div id="mappy-container">
     <div id="mapMobile"></div>
 </div>
+
+
         <!-- Pin Menu -->
 
 <div class="centered-text-container" style="margin-bottom: 0px;">
@@ -195,6 +199,48 @@
             resetStyle(mapMobile);
         }
     });
+	
+	
+	const layers = {
+    "ff5c00": L.layerGroup().addTo(map).addTo(mapMobile),
+    "9A031E": L.layerGroup().addTo(map).addTo(mapMobile),
+    "133873": L.layerGroup().addTo(map).addTo(mapMobile),
+    "358400": L.layerGroup().addTo(map).addTo(mapMobile),
+    "431307": L.layerGroup().addTo(map).addTo(mapMobile),
+    "070707": L.layerGroup().addTo(map).addTo(mapMobile)
+};
+
+// Function to add marker to both map and mapMobile
+function addMarkerToMaps(latlng, pinType, description) {
+    const marker = L.marker(latlng, {
+        icon: L.divIcon({
+            className: `pin-${pinType}`,
+            iconSize: [24, 24]
+        })
+    }).bindPopup(description);
+    
+    marker.addTo(layers[pinType]);
+}
+
+function loadPins(pins) {
+    pins.forEach(pin => addMarkerToMaps([pin.lat, pin.lon], pin.pin_type, pin.description));
+}
+// Event listeners for checkboxes
+document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
+    checkbox.addEventListener("change", function() {
+        const pinType = this.getAttribute("data-pin-type");
+        if (this.checked) {
+            map.addLayer(layers[pinType]);
+            mapMobile.addLayer(layers[pinType]);
+        } else {
+            map.removeLayer(layers[pinType]);
+            mapMobile.removeLayer(layers[pinType]);
+        }
+    });
+});
+
+
+
 
     function setSatelliteStyle(mapInstance) {
         const mapContainer = mapInstance.getContainer();
@@ -283,6 +329,7 @@ const overlayMobile = L.polygon([outerBounds, [
 
 
 
+
     function calculateBounds(lat, lng, distanceInKm) {
         const R = 6371;
         const dLat = distanceInKm / R;
@@ -310,6 +357,8 @@ const overlayMobile = L.polygon([outerBounds, [
             return;
         }
         currentPopupLatLng = e.latlng;
+		
+		
 
         const containerWidth = document.querySelector('#sidebar').offsetWidth;
         const fontSize = Math.max(12, containerWidth / 30);
@@ -386,6 +435,38 @@ const overlayMobile = L.polygon([outerBounds, [
         "431307": "Needs improvement",
         "070707": "Missing service"
     };
+	
+	 // Function to create checkboxes dynamically
+    function createCheckboxes() {
+        const filterMenu = document.getElementById('filter-menu');
+
+        for (const [color, description] of Object.entries(pins)) {
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+
+            checkbox.type = 'checkbox';
+            checkbox.className = 'filter-checkbox';
+            checkbox.setAttribute('data-pin-type', color);
+            checkbox.checked = true;
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(` ${description}`));
+            label.appendChild(document.createElement('br'));
+
+            filterMenu.appendChild(label);
+        }
+    }
+
+    // Create the checkboxes when the document is loaded
+    document.addEventListener("DOMContentLoaded", function() {
+        createCheckboxes();
+
+        // Your existing code to fetch pins
+        fetch('/')
+            .then(response => response.json())
+            .then(data => loadPins(data.pins));
+    });
+
 
     let selectedColor = null;
 
@@ -403,6 +484,9 @@ const overlayMobile = L.polygon([outerBounds, [
             .then(data => loadPins(data.pins));
     });
 	
+
+
+
 
 </script>
 
@@ -470,6 +554,7 @@ pinMenus.forEach(function(menu) {
 
     });
 });
+
 </script>
 
 
