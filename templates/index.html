@@ -72,15 +72,15 @@
 
 <div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
     <div class="info-field" id="conditionsField">
-            <div class="info-subtitle" style="margin-bottom: 30px">Willkommen auf unserer Stimmungskarte!</div> 
+            <div class="info-subtitle" style="margin-bottom: 30px">Willkommen auf der Stimmungskarte!</div> 
             <div class="info-text" >Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.</div>
-			            <div class="info-text" style="margin-bottom: 30px">Sie können Hinweise an Orten anbringen, die Sie entweder angenehm oder problematisch finden.</div>  
+			            <div class="info-text" style="margin-bottom: 30px">Sie können Hinweise an Orten anbringen, die Sie entweder als angenehm oder problematisch empfinden.</div>  
 
-                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Die Verwendung ist sehr einfach!</span></div>
+                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Und so funktioniert es:</span></div>
             <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.</div> 
-          <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie es auf der Karte.</div> 
-          <div class="info-subtitle"style="margin-bottom: 30px"><span style="color: #f77f00; font-weight: bold;">3.</span> Schreiben Sie auf, was Sie darüber denken!</div> 
-            <div class="info-text"> <span style="font-weight: bold;">Diese Hinweise können von der Gemeinde überprüft und zur Verbesserung des öffentlichen Raums genutzt werden.</div> 
+          <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie einen Pin auf der Karte.</div> 
+          <div class="info-subtitle"style="margin-bottom: 30px"><span style="color: #f77f00; font-weight: bold;">3.</span> Teilen Sie uns Ihre Meinung mit!</div> 
+            <div class="info-text"> <span style="font-weight: bold;">Ihre Beiträge sind anonym und können von der Gemeinde zur Verbesserung des öffentlichen Raums genutzt werden.</div> 
         </div>
 </div>
 </div>
@@ -88,7 +88,7 @@
 
 <img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-top: -5px;     border-radius: 0px;">
     <h2>Wie stehen Sie zu den Orten in Ihrer Gemeinde?</h2>
-    <h2>Lassen Sie es uns auf dieser Karte wissen. </h2>
+    <h2>Lassen Sie es uns auf dieser Karte wissen! </h2>
 
 
 		<button id="aboutBtn" class="button-menu" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
@@ -118,10 +118,9 @@
 	
 	<div class="dropdown-container">
 
-
-    <div id="dropdown-options" class="options">
+  <div id="dropdown-options" class="options">
         <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-            <h3>Auf diesen Ort bin ich stolz.</h3>
+            <h3>Dieser Ort gefällt mir.</h3>
         </div>
         <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
             <h3>Hier fühle ich mich unsicher.</h3>
@@ -136,32 +135,30 @@
             <h3>Dieser Ort braucht eine Verbesserung.</h3>
         </div>
         <div class="pin-menu" data-color="070707" style="background-color: #070707;">
-            <h3>Diesem Ort fehlt ein Service.</h3>
+            <h3>An diesem Ort fehlt ein Service.</h3>
         </div>
     </div>
 </div>
 
 	<div id="pin-menu-desktop">
-
-<div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-    <h3>Auf diesen Ort bin ich stolz.</h3>
-</div>
-<div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
-    <h3>Hier fühle ich mich unsicher.</h3>
-</div>
-<div class="pin-menu" data-color="133873" style="background-color: #133873;">
-    <h3>Hier gibt es Probleme mit dem Parken.</h3>
-</div>
-<div class="pin-menu" data-color="358400" style="background-color: #358400;">
-    <h3>Hier verbringe ich gerne meine Freizeit.</h3>
-</div>
-<div class="pin-menu" data-color="431307" style="background-color: #431307;">
-    <h3>Dieser Ort braucht eine Verbesserung.</h3>
-</div>
-<div class="pin-menu" data-color="070707" style="background-color: #070707;">
-
-    <h3>Diesem Ort fehlt ein Service.</h3>
-	</div>
+        <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
+            <h3>Dieser Ort gefällt mir.</h3>
+        </div>
+        <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
+            <h3>Hier fühle ich mich unsicher.</h3>
+        </div>
+        <div class="pin-menu" data-color="133873" style="background-color: #133873;">
+            <h3>Hier gibt es Probleme mit dem Parken.</h3>
+        </div>
+        <div class="pin-menu" data-color="358400" style="background-color: #358400;">
+            <h3>Hier verbringe ich gerne meine Freizeit.</h3>
+        </div>
+        <div class="pin-menu" data-color="431307" style="background-color: #431307;">
+            <h3>Dieser Ort braucht eine Verbesserung.</h3>
+        </div>
+        <div class="pin-menu" data-color="070707" style="background-color: #070707;">
+            <h3>An diesem Ort fehlt ein Service.</h3>
+        </div>
 		</div>
 
 
@@ -185,6 +182,7 @@
     </script>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
+
 
 // Initialize main map
     const map = L.map('map').setView([48.4102, 15.6022], 10);
@@ -305,22 +303,47 @@ socket.on('update_counters', function() {
     map.on('click', handleMapClick);
     mapMobile.on('click', handleMapClick);
 
-    const latlng = [48.4102, 15.6022];
-    const distanceInKm = Math.sqrt(10);
-    const point = turf.point([latlng[1], latlng[0]]);
-    const buffered = turf.buffer(point, distanceInKm / 2, { units: 'kilometers' });
-    const squareCoords = turf.bboxPolygon(turf.bbox(buffered)).geometry.coordinates[0];
+ 
+
+const latlng = [48.4102, 15.6022];
+const distanceInKm = Math.sqrt(10);
+const point = turf.point([latlng[1], latlng[0]]);
+const buffered = turf.buffer(point, distanceInKm / 2, { units: 'kilometers' });
+let bbox = turf.bbox(buffered);
+
+// Expanding the bounds to the west and east by about 5km
+const expandDistance = 3 / 111.32;  // 5km in degrees (approximate, assuming 1 degree = 111.32km)
+bbox[0] -= expandDistance;  // west
+bbox[2] += expandDistance;  // east
+
+// Create square coordinates from the updated bbox
+let squareCoords = [
+    [bbox[0], bbox[1]],  // bottom-left
+    [bbox[0], bbox[3]],  // top-left
+    [bbox[2], bbox[3]],  // top-right
+    [bbox[2], bbox[1]],  // bottom-right
+    [bbox[0], bbox[1]]   // back to bottom-left to close the polygon
+];
 
 function keepInView(mapInstance, boundaryPolygon) {
     mapInstance.on('moveend', function() {
-        if (!boundaryPolygon.getBounds().contains(mapInstance.getBounds())) {
+        const expandedBounds = boundaryPolygon.getBounds().pad(1);  // Expands bounds by 100%
+        if (!expandedBounds.contains(mapInstance.getBounds())) {
             mapInstance.fitBounds(boundaryPolygon.getBounds());
         }
     });
 }
+// ... rest of your code ...
 
 
 
+
+
+
+
+
+
+// Create the boundary polygons
 // Create the boundary polygons
 const squareForMap = L.polygon([
     [squareCoords[0][1], squareCoords[0][0]],
@@ -381,14 +404,14 @@ const overlayMobile = L.polygon([outerBounds, [
 
 
     function calculateBounds(lat, lng, distanceInKm) {
-        const R = 6371;
-        const dLat = distanceInKm / R;
-        const dLng = distanceInKm / (R * Math.cos((Math.PI * lat) / 180));
-        return [
-            [lat - dLat, lng - dLng],
-            [lat + dLat, lng + dLng]
-        ];
-    }
+    const R = 6371;  // Earth's radius in kilometers
+    const dLat = distanceInKm / R;
+    const dLng = distanceInKm / (R * Math.cos((Math.PI * lat) / 180));
+    return [
+        [lat - dLat, lng - dLng],
+        [lat + dLat, lng + dLng]
+    ];
+}
 	// Add this event listener to stop propagation of click events from counter-container
 document.getElementById('counter-container').addEventListener('click', function(event) {
     event.stopPropagation();
@@ -427,7 +450,7 @@ document.getElementById('togglebutton-container').addEventListener('click', func
         const popupContent = `
             <textarea id="feedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
             <button id="postFeedback" style="font-size: ${fontSize}px;">Fertig</button>
-            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Storno</button>
+            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Löschen</button>
         `;
 
         const popup = L.popup()

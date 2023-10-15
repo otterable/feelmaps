@@ -35,6 +35,7 @@ class Pin(db.Model):
     lon = db.Column(db.Float, nullable=False)
     pin_type = db.Column(db.String(20), nullable=False)
     description = db.Column(db.String(200), nullable=True)
+    highlight_id = db.Column(db.String(50), nullable=True)  # New field for highlight_id
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -47,6 +48,16 @@ def login():
             return redirect(url_for('admin'))
     return render_template('login.html')
 
+@app.route('/highlight_pin/<string:molen_id>', methods=['POST'])
+def highlight_pin(molen_id):
+    pin_to_highlight = Pin.query.filter_by(molen_id=molen_id).first()
+    if pin_to_highlight:
+        pin_to_highlight.highlight_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))  # Randomly generated highlight_id
+        db.session.commit()
+        socketio.emit('update_counters')  # Emit a WebSocket message to update the counters
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Pin not found'}), 404
 
     
 @app.route('/logout')
@@ -212,8 +223,9 @@ def upload_geojson():
             pin_type = feature['properties'].get('pin_type', '')
             description = feature['properties'].get('description', '')
             molen_id = feature['properties'].get('molen_id', '')  # Extract molen_id from properties
+            highlight_id = feature['properties'].get('highlight_id', '')  # Extract highlight_id from properties
 
-            new_pin = Pin(lat=lat, lon=lon, pin_type=pin_type, description=description, molen_id=molen_id)  # Include molen_id here
+            new_pin = Pin(lat=lat, lon=lon, pin_type=pin_type, description=description, molen_id=molen_id, highlight_id=highlight_id)  # Include highlight_id here
             db.session.add(new_pin)
 
         db.session.commit()
@@ -236,7 +248,8 @@ def export_geojson():
             "properties": {
                 "pin_type": pin.pin_type,
                 "description": pin.description,
-                "molen_id": pin.molen_id  # Include molen_id here
+                "molen_id": pin.molen_id, # Include molen_id here
+                "highlight_id": pin.highlight_id  # Include the highlight_id field
             }
         }
         features.append(feature)

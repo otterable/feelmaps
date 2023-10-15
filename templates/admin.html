@@ -78,8 +78,8 @@
 
 <div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
     <div class="info-field" id="conditionsField">
-            <div class="info-subtitle" style="margin-bottom: 30px">Keine Sorgen, es ist einfach zu bedienen!</div> 
-            <div class="info-text" >Hier finden Sie eine Erklärung aller Funktionen.</div>
+            <div class="info-subtitle" style="margin-bottom: 30px">Erklärung aller Funktionen</div> 
+            <div class="info-text" ></div>
 			            <div class="info-text" style="margin-bottom: 30px">Sie können Hinweise an Orten anbringen, die Sie entweder angenehm oder problematisch finden.</div>  
 
                  <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Alle Pins löschen:</span></div>
@@ -88,10 +88,10 @@
 						      <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Einen einzelnen Pin löschen:</span></div>
             <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Wählen Sie einen Pin auf der Karte aus und klicken Sie auf „Löschen“.</div> 
             
-			<div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">GeoJSON herunterladen(pins):</span></div>
-            <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Laden Sie eine maschinenlesbare GeoJSON-Datei herunter, in der alle Pins gespeichert sind, einschließlich ID, Typ, Koordinaten und Beschreibung.</div>
+			<div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">GeoJSON herunterladen (pins):</span></div>
+            <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Laden Sie eine GeoJSON-Datei herunter, in der alle Pins gespeichert sind, einschließlich ID, Typ, Koordinaten und Beschreibung.</div>
 			
-                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Laden Sie GeoJSON hoch:</span></div>
+                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Laden Sie ein GeoJSON hoch:</span></div>
             <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Laden Sie eine zuvor heruntergeladene GeoJSON-Datei hoch. Alle Pins werden genau dort platziert, wo sie waren.</div> 
 			
 
@@ -101,8 +101,8 @@
 
 
 <img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-top: -5px;     border-radius: 0px;">
-    <h2>Dies ist das Admin-Menü.</h2>
-<h2 style="margin-bottom: -15px;">Hier haben Sie Zugriff auf mehrere Verwaltungsoptionen.</h2>
+    <h2>Hier ist das Admin-Menü.</h2>
+<h2 style="margin-bottom: -15px;">Sie haben Zugriff auf mehrere Verwaltungsoptionen.</h2>
 <h4 style="text-align: center;">Weitere Optionen oder Funktionen können auf Anfrage erstellt werden.</h4>
 
 		<button id="aboutBtn" class="button-menu" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
@@ -117,7 +117,7 @@
         <button type="submit" class="delete-button">GeoJSON herunterladen (Pins)</button>
     </form>
 </div>
-<h2 style="margin-top: 10px;">Laden Sie GeoJSON hoch:</h2>
+<h2 style="margin-top: 10px;">Laden Sie eine GeoJSON Datei hoch:</h2>
 <form action="/upload_geojson" method="post" enctype="multipart/form-data">
     <label for="geojson_file" style="margin-top: 10px"></label>
     <input type="file" style="margin-top: 10px" name="geojson_file" accept=".json,application/json">
@@ -148,7 +148,7 @@
 
     <div id="dropdown-options" class="options">
         <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-            <h3>Auf diesen Ort bin ich stolz.</h3>
+            <h3>Dieser Ort gefällt mir.</h3>
         </div>
         <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
             <h3>Hier fühle ich mich unsicher.</h3>
@@ -163,7 +163,7 @@
             <h3>Dieser Ort braucht eine Verbesserung.</h3>
         </div>
         <div class="pin-menu" data-color="070707" style="background-color: #070707;">
-            <h3>Diesem Ort fehlt ein Service.</h3>
+            <h3>An diesem Ort fehlt ein Service.</h3>
         </div>
     </div>
 </div>
@@ -171,7 +171,7 @@
 	<div id="pin-menu-desktop">
 
 <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-    <h3>Auf diesen Ort bin ich stolz.</h3>
+    <h3>Dieser Ort gefällt mir.</h3>
 </div>
 <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
     <h3>Hier fühle ich mich unsicher.</h3>
@@ -187,7 +187,7 @@
 </div>
 <div class="pin-menu" data-color="070707" style="background-color: #070707;">
 
-    <h3>Diesem Ort fehlt ein Service.</h3>
+    <h3>An diesem Ort fehlt ein Service.</h3>
 	</div>
 		</div>
 
@@ -278,6 +278,8 @@
     "358400": L.layerGroup().addTo(map).addTo(mapMobile),
     "431307": L.layerGroup().addTo(map).addTo(mapMobile),
     "070707": L.layerGroup().addTo(map).addTo(mapMobile)
+	
+	
 };
 
 // Function to add marker to both map and mapMobile
@@ -332,22 +334,47 @@ socket.on('update_counters', function() {
     map.on('click', handleMapClick);
     mapMobile.on('click', handleMapClick);
 
-    const latlng = [48.4102, 15.6022];
-    const distanceInKm = Math.sqrt(10);
-    const point = turf.point([latlng[1], latlng[0]]);
-    const buffered = turf.buffer(point, distanceInKm / 2, { units: 'kilometers' });
-    const squareCoords = turf.bboxPolygon(turf.bbox(buffered)).geometry.coordinates[0];
+ 
+
+const latlng = [48.4102, 15.6022];
+const distanceInKm = Math.sqrt(10);
+const point = turf.point([latlng[1], latlng[0]]);
+const buffered = turf.buffer(point, distanceInKm / 2, { units: 'kilometers' });
+let bbox = turf.bbox(buffered);
+
+// Expanding the bounds to the west and east by about 5km
+const expandDistance = 3 / 111.32;  // 5km in degrees (approximate, assuming 1 degree = 111.32km)
+bbox[0] -= expandDistance;  // west
+bbox[2] += expandDistance;  // east
+
+// Create square coordinates from the updated bbox
+let squareCoords = [
+    [bbox[0], bbox[1]],  // bottom-left
+    [bbox[0], bbox[3]],  // top-left
+    [bbox[2], bbox[3]],  // top-right
+    [bbox[2], bbox[1]],  // bottom-right
+    [bbox[0], bbox[1]]   // back to bottom-left to close the polygon
+];
 
 function keepInView(mapInstance, boundaryPolygon) {
     mapInstance.on('moveend', function() {
-        if (!boundaryPolygon.getBounds().contains(mapInstance.getBounds())) {
+        const expandedBounds = boundaryPolygon.getBounds().pad(1);  // Expands bounds by 100%
+        if (!expandedBounds.contains(mapInstance.getBounds())) {
             mapInstance.fitBounds(boundaryPolygon.getBounds());
         }
     });
 }
+// ... rest of your code ...
 
 
 
+
+
+
+
+
+
+// Create the boundary polygons
 // Create the boundary polygons
 const squareForMap = L.polygon([
     [squareCoords[0][1], squareCoords[0][0]],
@@ -408,14 +435,14 @@ const overlayMobile = L.polygon([outerBounds, [
 
 
     function calculateBounds(lat, lng, distanceInKm) {
-        const R = 6371;
-        const dLat = distanceInKm / R;
-        const dLng = distanceInKm / (R * Math.cos((Math.PI * lat) / 180));
-        return [
-            [lat - dLat, lng - dLng],
-            [lat + dLat, lng + dLng]
-        ];
-    }
+    const R = 6371;  // Earth's radius in kilometers
+    const dLat = distanceInKm / R;
+    const dLng = distanceInKm / (R * Math.cos((Math.PI * lat) / 180));
+    return [
+        [lat - dLat, lng - dLng],
+        [lat + dLat, lng + dLng]
+    ];
+}
 	// Add this event listener to stop propagation of click events from counter-container
 document.getElementById('counter-container').addEventListener('click', function(event) {
     event.stopPropagation();
@@ -454,7 +481,7 @@ document.getElementById('togglebutton-container').addEventListener('click', func
         const popupContent = `
             <textarea id="feedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
             <button id="postFeedback" style="font-size: ${fontSize}px;">Fertig</button>
-            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Storno</button>
+            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Löschen</button>
         `;
 
         const popup = L.popup()
@@ -640,9 +667,16 @@ function loadPins(pins) {
             icon: L.divIcon({
                 className: `pin-${pin.pin_type}`,
                 iconSize: [24, 24]
-            }),
-            opacity: toggleStates[pin.pin_type] ? 1 : 0.05  // Set opacity based on toggle state
-        }).bindPopup(pin.description);
+            })
+        }).bindPopup(`
+            ${pin.description}
+            <br>
+            <button onclick="deletePin('${pin.molen_id}')">Delete</button>
+        `);
+
+        if (pin.highlight_id) {
+            marker.bindTooltip(`H${pin.highlight_id}`, {permanent: true, offset: [0, -10]});
+        }
 
         marker.addTo(layers[pin.pin_type]);
         markers[pin.pin_type].push(marker);  // Store the marker
@@ -1814,7 +1848,14 @@ h2 {
 }
 
 
-
+.star-icon {
+    width: 50px;
+    height: 50px;
+    background-image: url('static/star_icon.png');
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
 
 
 
@@ -1892,21 +1933,33 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function loadPins(pins) {
     pins.forEach(pin => {
+        const highlightIcon = pin.highlight_id ? '<img src="/static/star_icon.png" style="position: absolute; width: 20px; height: 20px; top: 2px; left: 2px;">' : '';
+        const highlightText = pin.highlight_id ? `<div style="position: absolute; width: 100%; top: -30px;">H${pin.highlight_id}</div>` : '';
         const markerHtml = `
             <div style="position: relative; text-align: center; width: 24px;">
+                ${highlightIcon}
                 <div style="position: absolute; width: 100%; top: -15px;">M${pin.molen_id}</div>
+                ${highlightText}
                 <div class="pin-style pin-${pin.pin_type}" style="width: 24px; height: 24px;"></div>
             </div>
         `;
-
         const markerIcon = L.divIcon({
             className: '',
             iconSize: [24, 24],
             html: markerHtml
         });
+		
+		 if (pin.highlight_id) {
+            addStarIcon(map, pin.lat, pin.lon, pin.highlight_id);
+            addStarIcon(mapMobile, pin.lat, pin.lon, pin.highlight_id);
+        }
+		
+		
 
 const deleteButtonHtml = `<button class="delete-button" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">Diesen Pin löschen</button>`;
-        const popupContent = deleteButtonHtml + pin.description;
+        const highlightButtonHtml = `<button class="highlight-button" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">Create a star</button>`;
+
+        const popupContent = deleteButtonHtml + highlightButtonHtml + pin.description;
 
         const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
         const markerMapMobile = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
@@ -1920,16 +1973,47 @@ const deleteButtonHtml = `<button class="delete-button" data-pin-id="${pin.id}" 
     });
 }
 
+function addStarIcon(mapInstance, lat, lon, highlightId) {
+    const starIcon = L.icon({
+        iconUrl: '/static/star_icon.png',
+        iconSize: [20, 20]
+    });
+
+    const starMarker = L.marker([lat, lon], { icon: starIcon })
+        .bindTooltip(`H${highlightId}`, {permanent: true, offset: [0, -10]})
+        .addTo(mapInstance);
+}
 
 function handleDeleteButtonClick(event) {
     const deleteButton = event.popup._contentNode.querySelector('.delete-button');
+    const highlightButton = event.popup._contentNode.querySelector('.highlight-button');
+
     if (deleteButton) {
         deleteButton.addEventListener('click', function() {
             const molenId = this.getAttribute('data-molen-id');
             deletePinByMolenId(molenId);
         });
     }
+
+    if (highlightButton) {
+        highlightButton.addEventListener('click', function() {
+            const molenId = this.getAttribute('data-molen-id');
+            highlightPin(molenId);
+        });
+    }
 }
+
+function highlightPin(molenId) {
+    fetch(`/highlight_pin/${molenId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshMap();
+            }
+        });
+}
+
+
 
 function deletePinByMolenId(molenId) {
     fetch(`/delete_pin_by_molen_id/${molenId}`, { method: 'POST' })
@@ -1941,6 +2025,25 @@ function deletePinByMolenId(molenId) {
         });
 }
 
+function handleHighlightButtonClick(event) {
+    const highlightButton = event.popup._contentNode.querySelector('.highlight-button');
+    if (highlightButton) {
+        highlightButton.addEventListener('click', function() {
+            const pinId = this.getAttribute('data-pin-id');
+            highlightPin(pinId);
+        });
+    }
+}
+
+function highlightPin(pinId) {
+    fetch(`/highlight_pin/${pinId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshMap();  // Assuming you have a function to refresh the map
+            }
+        });
+}
 
 
 
@@ -2013,6 +2116,8 @@ document.getElementById('infoModal').addEventListener('click', function(event) {
 </script>
 
 <script>
+
+
 function deletePin(pinId) {
     fetch(`/delete_pin/${pinId}`, { method: 'POST' })
         .then(response => response.json())
