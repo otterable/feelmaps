@@ -20,6 +20,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+
 class User(UserMixin):
     def __init__(self, id):
         self.id = id
@@ -50,14 +51,12 @@ def login():
 
 @app.route('/highlight_pin/<string:molen_id>', methods=['POST'])
 def highlight_pin(molen_id):
-    pin_to_highlight = Pin.query.filter_by(molen_id=molen_id).first()
-    if pin_to_highlight:
-        pin_to_highlight.highlight_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))  # Randomly generated highlight_id
+    pin = Pin.query.filter_by(molen_id=molen_id).first()
+    if pin:
+        pin.highlight_id = 'HH' + ''.join(random.choices(string.digits, k=8))  # Generate a random highlight_id
         db.session.commit()
-        socketio.emit('update_counters')  # Emit a WebSocket message to update the counters
-        return jsonify({'success': True})
-    else:
-        return jsonify({'error': 'Pin not found'}), 404
+        return jsonify({'success': True, 'highlight_id': pin.highlight_id})
+    return jsonify({'error': 'Pin not found'}), 404
 
     
 @app.route('/logout')
@@ -208,8 +207,20 @@ def get_pins():
         'lon': pin.lon,
         'pin_type': pin.pin_type,
         'description': pin.description,
-        'molen_id': pin.molen_id  # Include the molen_id field
+        'molen_id': pin.molen_id,  # Include the molen_id field
+        'highlight_id': pin.highlight_id  # Include the molen_id field
+
     } for pin in pins])
+
+@app.route('/remove_star/<string:molen_id>', methods=['POST'])
+def remove_star(molen_id):
+    pin = Pin.query.filter_by(molen_id=molen_id).first()
+    if pin and pin.highlight_id:
+        pin.highlight_id = None  # Remove the highlight_id
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'error': 'Pin not found or no star to remove'}), 404
+
 
 
 @app.route('/upload_geojson', methods=['POST'])

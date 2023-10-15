@@ -278,8 +278,6 @@
     "358400": L.layerGroup().addTo(map).addTo(mapMobile),
     "431307": L.layerGroup().addTo(map).addTo(mapMobile),
     "070707": L.layerGroup().addTo(map).addTo(mapMobile)
-	
-	
 };
 
 // Function to add marker to both map and mapMobile
@@ -551,6 +549,22 @@ document.getElementById('togglebutton-container').addEventListener('click', func
     });
 }
 
+function removeStar(molen_id) {
+    fetch(`/remove_highlight/${molen_id}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Assuming you have a reference to the map and the star icon marker
+            const starMarker = starMarkers[molen_id];  // Assume starMarkers is an object holding references to star icon markers
+            map.removeLayer(starMarker);  // Remove star icon from map
+            delete starMarkers[molen_id];  // Remove reference to star icon marker
+        } else {
+            console.error('Failed to remove highlight:', data.error);
+        }
+    });
+}
 
 
 function deletePin(molen_id) {
@@ -667,16 +681,9 @@ function loadPins(pins) {
             icon: L.divIcon({
                 className: `pin-${pin.pin_type}`,
                 iconSize: [24, 24]
-            })
-        }).bindPopup(`
-            ${pin.description}
-            <br>
-            <button onclick="deletePin('${pin.molen_id}')">Delete</button>
-        `);
-
-        if (pin.highlight_id) {
-            marker.bindTooltip(`H${pin.highlight_id}`, {permanent: true, offset: [0, -10]});
-        }
+            }),
+            opacity: toggleStates[pin.pin_type] ? 1 : 0.05  // Set opacity based on toggle state
+        }).bindPopup(pin.description);
 
         marker.addTo(layers[pin.pin_type]);
         markers[pin.pin_type].push(marker);  // Store the marker
@@ -1151,6 +1158,28 @@ fetchAndDisplayCounters();
 	border-radius: 10px;
 }
 
+.star-button {
+    background-color: black;
+    color: white;
+    padding: 8px;
+    cursor: pointer;
+    border: none;
+	margin-right: 5px;
+	border-radius: 10px;
+}
+
+
+.remove-star-button {
+    background-color: black;
+    color: white;
+    padding: 8px;
+    cursor: pointer;
+    border: none;
+	margin-right: 5px;
+	border-radius: 10px;
+}
+
+
 #pin-menu-desktop {
     width: 100%;
     box-sizing: border-box; /* Ensure padding and border are included in the width */
@@ -1541,6 +1570,10 @@ border-radius: 50px:
 }
 
 
+// Add this CSS to your stylesheet
+.star-icon {
+    pointer-events: none;
+}
 
 .pin-menu:hover {
     background-color: #e0e0e0;
@@ -1848,14 +1881,7 @@ h2 {
 }
 
 
-.star-icon {
-    width: 50px;
-    height: 50px;
-    background-image: url('static/star_icon.png');
-    position: absolute;
-    top: 2px;
-    left: 2px;
-}
+
 
 
 
@@ -1933,33 +1959,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function loadPins(pins) {
     pins.forEach(pin => {
-        const highlightIcon = pin.highlight_id ? '<img src="/static/star_icon.png" style="position: absolute; width: 20px; height: 20px; top: 2px; left: 2px;">' : '';
-        const highlightText = pin.highlight_id ? `<div style="position: absolute; width: 100%; top: -30px;">H${pin.highlight_id}</div>` : '';
         const markerHtml = `
             <div style="position: relative; text-align: center; width: 24px;">
-                ${highlightIcon}
                 <div style="position: absolute; width: 100%; top: -15px;">M${pin.molen_id}</div>
-                ${highlightText}
                 <div class="pin-style pin-${pin.pin_type}" style="width: 24px; height: 24px;"></div>
             </div>
         `;
+
         const markerIcon = L.divIcon({
             className: '',
             iconSize: [24, 24],
             html: markerHtml
         });
-		
-		 if (pin.highlight_id) {
-            addStarIcon(map, pin.lat, pin.lon, pin.highlight_id);
-            addStarIcon(mapMobile, pin.lat, pin.lon, pin.highlight_id);
-        }
-		
-		
 
-const deleteButtonHtml = `<button class="delete-button" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">Diesen Pin löschen</button>`;
-        const highlightButtonHtml = `<button class="highlight-button" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">Create a star</button>`;
-
-        const popupContent = deleteButtonHtml + highlightButtonHtml + pin.description;
+        const deleteButtonHtml = `<button class="delete-button" style="margin-top: 5px;" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">Löschen</button>`;
+        const starButtonHtml = `<button class="star-button" data-molen-id="${pin.molen_id}">⭐ markieren</button>`;
+		const removeStarButtonHtml = pin.highlight_id ? `<button class="remove-star-button" onclick="removeStar('${pin.molen_id}')">⭐ entfernen</button>` : '';
+        const popupContent = starButtonHtml + deleteButtonHtml + removeStarButtonHtml + pin.description;
 
         const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
         const markerMapMobile = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
@@ -1967,36 +1983,41 @@ const deleteButtonHtml = `<button class="delete-button" data-pin-id="${pin.id}" 
         markerMap.addTo(map);
         markerMapMobile.addTo(mapMobile);
 
-        // Attach an event listener to the popupopen event
-        markerMap.on('popupopen', handleDeleteButtonClick);
-        markerMapMobile.on('popupopen', handleDeleteButtonClick);
-    });
-}
+        if (pin.highlight_id) {
+            console.log(`highlight_id is set for pin: ${pin.molen_id}`);  // Debug line
+            const starIcon = L.icon({
+                iconUrl: '/static/star_icon.png',
+                iconSize: [30, 30],
+                iconAnchor: [10, 10],
+				className: 'star-icon'  // Add a class name to the star icon
+            });
+            const starMarker = L.marker([pin.lat, pin.lon], { icon: starIcon }).addTo(map);
+            const starMarkerMobile = L.marker([pin.lat, pin.lon], { icon: starIcon }).addTo(mapMobile);
+        } else {
+            console.log(`highlight_id is NOT set for pin: ${pin.molen_id}`);  // Debug line
+        }
 
-function addStarIcon(mapInstance, lat, lon, highlightId) {
-    const starIcon = L.icon({
-        iconUrl: '/static/star_icon.png',
-        iconSize: [20, 20]
-    });
 
-    const starMarker = L.marker([lat, lon], { icon: starIcon })
-        .bindTooltip(`H${highlightId}`, {permanent: true, offset: [0, -10]})
-        .addTo(mapInstance);
-}
-
-function handleDeleteButtonClick(event) {
-    const deleteButton = event.popup._contentNode.querySelector('.delete-button');
-    const highlightButton = event.popup._contentNode.querySelector('.highlight-button');
-
-    if (deleteButton) {
-        deleteButton.addEventListener('click', function() {
-            const molenId = this.getAttribute('data-molen-id');
-            deletePinByMolenId(molenId);
+        markerMap.on('popupopen', function(event) {
+            handleStarButtonClick(event);
+            handleDeleteButtonClick(event);
         });
-    }
+        markerMapMobile.on('popupopen', function(event) {
+            handleStarButtonClick(event);
+            handleDeleteButtonClick(event);
+        });
+    });
 
-    if (highlightButton) {
-        highlightButton.addEventListener('click', function() {
+	
+	
+	
+	
+}
+
+function handleStarButtonClick(event) {
+    const starButton = event.popup._contentNode.querySelector('.star-button');
+    if (starButton) {
+        starButton.addEventListener('click', function() {
             const molenId = this.getAttribute('data-molen-id');
             highlightPin(molenId);
         });
@@ -2013,7 +2034,28 @@ function highlightPin(molenId) {
         });
 }
 
+function refreshMap() {
+    // Assumes map and mapMobile are global variables representing your map instances
+    map.eachLayer(layer => map.removeLayer(layer));
+    mapMobile.eachLayer(layer => mapMobile.removeLayer(layer));
+    fetch('/get_pins')
+        .then(response => response.json())
+        .then(data => {
+            if(data && data.pins) {
+                loadPins(data.pins);
+            }
+        });
+}
 
+function handleDeleteButtonClick(event) {
+    const deleteButton = event.popup._contentNode.querySelector('.delete-button');
+    if (deleteButton) {
+        deleteButton.addEventListener('click', function() {
+            const molenId = this.getAttribute('data-molen-id');
+            deletePinByMolenId(molenId);
+        });
+    }
+}
 
 function deletePinByMolenId(molenId) {
     fetch(`/delete_pin_by_molen_id/${molenId}`, { method: 'POST' })
@@ -2025,26 +2067,16 @@ function deletePinByMolenId(molenId) {
         });
 }
 
-function handleHighlightButtonClick(event) {
-    const highlightButton = event.popup._contentNode.querySelector('.highlight-button');
-    if (highlightButton) {
-        highlightButton.addEventListener('click', function() {
-            const pinId = this.getAttribute('data-pin-id');
-            highlightPin(pinId);
-        });
-    }
-}
 
-function highlightPin(pinId) {
-    fetch(`/highlight_pin/${pinId}`, { method: 'POST' })
+function removeStar(molenId) {
+    fetch(`/remove_star/${molenId}`, { method: 'POST' })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                refreshMap();  // Assuming you have a function to refresh the map
+                refreshMap();
             }
         });
 }
-
 
 
 
@@ -2116,8 +2148,6 @@ document.getElementById('infoModal').addEventListener('click', function(event) {
 </script>
 
 <script>
-
-
 function deletePin(pinId) {
     fetch(`/delete_pin/${pinId}`, { method: 'POST' })
         .then(response => response.json())
