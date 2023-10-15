@@ -13,6 +13,7 @@
 	<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>  <!-- Include Socket.io library -->
 
 
 
@@ -22,15 +23,48 @@
 
 <!-- POPUP -->
 
-
+   <!-- Counter container -->
 
 <div class="main-container">
 <!-- Add this button where you want it to appear on your HTML page -->
 
 
 <div style="display: flex; height: 100vh">
-    <div id="map" style="flex-basis: 70%; border-radius: 0px"></div>
+    <div id="map" style="flex-basis: 70%; border-radius: 0px">
+	
+	
+	<!-- COUNTER / VIS DIV -->
+	<div class="parent-container">
+<div id="counter-container" class="countercontainer"></div>
+</div>
+<div id="togglebutton-container" class="togglebuttoncontainer">
+<button class="toggle-button" data-pin-type="ff5c00" data-toggled="true">
+    <img src="static/visicon_ff5c00.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_ff5c00_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="9A031E" data-toggled="true">
+    <img src="static/visicon_9A031E.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_9A031E_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="133873" data-toggled="true">
+    <img src="static/visicon_133873.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_133873_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="358400" data-toggled="true">
+    <img src="static/visicon_358400.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_358400_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="431307" data-toggled="true">
+    <img src="static/visicon_431307.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_431307_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="070707" data-toggled="true">
+    <img src="static/visicon_070707.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_070707_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
 
+</div>
+</div>
     <div id="sidebar" style="flex-basis: 30%; padding: 10px; background-color: #ffffff; margin-bottom: 0px;">
 
 
@@ -63,14 +97,19 @@
 
 
 <img src="static/overlay.jpg" class="hide-on-mobile" style="max-width: 98%; height: auto; border: 5px solid white; display: block; margin-bottom: -4px; border-radius: 30px;">
+
 <!-- Mappy Container -->
 <div id="mappy-container">
-    <div id="mapMobile"></div>
+    <div id="mapMobile">
+	<!-- COUNTER / VIS DIV -->
+
+</div>
+	
 </div>
 
 
         <!-- Pin Menu -->
-
+         
 <div class="centered-text-container" style="margin-bottom: 0px;">
 	</div>
 	<div class="current-desktop">
@@ -78,6 +117,7 @@
 </div>
 	
 	<div class="dropdown-container">
+
 
     <div id="dropdown-options" class="options">
         <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
@@ -140,9 +180,12 @@
 
 
 
+  <script>
 
+    </script>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
+
 // Initialize main map
     const map = L.map('map').setView([48.4102, 15.6022], 10);
     map.setMinZoom(15);
@@ -154,7 +197,7 @@
     setTimeout(() => {
         mapMobile.invalidateSize(true);
         map.invalidateSize(true);
-    }, 600);
+    }, 1000);
 
     map.doubleClickZoom.disable();
 
@@ -239,6 +282,13 @@ document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
     });
 });
 
+// New code to establish WebSocket connection
+const socket = io.connect(location.origin);
+
+// New event listener for 'update_counters' WebSocket message
+socket.on('update_counters', function() {
+    fetchAndDisplayCounters();
+});
 
 
 
@@ -339,6 +389,17 @@ const overlayMobile = L.polygon([outerBounds, [
             [lat + dLat, lng + dLng]
         ];
     }
+	// Add this event listener to stop propagation of click events from counter-container
+document.getElementById('counter-container').addEventListener('click', function(event) {
+    event.stopPropagation();
+});
+
+	// Add this event listener to stop propagation of click events from counter-container
+document.getElementById('togglebutton-container').addEventListener('click', function(event) {
+    event.stopPropagation();
+});
+
+
 
 	// Add this line to declare currentPopupLatLng
 	let currentPopupLatLng = null;
@@ -365,8 +426,8 @@ const overlayMobile = L.polygon([outerBounds, [
 
         const popupContent = `
             <textarea id="feedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
-            <button id="postFeedback" style="font-size: ${fontSize}px;">Post</button>
-            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Cancel</button>
+            <button id="postFeedback" style="font-size: ${fontSize}px;">Fertig</button>
+            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Storno</button>
         `;
 
         const popup = L.popup()
@@ -374,32 +435,42 @@ const overlayMobile = L.polygon([outerBounds, [
             .setContent(popupContent)
             .openOn(e.target);
 
-            document.getElementById('postFeedback').addEventListener('click', function() {
-                const feedback = document.getElementById('feedbackText').value;
-                if (feedback.length >= 10) {
+           
+    document.getElementById('postFeedback').addEventListener('click', function() {
+        const feedback = document.getElementById('feedbackText').value;
+        if (feedback.length >= 10 && feedback.length <= 150) {
                     L.marker(e.latlng, {
                         icon: L.divIcon({
                             className: `pin-style pin-${selectedColor}`,
                             iconSize: [24, 24]
                         })
                     }).bindPopup(feedback).addTo(e.target);
+					
+					
+					
 
-                    fetch('/add_pin', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            lat: e.latlng.lat,
-                            lon: e.latlng.lng,
-                            pin_type: selectedColor,
-                            description: feedback
-                        })
-                    });
+
+                   // Generate a random molen_id
+        const molen_id = Math.random().toString(36).substring(2, 10);
+
+        fetch('/add_pin', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        lat: e.latlng.lat,
+        lon: e.latlng.lng,
+        pin_type: selectedColor,
+        description: feedback,
+        molen_id: `M${Math.floor(Math.random() * 1e9)}`  // Generate a random molen_id client-side
+    })
+});
+
 
                     e.target.closePopup();
                 } else {
-                    alert("Bitte geben Sie mindestens 10 Buchstaben ein.");
+            alert("Bitte geben Sie zwischen 10 und 150 Zeichen ein.");
                 }
             });
 
@@ -412,15 +483,40 @@ const overlayMobile = L.polygon([outerBounds, [
     }
 
     function loadPins(pins) {
-        pins.forEach(pin => {
-            L.marker([pin.lat, pin.lon], {
-                icon: L.divIcon({
-                    className: `pin-${pin.pin_type}`,
-                    iconSize: [24, 24]
-                })
-            }).bindPopup(pin.description).addTo(map);
-        });
-    }
+    pins.forEach(pin => {
+        const marker = L.marker([pin.lat, pin.lon], {
+            icon: L.divIcon({
+                className: `pin-${pin.pin_type}`,
+                iconSize: [24, 24]
+            })
+        }).bindPopup(`
+            ${pin.description}
+            <br>
+            <button onclick="deletePin('${pin.molen_id}')">Delete</button>
+        `).addTo(layers[pin.pin_type]);
+    });
+}
+
+
+
+function deletePin(molen_id) {
+    fetch(`/delete_pin_by_molen_id/${molen_id}`, {
+        method: 'POST'
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the pin from the map
+            // Assuming you have stored your markers in a global object called `markers`
+            const marker = markers[molen_id];
+            if (marker) {
+                marker.remove();
+                delete markers[molen_id];  // Remove the marker from the markers object
+            }
+        } else {
+            alert('Error deleting pin');
+        }
+    });
+}
 
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -488,8 +584,65 @@ const overlayMobile = L.polygon([outerBounds, [
 
 
 
-</script>
 
+
+// Global object to keep track of toggle states
+const toggleStates = {
+    "ff5c00": true,
+    "9A031E": true,
+    "133873": true,
+    "358400": true,
+    "431307": true,
+    "070707": true
+};
+
+// Store the markers in an object so you can reference them later
+const markers = {
+    "ff5c00": [],
+    "9A031E": [],
+    "133873": [],
+    "358400": [],
+    "431307": [],
+    "070707": []
+};
+
+// Updated loadPins function to handle opacity
+function loadPins(pins) {
+    pins.forEach(pin => {
+        const marker = L.marker([pin.lat, pin.lon], {
+            icon: L.divIcon({
+                className: `pin-${pin.pin_type}`,
+                iconSize: [24, 24]
+            }),
+            opacity: toggleStates[pin.pin_type] ? 1 : 0.05  // Set opacity based on toggle state
+        }).bindPopup(pin.description);
+
+        marker.addTo(layers[pin.pin_type]);
+        markers[pin.pin_type].push(marker);  // Store the marker
+    });
+}
+
+   // Updated script to handle toggle-button menu interactions
+    document.querySelectorAll('.toggle-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const pinType = button.getAttribute('data-pin-type');
+            toggleStates[pinType] = !toggleStates[pinType];  // Toggle the state
+
+            // Toggle the display styles of the img tags
+            const untoggledIcon = button.querySelector('.untoggled-icon');
+            const toggledIcon = button.querySelector('.toggled-icon');
+            untoggledIcon.style.display = toggleStates[pinType] ? '' : 'none';
+            toggledIcon.style.display = toggleStates[pinType] ? 'none' : '';
+
+            // Update the opacity of existing markers of the same type
+            document.querySelectorAll(`.pin-${pinType}`).forEach(markerElement => {
+                markerElement.style.opacity = toggleStates[pinType] ? 1 : 0.05;
+            });
+        });
+    });
+
+
+</script>
 
 
 
@@ -498,7 +651,6 @@ const overlayMobile = L.polygon([outerBounds, [
 
 <!-- LOGIC - DROPDOWN MOBILE -->
 
-<script>
 document.querySelector('#dropdown-button').addEventListener('click', function() {
     let options = document.querySelector('#dropdown-options');
     if (options.style.display === 'none' || !options.style.display) {
@@ -627,91 +779,22 @@ updateFontSize();
 
 </script>
 
-<!-- DELETE FUNCTION - INDIVIDUAL PIN REMOVAL -->
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    let deleteMode = false;
-    let map = L.map('map').setView([0, 0], 2);
-    let markers = {};
-
-    // Fetch initial pins from the server
-    fetch('/get_pins')
-    .then(response => response.json())
-    .then(data => {
-        data.pins.forEach(addPin);
+async function vote(pinId, action) {
+    const res = await fetch('/vote', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ pin_id: pinId, action: action })
     });
-
-	function addPin(pin) {
-		const marker = L.marker([pin.lat, pin.lon]).addTo(map);
-		marker.pin_id = pin.id;  // Assign id to marker
-		markers[pin.id] = marker; // Save marker by id
-
-        const idLabel = L.divIcon({
-            className: 'pin-label',
-            html: `<div>${pin.id}</div>`,
-            iconSize: [30, 15],
-            iconAnchor: [15, 0]
-        });
-
-        const labelMarker = L.marker([pin.lat, pin.lon], { icon: idLabel, clickable: false }).addTo(map);
-        labelMarker._icon.style.zIndex = 500; // make labels appear above markers
-
-        if (deleteMode) {
-            labelMarker.addTo(map);
-        }
-
-        marker.on('click', function() {
-            if (deleteMode) {
-                fetch(`/delete_pin/${pin.id}`, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        map.removeLayer(marker);
-                        map.removeLayer(labelMarker);
-                        delete markers[pin.id];
-                    }
-                });
-            }
-        });
+    const data = await res.json();
+    if (data.votes !== undefined) {
+        document.querySelector(`#votes-${pinId}`).textContent = data.votes;
     }
-
-    document.getElementById("deleteSelectedPins").addEventListener("click", function() {
-        deleteMode = !deleteMode;
-
-        if (deleteMode) {
-            // Open the window to enter pin IDs for mass deletion
-            const pinIDs = window.prompt('Enter pin IDs to delete, separated by commas');
-            if (pinIDs) {
-                const ids = pinIDs.split(',').map(id => parseInt(id.trim()));
-                ids.forEach(id => {
-                    fetch(`/delete_pin/${id}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && markers[id]) {
-                            map.removeLayer(markers[id]);
-                            delete markers[id];
-                        }
-                    });
-                });
-            }
-        }
-
-        // Toggle display of label markers based on deleteMode
-        Object.keys(markers).forEach(pin_id => {
-            const marker = markers[pin_id];
-            marker.getPopup().setContent(deleteMode ? `${marker.getPopup().getContent()} <br> ID: ${pin_id}` : pin_id);
-        });
-
-        this.textContent = deleteMode ? 'Cancel Delete' : 'Delete Selected Pins';
-    });
-});
-
+}
 </script>
-
 
 <!--DELETE FUNCTION - PIN REMOVAL -->
 <script>
@@ -756,6 +839,147 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </script>
 
+<script>
+function fetchAndDisplayCounters() {
+    // Fetch the counter data from the server
+    fetch('/get_counters')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            let counterContainer = document.getElementById("counter-container");
+            let counterContainerMobile = document.getElementById("counter-container-mobile");
+
+            // Check if the elements exist
+            if (!counterContainer || !counterContainerMobile) {
+                console.error('Counter containers not found');
+                return;
+            }
+
+            // Clear the existing counters
+            counterContainer.innerHTML = "";
+            counterContainerMobile.innerHTML = "";
+
+            // Loop through each counter type and append a circle for it
+            for (let counterType in data) {
+                let counterValue = data[counterType];
+
+                let counterCircle = document.createElement("div");
+                counterCircle.className = "counter-circle";
+                counterCircle.style.backgroundColor = "#" + counterType;
+                counterCircle.innerText = counterValue;
+
+                let counterCircleMobile = counterCircle.cloneNode(true);
+                counterCircleMobile.innerText = counterValue;
+
+                counterContainer.appendChild(counterCircle);
+                counterContainerMobile.appendChild(counterCircleMobile);
+            }
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+}
+
+// You can call this function on page load, or as often as needed to refresh the counter
+fetchAndDisplayCounters();
+
+</script>
+
+
+
+
+<script>
+    let filteredType = null;  // Keep track of the currently filtered pin type
+    const pinOrder = ['ff5c00', '9A031E', '133873', '358400', '431307', '070707'];  // Specify the order of pin types
+
+    function toggleFilter(pin_type) {
+        if (filteredType === pin_type) {
+            filteredType = null;
+        } else {
+            filteredType = pin_type;
+        }
+        // Update your map to show the filtered pins
+        updateMap();
+    }
+
+    function fetchAndUpdateCounter() {
+        fetch('/get_pin_counts')
+        .then(response => response.json())
+        .then(data => {
+            let htmlStr = '';
+            pinOrder.forEach(pin_type => {  // Loop through pin types in the specified order
+                let count = data[pin_type];
+                htmlStr += `<div class="counter-item"><span class="counter-circle" style="background-color: #${pin_type};" onclick="toggleFilter('${pin_type}')"></span>${count}</div>`;
+            });
+            htmlStr += `<div class="counter-item">Alles: ${data.total}</div>`;  // Add total count at the end
+            document.getElementById('counter-container').innerHTML = htmlStr;
+        });
+    }
+
+    function updateMap() {
+        // Logic to update your map
+        // Filter pins based on `filteredType` if it's not null
+    }
+
+    // Fetch and update the counter every 5 seconds
+    setInterval(fetchAndUpdateCounter, 5000);
+
+    // Fetch the counter when the page loads
+    fetchAndUpdateCounter();
+</script>
+
+<script>
+function fetchAndDisplayCounters() {
+    // Fetch the counter data from the server
+    fetch('/get_counters')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            let counterContainer = document.getElementById("counter-container");
+            let counterContainerMobile = document.getElementById("counter-container-mobile");
+
+            // Check if the elements exist
+            if (!counterContainer || !counterContainerMobile) {
+                console.error('Counter containers not found');
+                return;
+            }
+
+            // Clear the existing counters
+            counterContainer.innerHTML = "";
+            counterContainerMobile.innerHTML = "";
+
+            pinOrder.forEach(pin_type => {  // Loop through pin types in the specified order
+                let counterValue = data[pin_type];
+
+                let counterCircle = document.createElement("div");
+                counterCircle.className = "counter-circle";
+                counterCircle.style.backgroundColor = "#" + pin_type;
+                counterCircle.innerText = counterValue;
+
+                let counterCircleMobile = counterCircle.cloneNode(true);
+                counterCircleMobile.innerText = counterValue;
+
+                counterContainer.appendChild(counterCircle);
+                counterContainerMobile.appendChild(counterCircleMobile);
+            });
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+}
+
+// You can call this function on page load, or as often as needed to refresh the counter
+fetchAndDisplayCounters();
+
+</script>
 
 
 <!-- CSS PINS -->
@@ -764,11 +988,117 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 40px; /* Adjust size as needed */
 }
 
+.countercontainer {
+    background-color: white;
+    border-radius: 50px;
+    padding: 11px;
+    color: black;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 1000;  /* To ensure it's on top of other elements */
+    text-align: center;  /* Center the content */
+    display: flex;  /* Changed to flex */
+    flex-wrap: nowrap;  /* Prevent wrapping onto new lines */
+    justify-content: center;  /* Center items horizontally */
+    min-width: 100px;  /* Optional: set a minimum width */
+  display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    overflow-x: auto;  /* Allow horizontal scrolling */
+    white-space: nowrap;  /* Prevent wrapping onto new lines */
+}
+
+.togglebuttoncontainer {
+    background-color: white;
+    border-radius: 50px;
+    padding: 5px;
+    color: black;
+    position: absolute;
+    top: 60px;  /* Adjusted top value */
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 1020;  /* To ensure it's on top of other elements */
+    text-align: center;  /* Center the content */
+    display: inline-block;  /* Allow the container to resize based on content */
+    min-width: 100px;  /* Optional: set a minimum width */
+}
+.togglebuttoncontainer img {
+    margin: 0;
+    padding: 0;
+}
+
+.togglebuttoncontainer img {
+    vertical-align: middle;
+}
+
+    /* Remove button appearance */
+.toggle-button {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Style for icons */
+.icon {
+    width: 24px; /* or whatever size you want */
+    height: auto;
+}
+
+
+
+.countercontainer:hover .tooltip {
+    display: block;
+    opacity: 0;
+    animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.counter-item {
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 15px;  /* Make the font bigger */
+    font-weight: bold;  /* Make the font bolder */
+}
+
+.counter-item:last-child {
+    margin-right: 0;  /* Remove margin-right for the last counter-item */
+	    margin-left: 0;  /* Remove margin-right for the last counter-item */
+
+}
+
+.counter-circle {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.countercontainer, .togglecontainer,
+.countercontainer, .togglecontainer {
+    position: absolute;
+    top: 10px;
+}
 </style>
 
 <style>
 
-
+   .leaflet-top.leaflet-center {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+    }
 
 .pin-label {
     background: none;
@@ -842,7 +1172,19 @@ document.addEventListener('DOMContentLoaded', function() {
     display: block; /* This shows the dropdown on mobile devices by default */
 }
 
+@media (max-width: 900px) {
+    .countercontainer,
+    .togglebuttoncontainer {
+        border-radius: 25px;  /* Reduced border radius */
+        padding: -10px;  /* Reduced padding */
+        min-width: 50px;  /* Optional: reduced minimum width */
+    }
 
+    .togglebuttoncontainer img {
+        width: 20px;  /* Reduced icon size */
+        height: 20px;  /* Reduced icon size */
+    }
+}
 
 /* Hide mappy-container by default */
 #mappy-container {
@@ -861,6 +1203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         height: 400px;
         width: 100%;
 		border-radius: 30px;
+position: relative;
     }
 	
 	 .hide-on-mobile {
@@ -897,12 +1240,18 @@ document.addEventListener('DOMContentLoaded', function() {
     text-align: center;
 }
 
+
+.leaflet-control-container {
+border-radius: 50px:
+}
+
 /* Custom Layer Control styles */
 .leaflet-control-layers-toggle {
     background-image: url('static/mapicon.png');  /* Check if this path is correct */
     background-color: transparent;
     background-repeat: no-repeat;
     background-position: center;
+	border-radius: 50px;
     width: 36px;
     height: 36px;
 }
@@ -1542,18 +1891,58 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function loadPins(pins) {
     pins.forEach(pin => {
+        const markerHtml = `
+            <div style="position: relative; text-align: center; width: 24px;">
+                <div class="pin-style pin-${pin.pin_type}" style="width: 24px; height: 24px;"></div>
+            </div>
+        `;
+
         const markerIcon = L.divIcon({
-            className: `pin-style pin-${pin.pin_type}`,
-            iconSize: [24, 24]
+            className: '',
+            iconSize: [24, 24],
+            html: markerHtml
         });
 
-        const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(pin.description);
-        const markerMapMobile = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(pin.description);
+const deleteButtonHtml = ``;
+        const popupContent = deleteButtonHtml + pin.description;
+
+        const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
+        const markerMapMobile = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
 
         markerMap.addTo(map);
         markerMapMobile.addTo(mapMobile);
+
+        // Attach an event listener to the popupopen event
+        markerMap.on('popupopen', handleDeleteButtonClick);
+        markerMapMobile.on('popupopen', handleDeleteButtonClick);
     });
 }
+
+
+function handleDeleteButtonClick(event) {
+    const deleteButton = event.popup._contentNode.querySelector('.delete-button');
+    if (deleteButton) {
+        deleteButton.addEventListener('click', function() {
+            const molenId = this.getAttribute('data-molen-id');
+            deletePinByMolenId(molenId);
+        });
+    }
+}
+
+function deletePinByMolenId(molenId) {
+    fetch(`/delete_pin_by_molen_id/${molenId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshMap();
+            }
+        });
+}
+
+
+
+
+
 
 function applyColor() {
     let selectedOption = document.querySelector('#pin-dropdown option:checked');
@@ -1621,7 +2010,38 @@ document.getElementById('infoModal').addEventListener('click', function(event) {
 });
 </script>
 
+<script>
+function deletePin(pinId) {
+    fetch(`/delete_pin/${pinId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshMap();
+            }
+        });
+}
 
+function refreshMap() {
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+    mapMobile.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+            mapMobile.removeLayer(layer);
+        }
+    });
+    fetch('/get_pins')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.pins) {
+                loadPins(data.pins);
+            }
+        });
+}
+
+</script>
 
 
 </html>

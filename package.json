@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "collections": "^5.1.13",
+    "leaflet-control-window": "^1.0.0",
     "mongoose": "^7.5.3"
   }
 }

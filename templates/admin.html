@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+
+{% extends "base_generic.html" %}
+
+{% block content %}
 <html lang="en">
 <head>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -11,6 +15,9 @@
 	<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 	<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>  <!-- Include Socket.io library -->
 
 
 
@@ -19,31 +26,51 @@
 <body>
 
 <!-- POPUP -->
-<div id="login-overlay" class="overlay">
-  <form id="login-form">
-
-    <div class="container">
-TECH DEMO
-      <label for="uname"><b>Login</b></label>
-      <input type="text" placeholder="Enter Login" id="uname" required>
-  
-      <label for="psw"><b>Password</b></label>
-      <input type="password" placeholder="Enter Password" id="psw" required>
-        
-      <button type="submit" id="login-btn">Anmelden</button>
-    </div>
-  </form>
-</div>
 
 
 
-<div class="main-container">
+   <!-- Counter container -->
+
+<div class="main-container" style="display: {% if current_user.is_authenticated %}block{% else %}none{% endif %};">
 <!-- Add this button where you want it to appear on your HTML page -->
 
 
 <div style="display: flex; height: 100vh">
-    <div id="map" style="flex-basis: 70%; border-radius: 0px"></div>
+    <div id="map" style="flex-basis: 70%; border-radius: 0px">
+	
+	
+	<!-- COUNTER / VIS DIV -->
+	<div class="parent-container">
+<div id="counter-container" class="countercontainer"></div>
+</div>
+<div id="togglebutton-container" class="togglebuttoncontainer">
+<button class="toggle-button" data-pin-type="ff5c00" data-toggled="true">
+    <img src="static/visicon_ff5c00.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_ff5c00_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="9A031E" data-toggled="true">
+    <img src="static/visicon_9A031E.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_9A031E_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="133873" data-toggled="true">
+    <img src="static/visicon_133873.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_133873_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="358400" data-toggled="true">
+    <img src="static/visicon_358400.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_358400_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="431307" data-toggled="true">
+    <img src="static/visicon_431307.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_431307_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
+<button class="toggle-button" data-pin-type="070707" data-toggled="true">
+    <img src="static/visicon_070707.png" alt="Visibility Icon" class="icon untoggled-icon">
+    <img src="static/visicon_070707_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+</button>
 
+</div>
+</div>
     <div id="sidebar" style="flex-basis: 30%; padding: 10px; background-color: #ffffff; margin-bottom: 0px;">
 
 
@@ -51,68 +78,65 @@ TECH DEMO
 
 <div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
     <div class="info-field" id="conditionsField">
-            <div class="info-subtitle" style="margin-bottom: 30px">Willkommen auf unserer Stimmungskarte!</div> 
-            <div class="info-text" >Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.</div>
+            <div class="info-subtitle" style="margin-bottom: 30px">Keine Sorgen, es ist einfach zu bedienen!</div> 
+            <div class="info-text" >Hier finden Sie eine Erklärung aller Funktionen.</div>
 			            <div class="info-text" style="margin-bottom: 30px">Sie können Hinweise an Orten anbringen, die Sie entweder angenehm oder problematisch finden.</div>  
 
-                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Die Verwendung ist sehr einfach!</span></div>
-            <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.</div> 
-          <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie es auf der Karte.</div> 
-          <div class="info-subtitle"style="margin-bottom: 30px"><span style="color: #f77f00; font-weight: bold;">3.</span> Schreiben Sie auf, was Sie darüber denken!</div> 
-            <div class="info-text"> <span style="font-weight: bold;">Diese Hinweise können von der Gemeinde überprüft und zur Verbesserung des öffentlichen Raums genutzt werden.</div> 
-        </div>
+                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Alle Pins löschen:</span></div>
+            <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Entfernt alle Pins von der Karte. Nicht umkehrbar.</div> 
+			
+						      <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Einen einzelnen Pin löschen:</span></div>
+            <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Wählen Sie einen Pin auf der Karte aus und klicken Sie auf „Löschen“.</div> 
+            
+			<div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">GeoJSON herunterladen(pins):</span></div>
+            <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Laden Sie eine maschinenlesbare GeoJSON-Datei herunter, in der alle Pins gespeichert sind, einschließlich ID, Typ, Koordinaten und Beschreibung.</div>
+			
+                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Laden Sie GeoJSON hoch:</span></div>
+            <div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Laden Sie eine zuvor heruntergeladene GeoJSON-Datei hoch. Alle Pins werden genau dort platziert, wo sie waren.</div> 
+			
+
+			        </div>
 </div>
 </div>
 
 
 <img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-top: -5px;     border-radius: 0px;">
-    <h2>Verwaltungsmenü</h2>
-    <h2>Optionen zur Verwaltung der Karte.</h2>
-
+    <h2>Dies ist das Admin-Menü.</h2>
+<h2 style="margin-bottom: -15px;">Hier haben Sie Zugriff auf mehrere Verwaltungsoptionen.</h2>
+<h4 style="text-align: center;">Weitere Optionen oder Funktionen können auf Anfrage erstellt werden.</h4>
 
 		<button id="aboutBtn" class="button-menu" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
-<button id="deleteAllPins" class="delete-button" style="margin-top: 10px">Alle Pins löschen</button>
-    <!-- Button to Open the Popup -->
-
-    <!-- The Modal -->
-    <div id="uploadModal" class="modal">
-        <!-- Modal content -->
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Upload GeoJSON File</h2>
-            <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" name="geojson_file" id="geojsonFile" accept=".json">
-                <input type="submit" value="Upload">
-            </form>
-        </div>
-    </div>
 
 
-		 <form action="/upload_geojson" method="post" enctype="multipart/form-data">
-        <label for="geojson_file"style="margin-top: 10px" >Laden Sie GeoJSON hoch:</label>
-        <input type="file" style="margin-top: 10px" name="geojson_file" accept=".json,application/json">
-        <button type="submit">Hochladen</button>
+
+<h2>Alle Pins löschen / herunterladen:</h2>
+
+<div style="display: flex; justify-content: flex-start; align-items: center; gap: 10px;">
+    <button id="deleteAllPins" class="delete-button" style="margin-top: 10px">Alle Pins löschen</button>
+    <form action="/export_geojson" method="get" style="margin-top: 10px;">
+        <button type="submit" class="delete-button">GeoJSON herunterladen (Pins)</button>
     </form>
-
+</div>
+<h2 style="margin-top: 10px;">Laden Sie GeoJSON hoch:</h2>
+<form action="/upload_geojson" method="post" enctype="multipart/form-data">
+    <label for="geojson_file" style="margin-top: 10px"></label>
+    <input type="file" style="margin-top: 10px" name="geojson_file" accept=".json,application/json">
+    <button type="submit">Hochladen</button>
+</form>
 
 
 <!-- Mappy Container -->
 <div id="mappy-container">
-    <div id="mapMobile"></div>
+    <div id="mapMobile">
+	<!-- COUNTER / VIS DIV -->
+
 </div>
-        <!-- Pin Menu -->
-
- 
-
-<img src="static/overlay.jpg" class="hide-on-mobile" style="max-width: 98%; height: auto; border: 5px solid white; display: block; margin-bottom: -4px; border-radius: 30px;">
-<!-- Mappy Container -->
-<div id="mappy-container">
-    <div id="mapMobile"></div>
+	
 </div>
 
 
         <!-- Pin Menu -->
-
+         
 <div class="centered-text-container" style="margin-bottom: 0px;">
 	</div>
 	<div class="current-desktop">
@@ -120,6 +144,7 @@ TECH DEMO
 </div>
 	
 	<div class="dropdown-container">
+
 
     <div id="dropdown-options" class="options">
         <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
@@ -171,10 +196,6 @@ TECH DEMO
 
 
 
-
-
-
-
 	</div>
 	</div>
 	
@@ -184,54 +205,14 @@ TECH DEMO
 <!-- LOGIC -->
 
 
-   <script>
-        // Get the modal
-        const modal = document.getElementById("uploadModal");
 
-        // Get the button that opens the modal
-        const btn = document.getElementById("uploadBtn");
 
-        // Get the <span> element that closes the modal
-        const span = document.getElementsByClassName("close")[0];
+  <script>
 
-        // Open the modal
-        btn.onclick = function() {
-            modal.style.display = "block";
-        }
-
-        // Close the modal
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        // Close the modal if the user clicks outside of it
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        }
-
-        // Upload file using jQuery and AJAX
-        $('#uploadForm').submit(function(e) {
-            e.preventDefault();
-            let formData = new FormData(this);
-            $.ajax({
-                url: '/upload_geojson',
-                type: 'POST',
-                data: formData,
-                success: function (data) {
-                    alert(data.message);
-                },
-                cache: false,
-                contentType: false,
-                processData: false
-            });
-        });
     </script>
-
-
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
+
 // Initialize main map
     const map = L.map('map').setView([48.4102, 15.6022], 10);
     map.setMinZoom(15);
@@ -243,7 +224,7 @@ TECH DEMO
     setTimeout(() => {
         mapMobile.invalidateSize(true);
         map.invalidateSize(true);
-    }, 600);
+    }, 1000);
 
     map.doubleClickZoom.disable();
 
@@ -288,6 +269,55 @@ TECH DEMO
             resetStyle(mapMobile);
         }
     });
+	
+	
+	const layers = {
+    "ff5c00": L.layerGroup().addTo(map).addTo(mapMobile),
+    "9A031E": L.layerGroup().addTo(map).addTo(mapMobile),
+    "133873": L.layerGroup().addTo(map).addTo(mapMobile),
+    "358400": L.layerGroup().addTo(map).addTo(mapMobile),
+    "431307": L.layerGroup().addTo(map).addTo(mapMobile),
+    "070707": L.layerGroup().addTo(map).addTo(mapMobile)
+};
+
+// Function to add marker to both map and mapMobile
+function addMarkerToMaps(latlng, pinType, description) {
+    const marker = L.marker(latlng, {
+        icon: L.divIcon({
+            className: `pin-${pinType}`,
+            iconSize: [24, 24]
+        })
+    }).bindPopup(description);
+    
+    marker.addTo(layers[pinType]);
+}
+
+function loadPins(pins) {
+    pins.forEach(pin => addMarkerToMaps([pin.lat, pin.lon], pin.pin_type, pin.description));
+}
+// Event listeners for checkboxes
+document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
+    checkbox.addEventListener("change", function() {
+        const pinType = this.getAttribute("data-pin-type");
+        if (this.checked) {
+            map.addLayer(layers[pinType]);
+            mapMobile.addLayer(layers[pinType]);
+        } else {
+            map.removeLayer(layers[pinType]);
+            mapMobile.removeLayer(layers[pinType]);
+        }
+    });
+});
+
+// New code to establish WebSocket connection
+const socket = io.connect(location.origin);
+
+// New event listener for 'update_counters' WebSocket message
+socket.on('update_counters', function() {
+    fetchAndDisplayCounters();
+});
+
+
 
     function setSatelliteStyle(mapInstance) {
         const mapContainer = mapInstance.getContainer();
@@ -376,6 +406,7 @@ const overlayMobile = L.polygon([outerBounds, [
 
 
 
+
     function calculateBounds(lat, lng, distanceInKm) {
         const R = 6371;
         const dLat = distanceInKm / R;
@@ -385,6 +416,17 @@ const overlayMobile = L.polygon([outerBounds, [
             [lat + dLat, lng + dLng]
         ];
     }
+	// Add this event listener to stop propagation of click events from counter-container
+document.getElementById('counter-container').addEventListener('click', function(event) {
+    event.stopPropagation();
+});
+
+	// Add this event listener to stop propagation of click events from counter-container
+document.getElementById('togglebutton-container').addEventListener('click', function(event) {
+    event.stopPropagation();
+});
+
+
 
 	// Add this line to declare currentPopupLatLng
 	let currentPopupLatLng = null;
@@ -392,7 +434,10 @@ const overlayMobile = L.polygon([outerBounds, [
     function handleMapClick(e) {
     const targetSquare = e.target === map ? squareForMap : squareForMapMobile;
     
-    
+    if (selectedColor === null) {
+        alert("Wählen Sie zunächst eine Option aus.");
+        return;
+    }
 
     if (targetSquare.getBounds().contains(e.latlng)) {
         // Add this check to see if a popup is already open at the clicked position
@@ -400,42 +445,59 @@ const overlayMobile = L.polygon([outerBounds, [
             return;
         }
         currentPopupLatLng = e.latlng;
+		
+		
 
         const containerWidth = document.querySelector('#sidebar').offsetWidth;
         const fontSize = Math.max(12, containerWidth / 30);
 
-        
+        const popupContent = `
+            <textarea id="feedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
+            <button id="postFeedback" style="font-size: ${fontSize}px;">Fertig</button>
+            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Storno</button>
+        `;
+
         const popup = L.popup()
             .setLatLng(e.latlng)
             .setContent(popupContent)
             .openOn(e.target);
 
-            document.getElementById('postFeedback').addEventListener('click', function() {
-                const feedback = document.getElementById('feedbackText').value;
-                if (feedback.length >= 10) {
+           
+    document.getElementById('postFeedback').addEventListener('click', function() {
+        const feedback = document.getElementById('feedbackText').value;
+        if (feedback.length >= 10 && feedback.length <= 150) {
                     L.marker(e.latlng, {
                         icon: L.divIcon({
                             className: `pin-style pin-${selectedColor}`,
                             iconSize: [24, 24]
                         })
                     }).bindPopup(feedback).addTo(e.target);
+					
+					
+					
 
-                    fetch('/add_pin', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            lat: e.latlng.lat,
-                            lon: e.latlng.lng,
-                            pin_type: selectedColor,
-                            description: feedback
-                        })
-                    });
+
+                   // Generate a random molen_id
+        const molen_id = Math.random().toString(36).substring(2, 10);
+
+        fetch('/add_pin', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        lat: e.latlng.lat,
+        lon: e.latlng.lng,
+        pin_type: selectedColor,
+        description: feedback,
+        molen_id: `M${Math.floor(Math.random() * 1e9)}`  // Generate a random molen_id client-side
+    })
+});
+
 
                     e.target.closePopup();
                 } else {
-                    alert("Bitte geben Sie mindestens 10 Buchstaben ein.");
+            alert("Bitte geben Sie zwischen 10 und 150 Zeichen ein.");
                 }
             });
 
@@ -448,15 +510,40 @@ const overlayMobile = L.polygon([outerBounds, [
     }
 
     function loadPins(pins) {
-        pins.forEach(pin => {
-            L.marker([pin.lat, pin.lon], {
-                icon: L.divIcon({
-                    className: `pin-${pin.pin_type}`,
-                    iconSize: [24, 24]
-                })
-            }).bindPopup(pin.description).addTo(map);
-        });
-    }
+    pins.forEach(pin => {
+        const marker = L.marker([pin.lat, pin.lon], {
+            icon: L.divIcon({
+                className: `pin-${pin.pin_type}`,
+                iconSize: [24, 24]
+            })
+        }).bindPopup(`
+            ${pin.description}
+            <br>
+            <button onclick="deletePin('${pin.molen_id}')">Delete</button>
+        `).addTo(layers[pin.pin_type]);
+    });
+}
+
+
+
+function deletePin(molen_id) {
+    fetch(`/delete_pin_by_molen_id/${molen_id}`, {
+        method: 'POST'
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the pin from the map
+            // Assuming you have stored your markers in a global object called `markers`
+            const marker = markers[molen_id];
+            if (marker) {
+                marker.remove();
+                delete markers[molen_id];  // Remove the marker from the markers object
+            }
+        } else {
+            alert('Error deleting pin');
+        }
+    });
+}
 
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -471,6 +558,38 @@ const overlayMobile = L.polygon([outerBounds, [
         "431307": "Needs improvement",
         "070707": "Missing service"
     };
+	
+	 // Function to create checkboxes dynamically
+    function createCheckboxes() {
+        const filterMenu = document.getElementById('filter-menu');
+
+        for (const [color, description] of Object.entries(pins)) {
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+
+            checkbox.type = 'checkbox';
+            checkbox.className = 'filter-checkbox';
+            checkbox.setAttribute('data-pin-type', color);
+            checkbox.checked = true;
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(` ${description}`));
+            label.appendChild(document.createElement('br'));
+
+            filterMenu.appendChild(label);
+        }
+    }
+
+    // Create the checkboxes when the document is loaded
+    document.addEventListener("DOMContentLoaded", function() {
+        createCheckboxes();
+
+        // Your existing code to fetch pins
+        fetch('/')
+            .then(response => response.json())
+            .then(data => loadPins(data.pins));
+    });
+
 
     let selectedColor = null;
 
@@ -489,8 +608,68 @@ const overlayMobile = L.polygon([outerBounds, [
     });
 	
 
-</script>
 
+
+
+
+
+// Global object to keep track of toggle states
+const toggleStates = {
+    "ff5c00": true,
+    "9A031E": true,
+    "133873": true,
+    "358400": true,
+    "431307": true,
+    "070707": true
+};
+
+// Store the markers in an object so you can reference them later
+const markers = {
+    "ff5c00": [],
+    "9A031E": [],
+    "133873": [],
+    "358400": [],
+    "431307": [],
+    "070707": []
+};
+
+// Updated loadPins function to handle opacity
+function loadPins(pins) {
+    pins.forEach(pin => {
+        const marker = L.marker([pin.lat, pin.lon], {
+            icon: L.divIcon({
+                className: `pin-${pin.pin_type}`,
+                iconSize: [24, 24]
+            }),
+            opacity: toggleStates[pin.pin_type] ? 1 : 0.05  // Set opacity based on toggle state
+        }).bindPopup(pin.description);
+
+        marker.addTo(layers[pin.pin_type]);
+        markers[pin.pin_type].push(marker);  // Store the marker
+    });
+}
+
+   // Updated script to handle toggle-button menu interactions
+    document.querySelectorAll('.toggle-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const pinType = button.getAttribute('data-pin-type');
+            toggleStates[pinType] = !toggleStates[pinType];  // Toggle the state
+
+            // Toggle the display styles of the img tags
+            const untoggledIcon = button.querySelector('.untoggled-icon');
+            const toggledIcon = button.querySelector('.toggled-icon');
+            untoggledIcon.style.display = toggleStates[pinType] ? '' : 'none';
+            toggledIcon.style.display = toggleStates[pinType] ? 'none' : '';
+
+            // Update the opacity of existing markers of the same type
+            document.querySelectorAll(`.pin-${pinType}`).forEach(markerElement => {
+                markerElement.style.opacity = toggleStates[pinType] ? 1 : 0.05;
+            });
+        });
+    });
+
+
+</script>
 
 
 
@@ -499,7 +678,6 @@ const overlayMobile = L.polygon([outerBounds, [
 
 <!-- LOGIC - DROPDOWN MOBILE -->
 
-<script>
 document.querySelector('#dropdown-button').addEventListener('click', function() {
     let options = document.querySelector('#dropdown-options');
     if (options.style.display === 'none' || !options.style.display) {
@@ -555,6 +733,7 @@ pinMenus.forEach(function(menu) {
 
     });
 });
+
 </script>
 
 
@@ -627,108 +806,21 @@ updateFontSize();
 
 </script>
 
-<!-- DELETE FUNCTION - INDIVIDUAL PIN REMOVAL -->
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    let deleteMode = false;
-    let map = L.map('map').setView([0, 0], 2);
-    let markers = {};
-
-    // Fetch initial pins from the server
-    fetch('/get_pins')
-    .then(response => response.json())
-    .then(data => {
-        data.pins.forEach(addPin);
+async function vote(pinId, action) {
+    const res = await fetch('/vote', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ pin_id: pinId, action: action })
     });
-
-	function addPin(pin) {
-		const marker = L.marker([pin.lat, pin.lon]).addTo(map);
-		marker.pin_id = pin.id;  // Assign id to marker
-		markers[pin.id] = marker; // Save marker by id
-
-        const idLabel = L.divIcon({
-            className: 'pin-label',
-            html: `<div>${pin.id}</div>`,
-            iconSize: [30, 15],
-            iconAnchor: [15, 0]
-        });
-
-        const labelMarker = L.marker([pin.lat, pin.lon], { icon: idLabel, clickable: false }).addTo(map);
-        labelMarker._icon.style.zIndex = 500; // make labels appear above markers
-
-        if (deleteMode) {
-            labelMarker.addTo(map);
-        }
-
-        marker.on('click', function() {
-            if (deleteMode) {
-                fetch(`/delete_pin/${pin.id}`, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        map.removeLayer(marker);
-                        map.removeLayer(labelMarker);
-                        delete markers[pin.id];
-                    }
-                });
-            }
-        });
+    const data = await res.json();
+    if (data.votes !== undefined) {
+        document.querySelector(`#votes-${pinId}`).textContent = data.votes;
     }
-
-    document.getElementById("deleteSelectedPins").addEventListener("click", function() {
-        deleteMode = !deleteMode;
-
-        if (deleteMode) {
-            // Open the window to enter pin IDs for mass deletion
-            const pinIDs = window.prompt('Enter pin IDs to delete, separated by commas');
-            if (pinIDs) {
-                const ids = pinIDs.split(',').map(id => parseInt(id.trim()));
-                ids.forEach(id => {
-                    fetch(`/delete_pin/${id}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && markers[id]) {
-                            map.removeLayer(markers[id]);
-                            delete markers[id];
-                        }
-                    });
-                });
-            }
-        }
-
-        // Toggle display of label markers based on deleteMode
-        Object.keys(markers).forEach(pin_id => {
-            const marker = markers[pin_id];
-            marker.getPopup().setContent(deleteMode ? `${marker.getPopup().getContent()} <br> ID: ${pin_id}` : pin_id);
-        });
-
-        this.textContent = deleteMode ? 'Cancel Delete' : 'Delete Selected Pins';
-    });
-});
-
-</script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const loginForm = document.getElementById("login-form");
-  
-    loginForm.addEventListener("submit", function(event) {
-      event.preventDefault();
-  
-      const username = document.getElementById("uname").value;
-      const password = document.getElementById("psw").value;
-  
-      if(username === "stimmungskarte" && password === "techdemo") {
-        document.getElementById("login-overlay").style.display = "none";
-      } else {
-        alert("Falscher Login oder Passwort..");
-      }
-    });
-  });
+}
 </script>
 
 <!--DELETE FUNCTION - PIN REMOVAL -->
@@ -773,17 +865,102 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
+<script>
+function fetchAndDisplayCounters() {
+    // Fetch the counter data from the server
+    fetch('/get_counters')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            let counterContainer = document.getElementById("counter-container");
+            let counterContainerMobile = document.getElementById("counter-container-mobile");
 
+            // Check if the elements exist
+            if (!counterContainer || !counterContainerMobile) {
+                console.error('Counter containers not found');
+                return;
+            }
 
+            // Clear the existing counters
+            counterContainer.innerHTML = "";
+            counterContainerMobile.innerHTML = "";
 
-<!-- CSS PINS -->
-<style>
-.custom-popup .leaflet-popup-content {
-    font-size: 40px; /* Adjust size as needed */
+            // Define the order of counter types
+            const orderedCounterTypes = ['ff5c00', '9A031E', '133873', '358400', '431307', '070707'];
+
+            // Loop through each counter type in the specified order and append a circle for it
+            orderedCounterTypes.forEach(counterType => {
+                let counterValue = data[counterType];
+
+                let counterCircle = document.createElement("div");
+                counterCircle.className = "counter-circle";
+                counterCircle.style.backgroundColor = "#" + counterType;
+                counterCircle.innerText = counterValue;
+
+                let counterCircleMobile = counterCircle.cloneNode(true);
+                counterCircleMobile.innerText = counterValue;
+
+                counterContainer.appendChild(counterCircle);
+                counterContainerMobile.appendChild(counterCircleMobile);
+            });
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
 }
 
-</style>
+// You can call this function on page load, or as often as needed to refresh the counter
+fetchAndDisplayCounters();
 
+</script>
+
+
+
+<script>
+    let filteredType = null;  // Keep track of the currently filtered pin type
+    const pinOrder = ['ff5c00', '9A031E', '133873', '358400', '431307', '070707'];  // Specify the order of pin types
+
+    function toggleFilter(pin_type) {
+        if (filteredType === pin_type) {
+            filteredType = null;
+        } else {
+            filteredType = pin_type;
+        }
+        // Update your map to show the filtered pins
+        updateMap();
+    }
+
+    function fetchAndUpdateCounter() {
+        fetch('/get_pin_counts')
+        .then(response => response.json())
+        .then(data => {
+            let htmlStr = '';
+            pinOrder.forEach(pin_type => {  // Loop through pin types in the specified order
+                let count = data[pin_type];
+                htmlStr += `<div class="counter-item"><span class="counter-circle" style="background-color: #${pin_type};" onclick="toggleFilter('${pin_type}')"></span>${count}</div>`;
+            });
+            htmlStr += `<div class="counter-item">Alles: ${data.total}</div>`;  // Add total count at the end
+            document.getElementById('counter-container').innerHTML = htmlStr;
+        });
+    }
+
+    function updateMap() {
+        // Logic to update your map
+        // Filter pins based on `filteredType` if it's not null
+    }
+
+    // Fetch and update the counter every 5 seconds
+    setInterval(fetchAndUpdateCounter, 5000);
+
+    // Fetch the counter when the page loads
+    fetchAndUpdateCounter();
+</script>
+
+<!-- CSS PINS -->
 <style>
 
 .overlay {
@@ -803,43 +980,124 @@ document.addEventListener('DOMContentLoaded', function() {
   transform: translate(-50%, -50%);
   padding: 20px;
   background-color: white;
+  border-radius: 50px;
+}
+
+.custom-popup .leaflet-popup-content {
+    font-size: 40px; /* Adjust size as needed */
+}
+
+.countercontainer {
+    background-color: white;
+    border-radius: 50px;
+    padding: 11px;
+    color: black;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 1000;  /* To ensure it's on top of other elements */
+    text-align: center;  /* Center the content */
+    display: flex;  /* Changed to flex */
+    flex-wrap: nowrap;  /* Prevent wrapping onto new lines */
+    justify-content: center;  /* Center items horizontally */
+    min-width: 100px;  /* Optional: set a minimum width */
+  display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    overflow-x: auto;  /* Allow horizontal scrolling */
+    white-space: nowrap;  /* Prevent wrapping onto new lines */
+}
+
+.togglebuttoncontainer {
+    background-color: white;
+    border-radius: 50px;
+    padding: 5px;
+    color: black;
+    position: absolute;
+    top: 60px;  /* Adjusted top value */
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 1020;  /* To ensure it's on top of other elements */
+    text-align: center;  /* Center the content */
+    display: inline-block;  /* Allow the container to resize based on content */
+    min-width: 100px;  /* Optional: set a minimum width */
+}
+.togglebuttoncontainer img {
+    margin: 0;
+    padding: 0;
+}
+
+.togglebuttoncontainer img {
+    vertical-align: middle;
+}
+
+    /* Remove button appearance */
+.toggle-button {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Style for icons */
+.icon {
+    width: 24px; /* or whatever size you want */
+    height: auto;
 }
 
 
-     /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
 
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 30%;
-        }
+.countercontainer:hover .tooltip {
+    display: block;
+    opacity: 0;
+    animation: fadeIn 0.5s forwards;
+}
 
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
 
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
+.counter-item {
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 15px;  /* Make the font bigger */
+    font-weight: bold;  /* Make the font bolder */
+}
+
+.counter-item:last-child {
+    margin-right: 0;  /* Remove margin-right for the last counter-item */
+	    margin-left: 0;  /* Remove margin-right for the last counter-item */
+
+}
+
+.counter-circle {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.countercontainer, .togglecontainer,
+.countercontainer, .togglecontainer {
+    position: absolute;
+    top: 10px;
+}
+</style>
+
+<style>
+
+   .leaflet-top.leaflet-center {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+    }
 
 .pin-label {
     background: none;
@@ -855,6 +1113,8 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 10px;
     cursor: pointer;
     border: none;
+	margin-right: 5px;
+	border-radius: 10px;
 }
 
 #pin-menu-desktop {
@@ -913,7 +1173,19 @@ document.addEventListener('DOMContentLoaded', function() {
     display: block; /* This shows the dropdown on mobile devices by default */
 }
 
+@media (max-width: 900px) {
+    .countercontainer,
+    .togglebuttoncontainer {
+        border-radius: 25px;  /* Reduced border radius */
+        padding: -10px;  /* Reduced padding */
+        min-width: 50px;  /* Optional: reduced minimum width */
+    }
 
+    .togglebuttoncontainer img {
+        width: 20px;  /* Reduced icon size */
+        height: 20px;  /* Reduced icon size */
+    }
+}
 
 /* Hide mappy-container by default */
 #mappy-container {
@@ -932,6 +1204,7 @@ document.addEventListener('DOMContentLoaded', function() {
         height: 400px;
         width: 100%;
 		border-radius: 30px;
+position: relative;
     }
 	
 	 .hide-on-mobile {
@@ -968,12 +1241,18 @@ document.addEventListener('DOMContentLoaded', function() {
     text-align: center;
 }
 
+
+.leaflet-control-container {
+border-radius: 50px:
+}
+
 /* Custom Layer Control styles */
 .leaflet-control-layers-toggle {
     background-image: url('static/mapicon.png');  /* Check if this path is correct */
     background-color: transparent;
     background-repeat: no-repeat;
     background-position: center;
+	border-radius: 50px;
     width: 36px;
     height: 36px;
 }
@@ -1613,18 +1892,59 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function loadPins(pins) {
     pins.forEach(pin => {
+        const markerHtml = `
+            <div style="position: relative; text-align: center; width: 24px;">
+                <div style="position: absolute; width: 100%; top: -15px;">M${pin.molen_id}</div>
+                <div class="pin-style pin-${pin.pin_type}" style="width: 24px; height: 24px;"></div>
+            </div>
+        `;
+
         const markerIcon = L.divIcon({
-            className: `pin-style pin-${pin.pin_type}`,
-            iconSize: [24, 24]
+            className: '',
+            iconSize: [24, 24],
+            html: markerHtml
         });
 
-        const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(pin.description);
-        const markerMapMobile = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(pin.description);
+const deleteButtonHtml = `<button class="delete-button" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">Diesen Pin löschen</button>`;
+        const popupContent = deleteButtonHtml + pin.description;
+
+        const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
+        const markerMapMobile = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
 
         markerMap.addTo(map);
         markerMapMobile.addTo(mapMobile);
+
+        // Attach an event listener to the popupopen event
+        markerMap.on('popupopen', handleDeleteButtonClick);
+        markerMapMobile.on('popupopen', handleDeleteButtonClick);
     });
 }
+
+
+function handleDeleteButtonClick(event) {
+    const deleteButton = event.popup._contentNode.querySelector('.delete-button');
+    if (deleteButton) {
+        deleteButton.addEventListener('click', function() {
+            const molenId = this.getAttribute('data-molen-id');
+            deletePinByMolenId(molenId);
+        });
+    }
+}
+
+function deletePinByMolenId(molenId) {
+    fetch(`/delete_pin_by_molen_id/${molenId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshMap();
+            }
+        });
+}
+
+
+
+
+
 
 function applyColor() {
     let selectedOption = document.querySelector('#pin-dropdown option:checked');
@@ -1692,7 +2012,40 @@ document.getElementById('infoModal').addEventListener('click', function(event) {
 });
 </script>
 
+<script>
+function deletePin(pinId) {
+    fetch(`/delete_pin/${pinId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshMap();
+            }
+        });
+}
+
+function refreshMap() {
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+    mapMobile.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+            mapMobile.removeLayer(layer);
+        }
+    });
+    fetch('/get_pins')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.pins) {
+                loadPins(data.pins);
+            }
+        });
+}
+
+</script>
 
 
+{% endblock %}
 
 </html>
