@@ -1161,7 +1161,7 @@ fetchAndDisplayCounters();
 .star-button {
     background-color: black;
     color: white;
-    padding: 8px;
+    padding: 10px;
     cursor: pointer;
     border: none;
 	margin-right: 5px;
@@ -1172,7 +1172,7 @@ fetchAndDisplayCounters();
 .remove-star-button {
     background-color: black;
     color: white;
-    padding: 8px;
+    padding: 10px;
     cursor: pointer;
     border: none;
 	margin-right: 5px;
@@ -1972,9 +1972,9 @@ function loadPins(pins) {
             html: markerHtml
         });
 
-        const deleteButtonHtml = `<button class="delete-button" style="margin-top: 5px;" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">Löschen</button>`;
-        const starButtonHtml = `<button class="star-button" data-molen-id="${pin.molen_id}">⭐ markieren</button>`;
-		const removeStarButtonHtml = pin.highlight_id ? `<button class="remove-star-button" onclick="removeStar('${pin.molen_id}')">⭐ entfernen</button>` : '';
+        const deleteButtonHtml = `<button class="delete-button" style="margin-top: 5px;" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">📍 Löschen</button>`;
+        const starButtonHtml = `<button class="star-button" data-molen-id="${pin.molen_id}">⭐ Markieren</button>`;
+		const removeStarButtonHtml = pin.highlight_id ? `<button class="remove-star-button" onclick="removeStar('${pin.molen_id}')">⭐ Entfernen</button>` : '';
         const popupContent = starButtonHtml + deleteButtonHtml + removeStarButtonHtml + pin.description;
 
         const markerMap = L.marker([pin.lat, pin.lon], { icon: markerIcon }).bindPopup(popupContent);
