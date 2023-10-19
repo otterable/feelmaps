@@ -4,12 +4,22 @@ from collections import Counter
 from flask_socketio import SocketIO
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from bs4 import BeautifulSoup
 import json
 import time
 import sqlite3
 import random
 import string
 from datetime import timedelta
+
+categories = {
+    'ff5c00': 'Dieser Ort gefällt mir.',
+    '9A031E': 'Hier fühle ich mich unsicher.',
+    '133873': 'Hier gibt es Probleme mit dem Parken.',
+    '358400': 'Hier verbringe ich gerne meine Freizeit.',
+    '431307': 'Dieser Ort braucht eine Verbesserung.',
+    '070707': 'An diesem Ort fehlt ein Service.'
+}
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pins.db'
@@ -30,13 +40,14 @@ def load_user(user_id):
     return User(user_id)
 
 class Pin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    molen_id = db.Column(db.String(50), nullable=False, unique=True)  # new column for molen_id
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     lat = db.Column(db.Float, nullable=False)
     lon = db.Column(db.Float, nullable=False)
-    pin_type = db.Column(db.String(20), nullable=False)
-    description = db.Column(db.String(200), nullable=True)
-    highlight_id = db.Column(db.String(50), nullable=True)  # New field for highlight_id
+    pin_type = db.Column(db.String, nullable=False)
+    description = db.Column(db.String)
+    molen_id = db.Column(db.String)
+    highlight_id = db.Column(db.String)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -117,7 +128,10 @@ def get_pins_by_type(pin_type):
         'pin_type': pin.pin_type,
         'description': pin.description
     } for pin in pins])
-    
+
+
+
+
     
 @app.route('/delete_pin/<int:pin_id>', methods=['POST'])
 def delete_pin(pin_id):
@@ -133,6 +147,57 @@ def delete_all_pins():
     db.session.query(Pin).delete()
     db.session.commit()
     return jsonify({'success': True})
+    
+@app.route('/get_categories', methods=['GET'])
+def get_categories():
+    return jsonify(categories)
+    
+
+@app.route('/delete_pins_by_type/<pin_type>', methods=['POST'])
+def delete_pins_by_type(pin_type):
+    Pin.query.filter_by(pin_type=pin_type).delete()
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+
+def update_category_name(html_file_path, color_code, new_name):
+    # Read the original HTML
+    with open(html_file_path, 'r', encoding='utf-8') as file:
+        soup = BeautifulSoup(file, 'html.parser')
+
+    # Update the category name in div elements under #dropdown-options
+    dropdown_options_div = soup.find('div', {'id': 'dropdown-options'})
+    if dropdown_options_div:
+        pin_menu_div = dropdown_options_div.find('div', {'data-color': color_code})
+        if pin_menu_div:
+            pin_menu_div.h3.string = new_name
+
+    # Update the category name in div elements under #pin-menu-desktop
+    pin_menu_desktop_div = soup.find('div', {'id': 'pin-menu-desktop'})
+    if pin_menu_desktop_div:
+        pin_menu_div = pin_menu_desktop_div.find('div', {'data-color': color_code})
+        if pin_menu_div:
+            pin_menu_div.h3.string = new_name
+
+    # Save the modified HTML
+    with open(html_file_path, 'w', encoding='utf-8') as file:
+        file.write(str(soup))
+
+@app.route('/rename_category', methods=['POST'])
+def rename_category():
+    global categories  # Declare categories as global
+    value = request.json.get('value')
+    new_name = request.json.get('newName')
+    if value in categories:
+        categories[value] = new_name
+        # Call update_category_name for both HTML files
+        update_category_name('templates/admin.html', value, new_name)
+        update_category_name('templates/index.html', value, new_name)
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False})
+
 
 @app.route('/')
 def index():
@@ -207,9 +272,8 @@ def get_pins():
         'lon': pin.lon,
         'pin_type': pin.pin_type,
         'description': pin.description,
-        'molen_id': pin.molen_id,  # Include the molen_id field
-        'highlight_id': pin.highlight_id  # Include the molen_id field
-
+        'molen_id': pin.molen_id,
+        'highlight_id': pin.highlight_id
     } for pin in pins])
 
 @app.route('/remove_star/<string:molen_id>', methods=['POST'])
@@ -247,7 +311,12 @@ def upload_geojson():
 
 @app.route('/export_geojson', methods=['GET'])
 def export_geojson():
-    pins = Pin.query.all()
+    pin_type = request.args.get('pin_type')
+    if pin_type:
+        pins = Pin.query.filter_by(pin_type=pin_type).all()
+    else:
+        pins = Pin.query.all()
+
     features = []
     for pin in pins:
         feature = {
@@ -259,8 +328,8 @@ def export_geojson():
             "properties": {
                 "pin_type": pin.pin_type,
                 "description": pin.description,
-                "molen_id": pin.molen_id, # Include molen_id here
-                "highlight_id": pin.highlight_id  # Include the highlight_id field
+                "molen_id": pin.molen_id,
+                "highlight_id": pin.highlight_id
             }
         }
         features.append(feature)
@@ -273,8 +342,9 @@ def export_geojson():
     return Response(
         json.dumps(geojson_object, indent=4),
         mimetype='application/json',
-        headers={'Content-Disposition': 'attachment;filename=geojson.json'}
+        headers={'Content-Disposition': f'attachment;filename=geojson_{pin_type or "all"}.json'}
     )
+
 
 
 if __name__ == "__main__":
