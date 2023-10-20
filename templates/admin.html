@@ -17,6 +17,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {% extends "base_generic.html" %}
 
 {% block content %}
@@ -97,43 +127,28 @@
 <h4 style="text-align: center;">Weitere Optionen oder Funktionen können auf Anfrage erstellt werden.</h4>
 <button class="button-menu" id="aboutBtn" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
 <!-- Modal structure -->
-<h2>Kategorie hinzufügen:</h2>
-<div class="modal" id="add-category-modal" style="text-align: center; margin-top: 6px;">
-<div class="modal-content">
-<form id="add-category-form">
-<label for="category-name">Titel:</label>
-<input id="category-name" name="category-name" required="" type="text"/>
-<label for="category-color">Farbe:</label>
-<input id="category-color" name="category-color" required="" type="color" value="#ff0000"/>
-<button class="delete-button" id="add-category-button" onclick="addCategory()">Hinzufügen</button>
-</form>
-</div>
-</div>
-<h2>Kategorien umbenennen:</h2>
-<div style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-<select id="rename-category-dropdown">
-<!-- Options will be populated dynamically -->
+<h2>Kategorien umfärben:</h2>
+<div>
+<select id="color-category-dropdown">
+<!-- Options will be populated by JavaScript -->
 </select>
+<input id="color-picker" type="color" value="#431307"/>
+<button onclick="recolorPin()">Recolor Pin</button>
+</div>
+<div>
+<select id="rename-category-dropdown">
 <input id="new-category-name" placeholder="Neuer Kategoriename" type="text"/>
 <button class="delete-button" id="renameCategory">Umbenennen</button>
-</div>
-<h2>Kategorie (und Pins) entfernen:</h2>
-<div class="modal-content">
-<form id="add-category-form">
-<label for="category-name">Titel:</label>
-<input id="category-name" name="category-name" required="" type="text"/>
-<button class="delete-button" id="add-category-button">Löschen</button>
-</form>
-</div>
+</select></div>
 <h2>Pins löschen:</h2>
 <div style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
 <select id="delete-pin-type-dropdown">
 <option value="all">Alle Pins</option> <!-- New option for all pins -->
 <option value="ff5c00">Dieser Ort gefällt mir.</option>
-<option value="9A031E">ffffffff</option>
-<option value="133873"></option>
+<option value="9A031E">Hier fühle ich mich unsicher.</option>
+<option value="133873">Hier gibt es Probleme mit dem Parken.</option>
 <option value="358400">Hier verbringe ich gerne meine Freizeit.</option>
-<option value="431307">ggggggg</option>
+<option value="431307">Dieser Ort braucht eine Verbesserung.</option>
 <option value="070707">An diesem Ort fehlt ein Service.</option>
 </select>
 <button class="delete-button" id="deletePinsByType">Pins löschen</button>
@@ -144,10 +159,10 @@
 <select id="pin-type-dropdown" name="pin_type">
 <option value="">Alle Pins</option>
 <option value="ff5c00">Dieser Ort gefällt mir.</option>
-<option value="9A031E">ffffffff</option>
-<option value="133873"></option>
+<option value="9A031E">Hier fühle ich mich unsicher.</option>
+<option value="133873">Hier gibt es Probleme mit dem Parken.</option>
 <option value="358400">Hier verbringe ich gerne meine Freizeit.</option>
-<option value="431307">ggggggg</option>
+<option value="431307">Dieser Ort braucht eine Verbesserung.</option>
 <option value="070707">An diesem Ort fehlt ein Service.</option>
 </select>
 <button class="delete-button" type="submit">GeoJSON herunterladen (Pins)</button>
@@ -174,28 +189,7 @@
 <div class="dropdown-container">
 <div class="options" id="dropdown-options">
 <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-<h3>fffffffffffffffffff</h3>
-</div>
-<div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
-<h3>ffffffff</h3>
-</div>
-<div class="pin-menu" data-color="133873" style="background-color: #133873;">
-<h3></h3>
-</div>
-<div class="pin-menu" data-color="358400" style="background-color: #358400;">
-<h3>Hier verbringe ich gerne meine Freizeit.</h3>
-</div>
-<div class="pin-menu" data-color="431307" style="background-color: #431307;">
-<h3>jjjjjjjjjj</h3>
-</div>
-<div class="pin-menu" data-color="070707" style="background-color: #070707;">
-<h3>An diesem Ort fehlt ein Service.</h3>
-</div>
-</div>
-</div>
-<div id="pin-menu-desktop">
-<div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-<h3>fffffffffffffffffff</h3>
+<h3>Dieser Ort gefällt mir.</h3>
 </div>
 <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
 <h3>Hier fühle ich mich unsicher.</h3>
@@ -207,7 +201,28 @@
 <h3>Hier verbringe ich gerne meine Freizeit.</h3>
 </div>
 <div class="pin-menu" data-color="431307" style="background-color: #431307;">
-<h3>jjjjjjjjjj</h3>
+<h3>Dieser Ort braucht eine Verbesserung.</h3>
+</div>
+<div class="pin-menu" data-color="070707" style="background-color: #070707;">
+<h3>An diesem Ort fehlt ein Service.</h3>
+</div>
+</div>
+</div>
+<div id="pin-menu-desktop">
+<div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
+<h3>Dieser Ort gefällt mir.</h3>
+</div>
+<div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
+<h3>Hier fühle ich mich unsicher.</h3>
+</div>
+<div class="pin-menu" data-color="133873" style="background-color: #133873;">
+<h3>Hier gibt es Probleme mit dem Parken.</h3>
+</div>
+<div class="pin-menu" data-color="358400" style="background-color: #358400;">
+<h3>Hier verbringe ich gerne meine Freizeit.</h3>
+</div>
+<div class="pin-menu" data-color="431307" style="background-color: #431307;">
+<h3>Dieser Ort braucht eine Verbesserung.</h3>
 </div>
 <div class="pin-menu" data-color="070707" style="background-color: #070707;">
 <h3>An diesem Ort fehlt ein Service.</h3>
@@ -662,20 +677,23 @@ function removeStar(molen_id) {
     });
 }
 function updateCategoriesDropdown() {
+document.addEventListener('DOMContentLoaded', (event) => {
     fetch('/get_categories')
         .then(response => response.json())
-        .then(categories => {  // Changed data to categories for clarity
+        .then(categories => {
             const dropdown = document.getElementById('rename-category-dropdown');
-            dropdown.innerHTML = '';  // Clear the current options
-            categories.forEach(category => {  // Use forEach to iterate over the categories array
+            console.log('Existing Options:', dropdown.options);  // Log existing options
+            dropdown.innerHTML = '';  // Clear any existing options
+            categories.forEach(category => {
                 const option = document.createElement('option');
-                option.value = category.value;  // Access the value property of the category object
-                option.textContent = category.name;  // Access the name property of the category object
-                dropdown.appendChild(option);
+                option.value = category.value;
+                option.text = category.name;
+                dropdown.add(option);
             });
         });
-}
-
+});
+	}
+	
 // Call this function on page load and whenever categories are updated
 updateCategoriesDropdown();
 
@@ -933,6 +951,28 @@ pinMenus.forEach(function(menu) {
 
 </script>
 <script>
+   document.getElementById('renameCategory').addEventListener('click', () => {
+    const colorCode = document.getElementById('rename-category-dropdown').value;
+    const newName = document.getElementById('new-category-name').value;
+    fetch('/rename_category', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({value: colorCode, newName: newName})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Die Kategorie wurde erfolgreich umbenannt!');
+            location.reload();  // Reload the page
+        } else {
+            alert('Die Kategorie konnte nicht umbenannt werden!');
+        }
+    });
+});
+</script>
+<script>
 function addCategory() {
     const categoryName = document.getElementById('category-name').value;
     const categoryColor = document.getElementById('category-color').value.replace('#', '');
@@ -1178,38 +1218,60 @@ fetchAndDisplayCounters();
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
+         // Additional code for recoloring categories:
         fetch('/get_categories')
             .then(response => response.json())
             .then(categories => {
-                const dropdown = document.getElementById('rename-category-dropdown');
-                for (const colorCode in categories) {
+                const dropdown = document.getElementById('recolor-category-dropdown');
+                categories.forEach(category => {
                     const option = document.createElement('option');
-                    option.value = colorCode;
-                    option.text = categories[colorCode];
+                    option.value = category.value;
+                    option.text = category.name;
                     dropdown.add(option);
-                }
+                });
             });
     });
+	
+	    // Populate the dropdown with pin categories
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const categories = {
+            'ff5c00': 'Dieser Ort gefällt mir.',
+            '9A031E': 'Hier fühle ich mich unsicher.',
+            '133873': 'Hier gibt es Probleme mit dem Parken.',
+            '358400': 'Hier verbringe ich gerne meine Freizeit.',
+            '431307': 'Dieser Ort braucht eine Verbesserung.',
+            '070707': 'An diesem Ort fehlt ein Service.'
+        };
+        const dropdown = document.getElementById('color-category-dropdown');
+        for (const colorCode in categories) {
+            const option = document.createElement('option');
+            option.value = colorCode;
+            option.text = categories[colorCode];
+            dropdown.add(option);
+        }
+    });
 
-    document.getElementById('renameCategory').addEventListener('click', () => {
-        const colorCode = document.getElementById('rename-category-dropdown').value;
-        const newName = document.getElementById('new-category-name').value;
-        fetch('/rename_category', {
+    function recolorPin() {
+        const colorCode = document.getElementById('color-category-dropdown').value;
+        const newColor = document.getElementById('color-picker').value.slice(1);  // Remove the '#' from the color value
+        fetch('/recolor_pin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({value: colorCode, newName: newName})
+            body: JSON.stringify({colorCode: colorCode, newColor: newColor})
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Die Kategorie wurde erfolgreich umbenannt!');
+                alert('Pin color updated successfully!');
+                location.reload();  // Reload the page to reflect the changes
             } else {
-                alert('Die Kategorie konnte nicht umbenannt werden!');
+                alert('Failed to update pin color!');
             }
         });
-    });
+    }
+
 </script>
 <script>
     let filteredType = null;  // Keep track of the currently filtered pin type

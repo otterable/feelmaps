@@ -5,6 +5,7 @@ from flask_socketio import SocketIO
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from bs4 import BeautifulSoup
+import re
 import json
 import time
 import sqlite3
@@ -34,6 +35,12 @@ login_manager.login_view = 'login'
 class User(UserMixin):
     def __init__(self, id):
         self.id = id
+
+class Category(db.Model):
+    __tablename__ = 'categories'  # Explicitly specify table name
+    color_code = db.Column(db.String, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -113,6 +120,47 @@ def get_counters():
     type_counts = Counter(pin[0] for pin in all_pins)
     
     return jsonify(type_counts)
+    
+@app.route('/recolor_pin', methods=['POST'])
+def recolor_pin():
+    data = request.json
+    color_code = data.get('colorCode')
+    new_color = data.get('newColor')
+
+    # Validate inputs
+    if not color_code or not new_color:
+        return jsonify({'success': False, 'error': 'Invalid input'})
+
+    # Update HTML file
+    update_color_in_file('templates/index.html', color_code, new_color)
+    update_color_in_file('templates/admin.html', color_code, new_color)
+
+    return jsonify({'success': True})
+
+def update_color_in_file(file_path, color_code, new_color):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        soup = BeautifulSoup(file.read(), 'html.parser')
+
+    # Update background-color and data-color in div elements
+    div_elements = soup.find_all('div', {'data-color': color_code})
+    for div_element in div_elements:
+        div_element['style'] = f'background-color: #{new_color};'
+        div_element['data-color'] = new_color
+
+    # Update CSS text
+    css_text = soup.style.string if soup.style else ''
+    css_text = css_text.replace(color_code, new_color)
+    if soup.style:
+        soup.style.string.replace_with(css_text)
+    else:
+        soup.head.append(soup.new_tag('style', type='text/css', string=css_text))
+
+    # Save the modified file
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(str(soup))
+
+
+
 
 
 @app.route('/get_pins_by_type/<string:pin_type>', methods=['GET'])
@@ -150,7 +198,8 @@ def delete_all_pins():
     
 @app.route('/get_categories', methods=['GET'])
 def get_categories():
-    return jsonify(categories)
+    categories = Category.query.all()
+    return jsonify([{ 'value': category.color_code, 'name': category.name } for category in categories])
     
 
 @app.route('/delete_pins_by_type/<pin_type>', methods=['POST'])
@@ -166,31 +215,33 @@ def update_category_name(html_file_path, color_code, new_name):
     with open(html_file_path, 'r', encoding='utf-8') as file:
         soup = BeautifulSoup(file, 'html.parser')
 
-    # Update the category name in div elements under #dropdown-options
-    dropdown_options_div = soup.find('div', {'id': 'dropdown-options'})
-    if dropdown_options_div:
-        pin_menu_div = dropdown_options_div.find('div', {'data-color': color_code})
-        if pin_menu_div:
-            pin_menu_div.h3.string = new_name
+    # Update the category name in div elements (as in the original function)
+    div_elements = soup.find_all('div', {'data-color': color_code})
+    for div_element in div_elements:
+        div_element.h3.string = new_name
 
-    # Update the category name in div elements under #pin-menu-desktop
-    pin_menu_desktop_div = soup.find('div', {'id': 'pin-menu-desktop'})
-    if pin_menu_desktop_div:
-        pin_menu_div = pin_menu_desktop_div.find('div', {'data-color': color_code})
-        if pin_menu_div:
-            pin_menu_div.h3.string = new_name
+    # Additionally, update the category name in option elements within select elements
+    select_ids = ['delete-pin-type-dropdown', 'pin-type-dropdown', 'rename-category-dropdown']
+    for select_id in select_ids:
+        select_element = soup.find('select', {'id': select_id})
+        if select_element:
+            option_elements = select_element.find_all('option', {'value': color_code})
+            for option_element in option_elements:
+                option_element.string = new_name
 
     # Save the modified HTML
     with open(html_file_path, 'w', encoding='utf-8') as file:
         file.write(str(soup))
 
+
 @app.route('/rename_category', methods=['POST'])
 def rename_category():
-    global categories  # Declare categories as global
     value = request.json.get('value')
     new_name = request.json.get('newName')
-    if value in categories:
-        categories[value] = new_name
+    category = Category.query.filter_by(color_code=value).first()
+    if category:
+        category.name = new_name
+        db.session.commit()
         # Call update_category_name for both HTML files
         update_category_name('templates/admin.html', value, new_name)
         update_category_name('templates/index.html', value, new_name)
