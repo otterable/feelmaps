@@ -5,8 +5,10 @@ from flask_socketio import SocketIO
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from bs4 import BeautifulSoup
-import re
+from werkzeug.utils import secure_filename
 import json
+import os
+import re
 import time
 import sqlite3
 import random
@@ -40,6 +42,20 @@ class Category(db.Model):
     __tablename__ = 'categories'  # Explicitly specify table name
     color_code = db.Column(db.String, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    
+class Rectangle(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    lat1 = db.Column(db.Float, nullable=False)
+    lng1 = db.Column(db.Float, nullable=False)
+    lat2 = db.Column(db.Float, nullable=False)
+    lng2 = db.Column(db.Float, nullable=False)
+    coordinates = db.Column(db.String, nullable=False)  # Retain for backward compatibility
+    note = db.Column(db.String)
+    rectangle_id = db.Column(db.String)
+    highlight_id = db.Column(db.String)
+    pin_type = db.Column(db.String, nullable=False, default='')  # Add this line
+
+
 
 
 @login_manager.user_loader
@@ -54,6 +70,188 @@ class Pin(db.Model):
     description = db.Column(db.String)
     molen_id = db.Column(db.String)
     highlight_id = db.Column(db.String)
+
+@app.route('/add_rectangle', methods=['POST'])
+def add_rectangle():
+    data = request.get_json()
+    coordinates = data.get('coordinates')
+    note = data.get('note')
+    rectangle_id = data.get('rectangle_id')
+    pin_type = data.get('pin_type')  # Add this line to retrieve pin_type
+    
+    # Assuming coordinates is a list of two lists, each containing two floats
+    # e.g., [[lat1, lng1], [lat2, lng2]]
+    lat1, lng1 = coordinates[0]
+    lat2, lng2 = coordinates[1]
+
+    new_rectangle = Rectangle(
+        lat1=lat1, lng1=lng1, lat2=lat2, lng2=lng2,
+        coordinates=str(coordinates), 
+        note=note, 
+        rectangle_id=rectangle_id,
+        pin_type=pin_type  # Add pin_type here
+    )
+    db.session.add(new_rectangle)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'rectangle_id': rectangle_id})
+
+@app.route('/get_rectangles', methods=['GET'])
+def get_rectangles():
+    rectangles = Rectangle.query.all()
+    response_data = [{
+        'lat1': rectangle.lat1,
+        'lng1': rectangle.lng1,
+        'lat2': rectangle.lat2,
+        'lng2': rectangle.lng2,
+        'note': rectangle.note,
+        'rectangle_id': rectangle.rectangle_id,
+        'highlight_id': rectangle.highlight_id
+    } for rectangle in rectangles]
+    # Remove the line below
+    # logging.info(f'Response data: {response_data}')
+    return jsonify(rectangles=response_data)
+
+
+
+
+@app.route('/add_category', methods=['POST'])
+def add_category():
+    data = request.get_json()
+    color_code = data.get('color_code')
+    category_name = data.get('category_name')
+
+    if not color_code or not category_name:
+        return jsonify({'error': 'Invalid data'}), 400
+
+    html_file_path = 'templates/admin.html'
+
+    with open(html_file_path, 'r', encoding='utf-8') as file:
+        soup = BeautifulSoup(file, 'html.parser')
+
+    # Add option elements to select elements
+    for select_id in ['delete-pin-type-dropdown', 'pin-type-dropdown', 'rename-category-dropdown']:
+        select_element = soup.find('select', {'id': select_id})
+        if select_element:
+            new_option = soup.new_tag('option', value=color_code)
+            new_option.string = category_name
+            select_element.append(new_option)
+
+    # Add new category to dropdown-options
+    dropdown_options = soup.find('div', {'id': 'dropdown-options'})
+    if dropdown_options:
+        new_div = soup.new_tag('div', **{'class': 'pin-menu', 'data-color': color_code, 'style': f'background-color: #{color_code};'})
+        new_h3 = soup.new_tag('h3')
+        new_h3.string = category_name
+        new_div.append(new_h3)
+        dropdown_options.append(new_div)
+
+    # Add new category to pin-menu-desktop
+    pin_menu_desktop = soup.find('div', {'id': 'pin-menu-desktop'})
+    if pin_menu_desktop:
+        new_div = soup.new_tag('div', **{'class': 'pin-menu', 'data-color': color_code, 'style': f'background-color: #{color_code};'})
+        new_h3 = soup.new_tag('h3')
+        new_h3.string = category_name
+        new_div.append(new_h3)
+        pin_menu_desktop.append(new_div)
+
+    scripts = soup.find_all('script')
+    for script in scripts:
+        if script.string and 'const pinOrder' in script.string:
+            script.string = re.sub(
+                r'(const pinOrder = \[.*?\])',
+                rf'\1, \'{color_code}\'',
+                script.string
+            )
+    
+    # Update orderedCounterTypes array
+    for script in scripts:
+        if script.string and 'const orderedCounterTypes' in script.string:
+            script.string = re.sub(
+                r'(const orderedCounterTypes = \[.*?\])',
+                rf'\1, \'{color_code}\'',
+                script.string
+            )
+    # Add new category to togglebutton-container
+    togglebutton_container = soup.find('div', {'id': 'togglebutton-container'})
+    if togglebutton_container:
+        new_button = soup.new_tag('button', **{'class': 'toggle-button', 'data-pin-type': color_code, 'data-toggled': 'true'})
+        new_img1 = soup.new_tag('img', **{'class': 'icon untoggled-icon', 'src': f'static/visicon_{color_code}.png', 'alt': 'Visibility Icon'})
+        new_img2 = soup.new_tag('img', **{'class': 'icon toggled-icon', 'src': f'static/visicon_{color_code}_2.png', 'alt': 'Visibility Icon', 'style': 'display:none;'})
+        new_button.append(new_img1)
+        new_button.append(new_img2)
+        togglebutton_container.append(new_button)
+
+    # Save the modified HTML
+    with open(html_file_path, 'w', encoding='utf-8') as file:
+        file.write(str(soup))
+    
+    # Step 2: Update app.py file
+    app_py_file_path = 'app.py'
+    with open(app_py_file_path, 'r', encoding='utf-8') as file:
+        app_py_content = file.read()
+        
+     # Update categories dictionary
+    app_py_content = re.sub(
+        r'(categories = {.*?})',
+        rf'\1,\n    \'{color_code}\': \'{name}\'',
+        app_py_content,
+        flags=re.DOTALL  # DOTALL flag to make . match newline characters
+    )
+    
+    # Update pin_types array in get_pin_counts function
+    app_py_content = re.sub(
+        r'(pin_types = \[.*?\])',
+        rf'\1, \'{color_code}\'',
+        app_py_content
+    )
+
+    with open(app_py_file_path, 'w', encoding='utf-8') as file:
+        file.write(app_py_content)
+
+    return jsonify({'success': True})
+
+# TEXT EDITOR: WIE FUNKTIONIERTS ADMIN
+@app.route('/update_text', methods=['POST'])
+def update_text():
+    print("update_text route accessed")
+    data = request.get_json()
+    new_text = data.get('text')
+    area_index = data.get('areaIndex')
+    file_path = data.get('filePath')
+
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    # Split the content by the editable area markers
+    parts = re.split(r'(<!-- BEGINNING OF EDITABLE AREA -->.*?<!-- ENDING OF EDITABLE AREA -->)', content, flags=re.DOTALL)
+    
+    # Reconstruct the new content, replacing the specified editable area
+    new_content = ''
+    replaced = False  # A flag to ensure we only replace one area
+    for part in parts:
+        if '<!-- BEGINNING OF EDITABLE AREA -->' in part and not replaced:
+            new_content += f'<!-- BEGINNING OF EDITABLE AREA -->\n{new_text}\n<!-- ENDING OF EDITABLE AREA -->'
+            replaced = True
+        else:
+            new_content += part
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(new_content)
+
+    return 'success', 200
+
+@app.route('/get_editable_content', methods=['GET'])
+def get_editable_content():
+    print("get_editable_content route accessed")
+    file_paths = ['templates/admin.html', 'templates/index.html']
+    all_areas = []
+    for file_path in file_paths:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        areas = re.findall(r'<!-- BEGINNING OF EDITABLE AREA -->(.*?)<!-- ENDING OF EDITABLE AREA -->', content, re.DOTALL)
+        all_areas.extend([(area, file_path) for area in areas])
+    return jsonify({'areas': all_areas})
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -76,7 +274,20 @@ def highlight_pin(molen_id):
         return jsonify({'success': True, 'highlight_id': pin.highlight_id})
     return jsonify({'error': 'Pin not found'}), 404
 
-    
+
+@app.route('/upload_overlay', methods=['GET'])
+def upload_overlay():
+    return render_template('upload.html')
+
+@app.route('/upload_overlay_image', methods=['POST'])
+def upload_overlay_image():
+    file = request.files['file']
+    if file and file.filename:
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.root_path, 'static', 'overlay.jpg'))
+        return redirect(url_for('index'))  # Redirect to home page after successful upload
+    return "File upload failed!", 400
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -120,47 +331,6 @@ def get_counters():
     type_counts = Counter(pin[0] for pin in all_pins)
     
     return jsonify(type_counts)
-    
-@app.route('/recolor_pin', methods=['POST'])
-def recolor_pin():
-    data = request.json
-    color_code = data.get('colorCode')
-    new_color = data.get('newColor')
-
-    # Validate inputs
-    if not color_code or not new_color:
-        return jsonify({'success': False, 'error': 'Invalid input'})
-
-    # Update HTML file
-    update_color_in_file('templates/index.html', color_code, new_color)
-    update_color_in_file('templates/admin.html', color_code, new_color)
-
-    return jsonify({'success': True})
-
-def update_color_in_file(file_path, color_code, new_color):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        soup = BeautifulSoup(file.read(), 'html.parser')
-
-    # Update background-color and data-color in div elements
-    div_elements = soup.find_all('div', {'data-color': color_code})
-    for div_element in div_elements:
-        div_element['style'] = f'background-color: #{new_color};'
-        div_element['data-color'] = new_color
-
-    # Update CSS text
-    css_text = soup.style.string if soup.style else ''
-    css_text = css_text.replace(color_code, new_color)
-    if soup.style:
-        soup.style.string.replace_with(css_text)
-    else:
-        soup.head.append(soup.new_tag('style', type='text/css', string=css_text))
-
-    # Save the modified file
-    with open(file_path, 'w', encoding='utf-8') as file:
-        file.write(str(soup))
-
-
-
 
 
 @app.route('/get_pins_by_type/<string:pin_type>', methods=['GET'])
@@ -250,6 +420,7 @@ def rename_category():
         return jsonify({'success': False})
 
 
+
 @app.route('/')
 def index():
     conn = sqlite3.connect('instance/pins.db')
@@ -326,6 +497,11 @@ def get_pins():
         'molen_id': pin.molen_id,
         'highlight_id': pin.highlight_id
     } for pin in pins])
+    
+    
+
+    
+
 
 @app.route('/remove_star/<string:molen_id>', methods=['POST'])
 def remove_star(molen_id):
@@ -358,6 +534,23 @@ def upload_geojson():
         time.sleep(1)  # Delay for 1 second
         return redirect(url_for('admin'))  # Redirect to /admin page
     return jsonify({'message': 'Failed to upload GeoJSON file.'})
+
+
+@app.route('/resize_pins', methods=['POST'])
+def resize_pins():
+    size = request.json.get('size')
+    star_icon_size = size + 2  # Star icon size is always 2 points larger than pin size
+    if size and 10 <= size <= 100:
+        # Update the size of pins in the database
+        pins = Pin.query.all()
+        for pin in pins:
+            pin.size = size  # Assuming Pin model has a size field
+            pin.star_icon_size = star_icon_size  # Assuming Pin model has a star_icon_size field
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'error': 'Invalid size value'}), 400
+
+
 
 
 @app.route('/export_geojson', methods=['GET'])

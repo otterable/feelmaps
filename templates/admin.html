@@ -11,50 +11,22 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 {% extends "base_generic.html" %}
 
 {% block content %}
+
+<!-- SCRIPT DEPENDENCIES AND BROWSER TITLE -->
 <html lang="en">
 <head>
+
+<!-- BROWSER TITLE -->
+<title>Stimmungskarte Krems | MUSTER</title>
+<!-- BROWSER TITLE END-->
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!-- DEPENDENCY: LEAFLET MAPS / PINS MANAGEMENT -->
 <link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet"/>
 <link href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" rel="stylesheet"/>
 <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
@@ -62,20 +34,35 @@
 <script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script> <!-- Include Socket.io library -->
-<title>Stimmungskarte Krems | MUSTER</title>
+<script src="https://cdn.jsdelivr.net/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/leaflet.heat/0.2.0/leaflet-heat.css" />
+
+<!-- DEPENDENCY: ADMIN LOGIN LOGIC -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+<!-- DEPENDENCY: TEXT EDITOR -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<!-- DEPENDENCY: COLOR PICKER -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.5/jscolor.min.js"></script>
 </head>
+<!-- SCRIPT DEPENDENCIES END -->
+
+
+<!-- WEBSITE LAYOUT DESKTOP -->
 <body>
-<!-- POPUP -->
-<!-- Counter container -->
 <div class="main-container" style="display: {% if current_user.is_authenticated %}block{% else %}none{% endif %};">
-<!-- Add this button where you want it to appear on your HTML page -->
 <div style="display: flex; height: 100vh">
+
+<!-- DESKTOP MAP, COUNTERS AND VIS TOGGLES ARE PART OF THE DESKTOP MAP -->
 <div id="map" style="flex-basis: 70%; border-radius: 0px">
-<!-- COUNTER / VIS DIV -->
+
+
+<!-- PIN COUNTERS AND VISIBILITY TOGGLES -->
 <div class="parent-container">
 <div class="countercontainer" id="counter-container"></div>
 </div>
+
+<!-- VISIBILITY TOGGLES -->
 <div class="togglebuttoncontainer" id="togglebutton-container">
 <button class="toggle-button" data-pin-type="ff5c00" data-toggled="true">
 <img alt="Visibility Icon" class="icon untoggled-icon" src="static/visicon_ff5c00.png"/>
@@ -102,47 +89,148 @@
 <img alt="Visibility Icon" class="icon toggled-icon" src="static/visicon_070707_2.png" style="display:none;"/>
 </button>
 </div>
+<!-- VISIBILITY TOGGLES END -->
 </div>
+<!-- DESKTOP MAP END -->
+
+<!-- SIDEBAR DESKTOP -->
 <div id="sidebar" style="flex-basis: 30%; padding: 10px; background-color: #ffffff; margin-bottom: 0px;">
 <div style="display: flex; align-items: center;">
 <div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
-<div class="info-field" id="conditionsField">
-<div class="info-subtitle" style="margin-bottom: 30px">Erklärung aller Funktionen</div>
-<div class="info-text"></div>
-<div class="info-text" style="margin-bottom: 30px">Sie können Hinweise an Orten anbringen, die Sie entweder angenehm oder problematisch finden.</div>
-<div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Alle Pins löschen:</span></div>
-<div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Entfernt alle Pins von der Karte. Nicht umkehrbar.</div>
-<div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Einen einzelnen Pin löschen:</span></div>
-<div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Wählen Sie einen Pin auf der Karte aus und klicken Sie auf „Löschen“.</div>
-<div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">GeoJSON herunterladen (pins):</span></div>
-<div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Laden Sie eine GeoJSON-Datei herunter, in der alle Pins gespeichert sind, einschließlich ID, Typ, Koordinaten und Beschreibung.</div>
-<div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Laden Sie ein GeoJSON hoch:</span></div>
-<div class="info-text"><span style="color: #f77f00; font-weight: bold;"></span>Laden Sie eine zuvor heruntergeladene GeoJSON-Datei hoch. Alle Pins werden genau dort platziert, wo sie waren.</div>
+<div class="info-field" id="conditionsField" style="overflow-y: auto; max-height: 100vh;">
+
+<!-- BEGINNING OF EDITABLE AREA -->
+<h1 class="ql-align-center">Erklärung aller Funktionen</h1><h2 class="ql-align-center">Sie können Hinweise an Orten anbringen, die Sie entweder angenehm oder problematisch finden.</h2><p class="ql-align-center"><br></p><h2 class="ql-align-center"><strong style="color: rgb(247, 127, 0);">Alle Pins löschen:</strong></h2><h3 class="ql-align-center">Entfernt alle Pins von der Karte. Nicht umkehrbar.</h3><h2 class="ql-align-center"><strong style="color: rgb(247, 127, 0);">Einen einzelnen Pin löschen:</strong></h2><h3 class="ql-align-center">Wählen Sie einen Pin auf der Karte aus und klicken Sie auf „Löschen“.</h3><h2 class="ql-align-center"><strong style="color: rgb(247, 127, 0);">GeoJSON herunterladen (pins):</strong></h2><h3 class="ql-align-center">Laden Sie eine GeoJSON-Datei herunter, in der alle Pins gespeichert sind, einschließlich ID, Typ, Koordinaten und Beschreibung.</h3><h2 class="ql-align-center"><strong style="color: rgb(247, 127, 0);">Laden Sie ein GeoJSON hoch:</strong></h2><h3 class="ql-align-center">Laden Sie eine zuvor heruntergeladene GeoJSON-Datei hoch. Alle Pins werden genau dort platziert, wo sie waren.</h3>
+<!-- ENDING OF EDITABLE AREA -->
+
+
+
+
 </div>
 </div>
 </div>
+
+
 <img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-top: -5px;     border-radius: 0px;"/>
-<h2>Hier ist das Admin-Menü.</h2>
-<h2 style="margin-bottom: -15px;">Sie haben Zugriff auf mehrere Verwaltungsoptionen.</h2>
-<h4 style="text-align: center;">Weitere Optionen oder Funktionen können auf Anfrage erstellt werden.</h4>
+
+
+<!-- BEGINNING OF EDITABLE AREA -->
+<h2 class="ql-align-center">Hier ist das Admin-Menü.</h2><h2 class="ql-align-center">Sie haben Zugriff auf mehrere Verwaltungsoptionen.</h2><h4 class="ql-align-center">Weitere Optionen oder Funktionen können auf Anfrage erstellt werden.</h4>
+<!-- ENDING OF EDITABLE AREA -->
+
 <button class="button-menu" id="aboutBtn" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
 <!-- Modal structure -->
-<h2>Kategorien umfärben:</h2>
-<div>
-<select id="color-category-dropdown">
-<!-- Options will be populated by JavaScript -->
-</select>
-<input id="color-picker" type="color" value="#431307"/>
-<button onclick="recolorPin()">Recolor Pin</button>
+
+
+
+   <label>
+        <input type="checkbox" id="togglePins"> Place Pins
+    </label>
+    <label>
+        <input type="checkbox" id="toggleRectangles"> Place Rectangles
+    </label>
+
+
+
+<!-- Toggle Button -->
+
+<!-- Popup Container -->
+<div id="toggle-menu" style="display:none;">
+
+
+	</div>
+
+<button class="toggle-menu-button" id="aboutBtnEditor" style="background-color: #000000" onclick="toggleEditorMenu()">Texteditor</button>
+
+<!-- Popup Container -->
+<div id="editor-menu" style="display:none;">
+
+<!-- TEXT EDITOR: WIE FUNKTIONIERTS ADMIN -->
+
+
+<div id="infoModalEditor" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
+    <div class="info-field" id="conditionsField" style="overflow-y: auto; max-height: 100vh;">
+        <div id="editor-container" style="height: 400px; overflow-y: auto;"></div>
+        <button class="texteditor-button" id="prevAreaButton" onclick="prevArea()" style="margin-top:10px; text-align: center;">Vorheriger Teil</button>
+        <button class="texteditor-button" id="nextAreaButton" onclick="nextArea()" style="margin-top:10px; text-align: center;">Nächster Teil</button>
+        <button class="texteditor-button" id="saveButton" onclick="updateText()" style="margin-top:10px; text-align: center;">Änderungen speichern</button>
+    </div>
 </div>
-<div>
-<select id="rename-category-dropdown">
-<input id="new-category-name" placeholder="Neuer Kategoriename" type="text"/>
-<button class="delete-button" id="renameCategory">Umbenennen</button>
-</select></div>
-<h2>Pins löschen:</h2>
-<div style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-<select id="delete-pin-type-dropdown">
+<!-- TEXT EDITOR: WIE FUNKTIONIERTS ADMIN END -->
+
+ 
+</div>
+
+<button id="toggleRectangleDrawing" class="delete-button">Toggle Rectangle Drawing</button>
+
+
+   <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
+        <h2>Titelbild ersetzen:</h2>
+        <form action="/upload_overlay_image" method="post" enctype="multipart/form-data" style="text-align: left;">
+            <label for="file">Titelbild ändern:</label>
+            <input type="file" name="file" id="file" accept="image/*" required>
+            <input type="submit" value="Ändern" class="delete-button">
+        </form>
+    </div>
+
+<button class="toggle-menu-button" id="category-menu-button" style="background-color: #000000" onclick="toggleCategoryMenu()">Kategorien</button>
+
+<!-- Popup Container -->
+<div id="category-menu" style="display:none;">
+
+<div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
+    <h2>Create New Pin Category:</h2>
+    <form id="new-category-form" style="text-align: left; margin-top: 6px">
+        <label for="category-name">Category Name:</label>
+        <input id="category-name" name="category-name" required="" type="text"/><br/><br/>
+        <label for="category-color">Category Color:</label>
+        <input id="category-color" name="category-color" required="" type="color" value="#EDFF86"/><br/><br/>
+        <input type="submit" value="Create Category" class="delete-button"/>
+        <button id="add-category-button" class="delete-button">Add a Category</button>
+    </form>
+</div>
+
+<div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
+    <h2>Kategorien umfärben:</h2>
+    <form id="recolor-form" style="text-align: left; margin-top: 6px">
+        <div style="display: flex; justify-content: center; gap: 10px;">
+            <select id="recolor-category-dropdown" name="category"></select>
+            <input id="new-color" name="newColor" type="color" value="#ffffff"/>
+            <button id="recolorCategory" type="button" class="delete-button">Recolor Category</button>
+        </div>
+    </form>
+</div>
+
+<div style="text-align: center;">
+<div style="display: flex; flex-direction: column; align-items: center;">
+    <h2>Kategorien umbenennen:</h2>
+    <div style="display: flex; margin-top: 6px">
+        <select id="rename-category-dropdown"></select>
+        <input id="new-category-name" placeholder="Neuer Name" type="text"/>
+        <button class="delete-button" id="renameCategory" style="margin-left: 8px">Umbenennen</button>
+    </div>
+
+	</div>
+
+	</div>
+	</div>
+
+	
+<button class="pinsexport-menu-button" id="pinsexport-menu-button" style="background-color: #000000" onclick="togglePinsExportMenu()">Pins</button>
+<div id="pinsexport-menu" style="display:none;">
+	
+	
+<div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
+    <h2>Pingröße ändern:</h2>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 10px">
+        <div id="resize-section" style="display: flex; flex-direction: row; align-items: center; gap: 10px;"></div>
+    </div>
+</div>
+
+<div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
+    <h2>Pins löschen:</h2>
+    <div style="display: inline-block; text-align: left; margin-top: 6px;">
+        <select id="delete-pin-type-dropdown">
 <option value="all">Alle Pins</option> <!-- New option for all pins -->
 <option value="ff5c00">Dieser Ort gefällt mir.</option>
 <option value="9A031E">Hier fühle ich mich unsicher.</option>
@@ -150,12 +238,12 @@
 <option value="358400">Hier verbringe ich gerne meine Freizeit.</option>
 <option value="431307">Dieser Ort braucht eine Verbesserung.</option>
 <option value="070707">An diesem Ort fehlt ein Service.</option>
-</select>
-<button class="delete-button" id="deletePinsByType">Pins löschen</button>
-</div>
-<h2>Pins herunterladen:</h2>
-<div style="text-align: center; margin-top: 6px;">
-<form action="/export_geojson" method="get" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+ </select>
+        <button class="delete-button" id="deletePinsByType" style="margin-left: 6px">Pins löschen</button>
+    </div>
+    <h2>Pins herunterladen:</h2>
+    <div style="display: inline-block; text-align: left; margin-top: 6px;">
+        <form action="/export_geojson" method="get" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
 <select id="pin-type-dropdown" name="pin_type">
 <option value="">Alle Pins</option>
 <option value="ff5c00">Dieser Ort gefällt mir.</option>
@@ -168,12 +256,18 @@
 <button class="delete-button" type="submit">GeoJSON herunterladen (Pins)</button>
 </form>
 </div>
-<h2 style="margin-top: 10px;">Laden Sie eine GeoJSON Datei hoch:</h2>
-<form action="/upload_geojson" enctype="multipart/form-data" method="post">
-<label for="geojson_file" style="margin-top: 10px"></label>
-<input accept=".json,application/json" name="geojson_file" style="margin-top: 10px" type="file"/>
-<button type="submit">Hochladen</button>
+  <h2 style="margin-top: 10px;">Laden Sie eine GeoJSON Datei hoch:</h2>
+    <div style="display: inline-block; text-align: left; margin-top: 6px;">
+        <form action="/upload_geojson" enctype="multipart/form-data" method="post">
+            <label for="geojson_file"></label>
+            <input accept=".json,application/json" name="geojson_file" type="file"/>
+            <button class="delete-button" type="submit">Hochladen</button>
 </form>
+	</div>
+</div>
+
+	</div>
+
 <!-- Mappy Container -->
 <div id="mappy-container">
 <div id="mapMobile">
@@ -181,8 +275,9 @@
 </div>
 </div>
 <!-- Pin Menu -->
-<div class="centered-text-container" style="margin-bottom: 0px;">
-</div>
+<button class="admin-menu-button" id="admin-menu-button" style="background-color: #000000" onclick="toggleAdminMenu()">Pinmenü öffnen</button>
+<div id="admin-menu" style="display:none;">
+
 <div class="current-desktop">
 <div class="current" id="current-selection">Ausgewählt: <span id="selected-pin-type">...</span></div>
 </div>
@@ -208,6 +303,8 @@
 </div>
 </div>
 </div>
+
+
 <div id="pin-menu-desktop">
 <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
 <h3>Dieser Ort gefällt mir.</h3>
@@ -228,146 +325,215 @@
 <h3>An diesem Ort fehlt ein Service.</h3>
 </div>
 </div>
+    </div>
+</div>
+	</div>
+	</div>
+
+<!-- SIDEBAR END -->
 </div>
 </div>
 </div>
-</body>
+<!-- WEBSITE LAYOUT DESKTOP END-->
+</div></body>
+
+
 <!-- LOGIC -->
-<script>
-</script>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script>
+    <script>
 
-// Initialize main map
-    const map = L.map('map').setView([48.4102, 15.6022], 10);
-    map.setMinZoom(15);
+        // Initialize main map
+        const map = L.map('map').setView([48.4102, 15.6022], 10);
+        map.setMinZoom(15);
 
-    // Initialize mobile map
-    const mapMobile = L.map('mapMobile').setView([48.4102, 15.6022], 10);
-    mapMobile.setMinZoom(14);
+        // Initialize mobile map
+        const mapMobile = L.map('mapMobile').setView([48.4102, 15.6022], 10);
+        mapMobile.setMinZoom(14);
 
-    setTimeout(() => {
-        mapMobile.invalidateSize(true);
-        map.invalidateSize(true);
-    }, 1000);
+        setTimeout(() => {
+            mapMobile.invalidateSize(true);
+            map.invalidateSize(true);
+        }, 1000);
 
-    map.doubleClickZoom.disable();
+        map.doubleClickZoom.disable();
 
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-    const osmLayerMobile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(mapMobile);
+        const osmLayerMobile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(mapMobile);
 
-    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
-	
-	
-
-    L.control.layers({
-        "Standardkarte": osmLayer,
-        "Satellit": satelliteLayer
-    }).addTo(map);
-
-    L.control.layers({
-        "Standardkarte": osmLayerMobile,
-        "Satellit": satelliteLayer
-    }).addTo(mapMobile);
-	
-	
-
-    map.on('baselayerchange', function(eventLayer) {
-        if (eventLayer.name === 'Satellit') {
-            setSatelliteStyle(map);
-        } else {
-            resetStyle(map);
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+        
+        // Initialize heatmap
+        function initHeatMap() {
+            // Your heatmap initialization logic...
         }
-    });
 
-    mapMobile.on('baselayerchange', function(eventLayer) {
-        if (eventLayer.name === 'Satellit') {
-            setSatelliteStyle(mapMobile);
-        } else {
-            resetStyle(mapMobile);
+        L.control.layers({
+            "Standardkarte": osmLayer,
+            "Satellit": satelliteLayer
+        }).addTo(map);
+
+        L.control.layers({
+            "Standardkarte": osmLayerMobile,
+            "Satellit": satelliteLayer
+        }).addTo(mapMobile);
+
+        map.on('baselayerchange', function(eventLayer) {
+            if (eventLayer.name === 'Satellit') {
+                setSatelliteStyle(map);
+            } else {
+                resetStyle(map);
+            }
+        });
+
+        mapMobile.on('baselayerchange', function(eventLayer) {
+            if (eventLayer.name === 'Satellit') {
+                setSatelliteStyle(mapMobile);
+            } else {
+                resetStyle(mapMobile);
+            }
+        });
+
+        const layers = {
+            "ff5c00": L.layerGroup().addTo(map).addTo(mapMobile),
+            "9A031E": L.layerGroup().addTo(map).addTo(mapMobile),
+            "133873": L.layerGroup().addTo(map).addTo(mapMobile),
+            "358400": L.layerGroup().addTo(map).addTo(mapMobile),
+            "431307": L.layerGroup().addTo(map).addTo(mapMobile),
+            "070707": L.layerGroup().addTo(map).addTo(mapMobile)
+        };
+
+        // Function to add marker to both map and mapMobile
+        function addMarkerToMaps(latlng, pinType, description, molenId) {
+            const marker = L.marker(latlng, {
+                icon: L.divIcon({
+                    className: `pin-${pinType}`,
+                    iconSize: [24, 24]
+                })
+            });
+
+            const popupContent = `
+                ${description}
+                <br>
+                Molen ID: ${molenId}
+                <br>
+                <button onclick="markPin('${molenId}')">Markieren</button>
+                <button onclick="deletePin('${molenId}')">Löschen</button>
+                <button onclick="removePin('${molenId}')">Entfernen</button>
+            `;
+
+            marker.bindPopup(popupContent);
+            marker.addTo(layers[pinType]);
         }
-    });
-	
-	
-	const layers = {
-    "ff5c00": L.layerGroup().addTo(map).addTo(mapMobile),
-    "9A031E": L.layerGroup().addTo(map).addTo(mapMobile),
-    "133873": L.layerGroup().addTo(map).addTo(mapMobile),
-    "358400": L.layerGroup().addTo(map).addTo(mapMobile),
-    "431307": L.layerGroup().addTo(map).addTo(mapMobile),
-    "070707": L.layerGroup().addTo(map).addTo(mapMobile)
-};
 
-// Function to add marker to both map and mapMobile
-function addMarkerToMaps(latlng, pinType, description, molenId) {
-    const marker = L.marker(latlng, {
-        icon: L.divIcon({
-            className: `pin-${pinType}`,
-            iconSize: [24, 24]
-        })
-    });
+        let rectangleDrawingMode = false;
+        document.getElementById('toggleRectangleDrawing').addEventListener('click', function() {
+            rectangleDrawingMode = !rectangleDrawingMode;
+            if (rectangleDrawingMode) {
+                map.off('click', handleMapClick);
+                mapMobile.off('click', handleMapClick);
+            } else {
+                map.on('click', handleMapClick);
+                mapMobile.on('click', handleMapClick);
+            }
+        });
 
-    const popupContent = `
-        ${description}
-        <br>
-        Molen ID: ${molenId}
-        <br>
-        <button onclick="markPin('${molenId}')">Markieren</button>
-        <button onclick="deletePin('${molenId}')">Löschen</button>
-        <button onclick="removePin('${molenId}')">Entfernen</button>
-    `;
-
-    marker.bindPopup(popupContent);
-    marker.addTo(layers[pinType]);
-}
-
-
-function loadPins(pins) {
-    pins.forEach(pin => addMarkerToMaps([pin.lat, pin.lon], pin.pin_type, pin.description));
-}
-// Event listeners for checkboxes
-document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
-    checkbox.addEventListener("change", function() {
-        const pinType = this.getAttribute("data-pin-type");
-        if (this.checked) {
-            map.addLayer(layers[pinType]);
-            mapMobile.addLayer(layers[pinType]);
-        } else {
-            map.removeLayer(layers[pinType]);
-            mapMobile.removeLayer(layers[pinType]);
+        let rectangleCorners = [];
+        function handleRectangleDrawingClick(e) {
+            if (rectangleDrawingMode) {
+                rectangleCorners.push([e.latlng.lat, e.latlng.lng]);
+                if (rectangleCorners.length === 2) {
+                    const rectangle = L.rectangle(rectangleCorners, {color: 'black', weight: 1, fillOpacity: 0.5}).addTo(map);
+                    const popupContent = `
+                        <textarea id="rectangleNote" rows="4" cols="40" placeholder="Enter your note here"></textarea><br>
+                        <button id="publishRectangle">Publish</button>
+                        <button id="cancelRectangle">Cancel</button>
+                    `;
+                    rectangle.bindPopup(popupContent).openPopup();
+                    document.getElementById('publishRectangle').addEventListener('click', function() {
+                        const note = document.getElementById('rectangleNote').value;
+                        if (note) {
+                            // Send the rectangle data to the server
+                            fetch('/add_rectangle', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    coordinates: rectangleCorners,
+                                    note: note,
+                                    rectangle_id: `RR${Math.floor(Math.random() * 1e9)}`
+                                })
+                            }).then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    rectangle.bindPopup(note).openPopup();
+                                } else {
+                                    alert('Error saving rectangle');
+                                }
+                            });
+                            rectangleCorners = [];  // Reset the corners array for the next rectangle
+                        } else {
+                            alert('Please enter a note.');
+                        }
+                    });
+                    document.getElementById('cancelRectangle').addEventListener('click', function() {
+                        map.removeLayer(rectangle);
+                        rectangleCorners = [];  // Reset the corners array for the next rectangle
+                    });
+                }
+            }
         }
-    });
-});
 
-// New code to establish WebSocket connection
-const socket = io.connect(location.origin);
-
-// New event listener for 'update_counters' WebSocket message
-socket.on('update_counters', function() {
-    fetchAndDisplayCounters();
-});
+        map.on('click', handleRectangleDrawingClick);
+        mapMobile.on('click', handleRectangleDrawingClick);
 
 
+        function loadPins(pins) {
+            pins.forEach(pin => addMarkerToMaps([pin.lat, pin.lon], pin.pin_type, pin.description));
+        }
 
-    function setSatelliteStyle(mapInstance) {
-        const mapContainer = mapInstance.getContainer();
-        mapContainer.classList.add("satellite-view");
-    }
+        // Event listeners for checkboxes
+        document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
+            checkbox.addEventListener("change", function() {
+                const pinType = this.getAttribute("data-pin-type");
+                if (this.checked) {
+                    map.addLayer(layers[pinType]);
+                    mapMobile.addLayer(layers[pinType]);
+                } else {
+                    map.removeLayer(layers[pinType]);
+                    mapMobile.removeLayer(layers[pinType]);
+                }
+            });
+        });
 
-    function resetStyle(mapInstance) {
-        const mapContainer = mapInstance.getContainer();
-        mapContainer.classList.remove("satellite-view");
-    }
+        // New code to establish WebSocket connection
+        const socket = io.connect(location.origin);
 
-    map.on('click', handleMapClick);
-    mapMobile.on('click', handleMapClick);
+        // New event listener for 'update_counters' WebSocket message
+        socket.on('update_counters', function() {
+            fetchAndDisplayCounters();
+        });
+
+        function setSatelliteStyle(mapInstance) {
+            const mapContainer = mapInstance.getContainer();
+            mapContainer.classList.add("satellite-view");
+        }
+
+        function resetStyle(mapInstance) {
+            const mapContainer = mapInstance.getContainer();
+            mapContainer.classList.remove("satellite-view");
+        }
+
+        map.on('click', handleMapClick);
+        mapMobile.on('click', handleMapClick);
+
 
  
 
@@ -399,14 +565,6 @@ function keepInView(mapInstance, boundaryPolygon) {
         }
     });
 }
-// ... rest of your code ...
-
-
-
-
-
-
-
 
 
 // Create the boundary polygons
@@ -524,13 +682,19 @@ document.getElementById('togglebutton-container').addEventListener('click', func
 
     let currentPopupLatLng = null;
 
-    function handleMapClick(e) {
-        const targetSquare = e.target === map ? squareForMap : squareForMapMobile;
+    let enableRectangleDrawing = true;
 
-        if (selectedColor === null) {
-            createPopup("Wählen Sie zunächst eine Option aus.");
-            return;
-        }
+function handleMapClick(e) {
+    if (!enableRectangleDrawing) {
+        return;
+    }
+
+    const targetSquare = e.target === map ? squareForMap : squareForMapMobile;
+
+    if (selectedColor === null) {
+        createPopup("Wählen Sie zunächst eine Option aus.");
+        return;
+    }
 
     if (targetSquare.getBounds().contains(e.latlng)) {
         // Add this check to see if a popup is already open at the clicked position
@@ -538,8 +702,6 @@ document.getElementById('togglebutton-container').addEventListener('click', func
             return;
         }
         currentPopupLatLng = e.latlng;
-		
-		
 
         const containerWidth = document.querySelector('#sidebar').offsetWidth;
         const fontSize = Math.max(12, containerWidth / 30);
@@ -554,6 +716,8 @@ document.getElementById('togglebutton-container').addEventListener('click', func
             .setLatLng(e.latlng)
             .setContent(popupContent)
             .openOn(e.target);
+
+
 
 
 // Global variable to store the list of bad words
@@ -677,21 +841,21 @@ function removeStar(molen_id) {
     });
 }
 function updateCategoriesDropdown() {
-document.addEventListener('DOMContentLoaded', (event) => {
-    fetch('/get_categories')
-        .then(response => response.json())
-        .then(categories => {
-            const dropdown = document.getElementById('rename-category-dropdown');
-            console.log('Existing Options:', dropdown.options);  // Log existing options
-            dropdown.innerHTML = '';  // Clear any existing options
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.value;
-                option.text = category.name;
-                dropdown.add(option);
+   document.addEventListener('DOMContentLoaded', (event) => {
+        fetch('/get_categories')
+            .then(response => response.json())
+            .then(categories => {
+                const dropdown = document.getElementById('rename-category-dropdown');
+                dropdown.innerHTML = '';  // Clear any existing options
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.value;
+                    option.text = category.name;
+                    dropdown.add(option);
+                });
             });
-        });
-});
+    });
+
 	}
 	
 // Call this function on page load and whenever categories are updated
@@ -730,30 +894,33 @@ function deletePin(molen_id) {
         "070707": "Missing service"
     };
 	
-	 // Function to create checkboxes dynamically
-    function createCheckboxes() {
-        const filterMenu = document.getElementById('filter-menu');
+	// Function to create checkboxes dynamically
+function createCheckboxes() {
+    const filterMenu = document.getElementById('filter-menu');
 
-        for (const [color, description] of Object.entries(pins)) {
-            const label = document.createElement('label');
-            const checkbox = document.createElement('input');
+    for (const [color, description] of Object.entries(pins)) {
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        
+        checkbox.type = 'checkbox';
+        checkbox.className = 'filter-checkbox';
+        checkbox.setAttribute('data-pin-type', color);
+        checkbox.checked = true;
 
-            checkbox.type = 'checkbox';
-            checkbox.className = 'filter-checkbox';
-            checkbox.setAttribute('data-pin-type', color);
-            checkbox.checked = true;
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(` ${description}`));
+        label.appendChild(document.createElement('br'));
 
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(` ${description}`));
-            label.appendChild(document.createElement('br'));
-
-            filterMenu.appendChild(label);
-        }
+        filterMenu.appendChild(label);
     }
 
-    // Create the checkboxes when the document is loaded
-    document.addEventListener("DOMContentLoaded", function() {
-        createCheckboxes();
+    }
+
+   
+
+// Create the checkboxes when the document is loaded
+document.addEventListener("DOMContentLoaded", function() {
+    createCheckboxes();
 
         // Your existing code to fetch pins
         fetch('/')
@@ -839,8 +1006,266 @@ function loadPins(pins) {
         });
     });
 
+async function fetchPinData() {
+    const response = await fetch('/get_pin_data');
+    const data = await response.json();
+    return data;
+}
+
+
+async function initHeatMap() {
+    const pinData = await fetchPinData();
+    const geoPoints = pinData.map(pin => [pin.lat, pin.lng]);  // assuming the data has lat and lng fields
+
+    const heat = L.heatLayer(geoPoints, {radius: 25}).addTo(map);
+
+    // Add the heatmap layer to the control layers
+    const layerControl = L.control.layers({
+        "Standardkarte": osmLayer,
+        "Satellit": satelliteLayer,
+        "Heatmap": heat
+    }).addTo(map);
+
+    map.on('baselayerchange', function(eventLayer) {
+        if (eventLayer.name === 'Satellit') {
+            setSatelliteStyle(map);
+        } else {
+            resetStyle(map);
+        }
+    });
+}
 
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const map = L.map('map').setView([48.4102, 15.6022], 10);
+    // ... (your existing map initialization code)
+
+    const togglePins = document.getElementById('togglePins');
+    const toggleRectangles = document.getElementById('toggleRectangles');
+
+    togglePins.addEventListener('change', function() {
+        if (togglePins.checked) {
+            toggleRectangles.checked = false;
+        }
+    });
+
+    toggleRectangles.addEventListener('change', function() {
+        if (toggleRectangles.checked) {
+            togglePins.checked = false;
+        }
+    });
+
+    const pinMenus = document.querySelectorAll('.pin-menu');
+    pinMenus.forEach(function(menu) {
+        menu.addEventListener('click', function() {
+            const pinType = menu.dataset.color;
+            if (togglePins.checked) {
+                // Place pin logic here
+                // ...
+            } else if (toggleRectangles.checked) {
+                // Place rectangle logic here
+                // ...
+            }
+        });
+    });
+
+    // ... (your existing map-related code)
+
+});
+</script>
+
+<script>
+    let pinSize = 24;  // Default pin size
+    let starIconSize = 26;  // Default star icon size
+
+
+
+    function resizePins(size) {
+        const deltaSize = size - pinSize;  // Calculate the change in size
+        pinSize = size;  // Update the global pinSize variable
+        starIconSize = size + 2;  // Star icon is always 2 points bigger than the pins
+
+        document.querySelectorAll('.pin-style').forEach(pin => {
+            const rect = pin.getBoundingClientRect();  // Get the current position and size of the pin
+
+            // Calculate the new position to keep the pin centered
+            const newTop = rect.top - deltaSize / 2;
+            const newLeft = rect.left - deltaSize / 2;
+
+            // Update the size and position of the pin
+            pin.style.width = `${size}px`;
+            pin.style.height = `${size}px`;
+            pin.style.top = `${newTop}px`;
+            pin.style.left = `${newLeft}px`;
+        });
+
+        document.querySelectorAll('.star-icon').forEach(star => {
+            star.style.width = `${starIconSize}px`;
+            star.style.height = `${starIconSize}px`;
+        });
+
+        // Save the new sizes to localStorage
+        localStorage.setItem('starIconSize', starIconSize);
+        localStorage.setItem('pinSize', size);
+
+        // Send the new size to the server
+        fetch('/resize_pins', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                size: size,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Failed to update pin size on server:', data.error);
+            }
+        });
+    }
+
+    function createStarIcon() {
+        console.log(`highlight_id is set for pin: ${pin.molen_id}`);  // Debug line
+        const starIcon = L.icon({
+            iconUrl: '/static/star_icon.png',
+            iconSize: [starIconSize, starIconSize],  // Use the variable starIconSize
+            iconAnchor: [starIconSize / 2, starIconSize / 2],  // Center the icon based on its size
+            className: 'star-icon'  // Add a class name to the star icon
+        });
+        return starIcon;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const resizeSection = document.getElementById('resize-section');
+        const resizeLabel = document.createElement('label');
+        const resizeDropdown = document.createElement('select');
+        const customSizeInput = document.createElement('input');
+        const resizeButton = document.createElement('button');
+
+        resizeLabel.textContent = "Pingröße ändern: ";
+
+        const sizes = {
+            20: 'Small',
+            24: 'Default',
+            32: 'Middle',
+            48: 'Large'
+        };
+
+        for (const [size, label] of Object.entries(sizes)) {
+            const option = document.createElement('option');
+            option.value = size;
+            option.text = label;
+            resizeDropdown.appendChild(option);
+        }
+
+        customSizeInput.type = 'number';
+        customSizeInput.min = '10';
+        customSizeInput.max = '100';
+        customSizeInput.placeholder = 'Custom Size (10 to 100)';
+
+        resizeButton.className = 'delete-button';
+        resizeButton.textContent = 'Größe ändern';
+
+        resizeButton.addEventListener('click', function() {
+            const newSize = parseInt(customSizeInput.value) || parseInt(resizeDropdown.value);
+            if (newSize >= 10 && newSize <= 100) {
+                resizePins(newSize);
+            } else {
+                alert('Please enter a size between 10 and 100');
+                customSizeInput.value = '';  // Reset custom size input field
+            }
+        });
+
+        resizeDropdown.addEventListener('change', function() {
+            resizePins(parseInt(this.value));
+        });
+
+        resizeSection.appendChild(resizeLabel);
+        resizeSection.appendChild(resizeDropdown);
+        resizeSection.appendChild(customSizeInput);
+        resizeSection.appendChild(resizeButton);
+
+        // Load the saved sizes from localStorage
+        const savedPinSize = localStorage.getItem('pinSize');
+        const savedStarIconSize = localStorage.getItem('starIconSize');
+        if (savedPinSize && savedStarIconSize) {
+            pinSize = parseInt(savedPinSize);
+            starIconSize = parseInt(savedStarIconSize);
+            resizePins(pinSize);  // Apply the saved pin size
+            // Set the value of the dropdown and/or custom input field
+            resizeDropdown.value = savedPinSize;
+            customSizeInput.value = savedPinSize;
+        }
+    });
+
+</script>
+
+
+<script>
+    function toggleMenu() {
+        var toggleMenu = document.getElementById('toggle-menu');
+        if (toggleMenu.style.display === 'none' || toggleMenu.style.display === '') {
+            toggleMenu.style.display = 'block';  // Show the menu
+        } else {
+            toggleMenu.style.display = 'none';  // Hide the menu
+        }
+    }
+</script>
+
+<script>
+    function toggleAdminMenu() {
+        var adminMenu = document.getElementById('admin-menu');
+        if (adminMenu.style.display === 'none') {
+            adminMenu.style.display = 'block';
+        } else {
+            adminMenu.style.display = 'none';
+        }
+    }
+</script>
+
+<script>
+    function togglePinsExportMenu() {
+        var menu = document.getElementById('pinsexport-menu');
+        var button = document.getElementById('pinsexport-menu-button');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+            button.classList.add('toggled');
+        } else {
+            menu.style.display = 'none';
+            button.classList.remove('toggled');
+        }
+    }
+</script>
+
+<script>
+    function toggleCategoryMenu() {
+        var categoryMenu = document.getElementById('category-menu');
+        if (categoryMenu.style.display === 'none') {
+            categoryMenu.style.display = 'block';
+        } else {
+            categoryMenu.style.display = 'none';
+        }
+    }
+</script>
+
+<script>
+    function toggleEditorMenu() {
+        var editorMenu = document.getElementById('editor-menu');
+        if (editorMenu.style.display === 'none') {
+            editorMenu.style.display = 'block';
+        } else {
+            editorMenu.style.display = 'none';
+        }
+    }
+	
+	
+</script>
+
+
 <script>
     // Script to handle modal opening, closing, and form submission
     const modal = document.getElementById('add-category-modal');
@@ -914,6 +1339,7 @@ pinMenus.forEach(function(menu) {
     const dropdownButton = document.getElementById('dropdown-button');
     const dropdownOptions = document.getElementById('dropdown-options');
     const pinMenus = document.querySelectorAll('.pin-menu');
+	
     const allPins = document.querySelectorAll('.pin'); // Assuming all pins have a class of 'pin'
 
     // Toggle the visibility of the dropdown options when the button is clicked
@@ -972,6 +1398,86 @@ pinMenus.forEach(function(menu) {
     });
 });
 </script>
+
+
+<script>
+    var quill;
+    var editableAreas = [];
+    var currentAreaIndex = 0;
+
+    function initEditor() {
+	    console.log("initEditor called");
+        if (quill) {
+            return;
+        }
+
+        fetch('/get_editable_content')
+            .then(response => response.json())
+            .then(data => {
+                editableAreas = data.areas;
+                initializeQuill();
+            });
+    }
+
+    function initializeQuill() {
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                ],
+            },
+        });
+
+        loadArea(currentAreaIndex);
+    }
+
+    function loadArea(index) {
+        quill.clipboard.dangerouslyPasteHTML(editableAreas[index][0]);
+        quill.format('align', 'center');
+    }
+
+    function nextArea() {
+        currentAreaIndex = (currentAreaIndex + 1) % editableAreas.length;
+        loadArea(currentAreaIndex);
+    }
+
+    function prevArea() {
+        currentAreaIndex = (currentAreaIndex - 1 + editableAreas.length) % editableAreas.length;
+        loadArea(currentAreaIndex);
+    }
+
+    function updateText() {
+        var new_text = quill.root.innerHTML;
+        var file_path = editableAreas[currentAreaIndex][1];
+        fetch('/update_text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: new_text,
+                areaIndex: currentAreaIndex,
+                filePath: file_path,
+            }),
+        }).then(response => {
+            if (response.status === 200) {
+                alert("Text successfully changed!");
+                location.reload();
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initEditor);
+
+    const sheet = window.document.styleSheets[0];
+    sheet.insertRule('#editor-container * { text-align: center; }', sheet.cssRules.length);
+</script>
+
 <script>
 function addCategory() {
     const categoryName = document.getElementById('category-name').value;
@@ -1066,7 +1572,7 @@ function updateFontSize() {
                          Math.max(16, containerWidth / 20) :  
                          Math.max(12, containerWidth / 30);
 
-    document.querySelectorAll('.pin-menu h3, #aboutBtn, #dropdown-button, #current-selection').forEach(el => {
+    document.querySelectorAll('.pin-menu h3, #aboutBtn, #aboutBtnEditor2, #editor-menu-button, #category-menu-button, #toggle-menu-button, #pinsexport-menu-button, #admin-menu-button, #aboutBtnEditor, #dropdown-button, #current-selection').forEach(el => {
         el.style.fontSize = `${baseFontSize}px`;
     });
 
@@ -1217,61 +1723,42 @@ fetchAndDisplayCounters();
 
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-         // Additional code for recoloring categories:
-        fetch('/get_categories')
-            .then(response => response.json())
-            .then(categories => {
-                const dropdown = document.getElementById('recolor-category-dropdown');
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.value;
-                    option.text = category.name;
-                    dropdown.add(option);
-                });
+   document.addEventListener('DOMContentLoaded', (event) => {
+    fetch('/get_categories')
+        .then(response => response.json())
+        .then(categories => {
+            const dropdown = document.getElementById('rename-category-dropdown');
+            console.log('Existing Options:', dropdown.options);  // Log existing options
+            dropdown.innerHTML = '';  // Clear any existing options
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.value;
+                option.text = category.name;
+                dropdown.add(option);
             });
-    });
-	
-	    // Populate the dropdown with pin categories
-    document.addEventListener('DOMContentLoaded', (event) => {
-        const categories = {
-            'ff5c00': 'Dieser Ort gefällt mir.',
-            '9A031E': 'Hier fühle ich mich unsicher.',
-            '133873': 'Hier gibt es Probleme mit dem Parken.',
-            '358400': 'Hier verbringe ich gerne meine Freizeit.',
-            '431307': 'Dieser Ort braucht eine Verbesserung.',
-            '070707': 'An diesem Ort fehlt ein Service.'
-        };
-        const dropdown = document.getElementById('color-category-dropdown');
-        for (const colorCode in categories) {
-            const option = document.createElement('option');
-            option.value = colorCode;
-            option.text = categories[colorCode];
-            dropdown.add(option);
+        });
+});
+
+document.getElementById('renameCategory').addEventListener('click', () => {
+    const colorCode = document.getElementById('rename-category-dropdown').value;
+    const newName = document.getElementById('new-category-name').value;
+    fetch('/rename_category', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({value: colorCode, newName: newName})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Die Kategorie wurde erfolgreich umbenannt!');
+            location.reload();  // Reload the page
+        } else {
+            alert('Die Kategorie konnte nicht umbenannt werden!');
         }
     });
-
-    function recolorPin() {
-        const colorCode = document.getElementById('color-category-dropdown').value;
-        const newColor = document.getElementById('color-picker').value.slice(1);  // Remove the '#' from the color value
-        fetch('/recolor_pin', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({colorCode: colorCode, newColor: newColor})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Pin color updated successfully!');
-                location.reload();  // Reload the page to reflect the changes
-            } else {
-                alert('Failed to update pin color!');
-            }
-        });
-    }
-
+});
 </script>
 <script>
     let filteredType = null;  // Keep track of the currently filtered pin type
@@ -1350,8 +1837,97 @@ document.querySelectorAll('.toggle-button').forEach(button => {
     // Fetch the counter when the page loads
     fetchAndUpdateCounter();
 </script>
+<script>
+document.getElementById('add-category-button').addEventListener('click', addCategory);
+
+function addCategory() {
+    const newColor = prompt("Enter a color code for the new category:", "");
+    const newDescription = prompt("Enter a description for the new category:", "");
+    if (newColor && newDescription) {  // Ensure non-empty values
+        // Update Select Elements
+        const selectElements = document.querySelectorAll('select');
+        for (let select of selectElements) {
+            const option = document.createElement('option');
+            option.value = newColor;
+            option.textContent = newDescription;
+            select.appendChild(option);
+        }
+        
+        // Update Dropdown Options
+        const dropdownOptions = document.getElementById('dropdown-options');
+        const pinMenu = document.createElement('div');
+        pinMenu.className = 'pin-menu';
+        pinMenu.dataset.color = newColor;
+        pinMenu.style.backgroundColor = `#${newColor}`;
+        const h3 = document.createElement('h3');
+        h3.textContent = newDescription;
+        pinMenu.appendChild(h3);
+        dropdownOptions.appendChild(pinMenu);
+
+        // Update Pin Menu Desktop
+        const pinMenuDesktop = document.getElementById('pin-menu-desktop');
+        const pinMenuCopy = pinMenu.cloneNode(true);
+        pinMenuDesktop.appendChild(pinMenuCopy);
+        
+        // Update Layers
+        layers[newColor] = L.layerGroup().addTo(map).addTo(mapMobile);
+        
+        // Update Toggle States
+        toggleStates[newColor] = true;
+        
+        // Update Markers
+        markers[newColor] = [];
+        
+        // Update Ordered Counter Types and Pin Order
+        orderedCounterTypes.push(newColor);
+        pinOrder.push(newColor);
+        
+        // Update CSS Styles
+        const styleSheet = document.styleSheets[0];
+        const baseStyles = `
+            .satellite-view .pin-${newColor} {
+                background-image: radial-gradient(circle, #${newColor} 50%, rgba(${parseInt(newColor.slice(0,2), 16)}, ${parseInt(newColor.slice(2,4), 16)}, ${parseInt(newColor.slice(4,6), 16)}, 0.7) 50%);
+                border: 2px solid rgba(255, 255, 255, 0.9);
+            }
+            .pin-${newColor} {
+                color: #${newColor};
+                background-image: radial-gradient(circle, #${newColor} 30%, rgba(${parseInt(newColor.slice(0,2), 16)}, ${parseInt(newColor.slice(2,4), 16)}, ${parseInt(newColor.slice(4,6), 16)}, 0.2) 40%);
+            }
+            .cursor-pin-${newColor} {
+                cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23${newColor}" /></svg>'), auto;
+            }
+        `;
+        styleSheet.insertRule(baseStyles, styleSheet.cssRules.length);
+        
+        // Update Toggle Button Container
+        const toggleButtonContainer = document.getElementById('togglebutton-container');
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'toggle-button';
+        toggleButton.dataset.pinType = newColor;
+        toggleButton.dataset.toggled = "true";
+        const img1 = document.createElement('img');
+        img1.alt = "Visibility Icon";
+        img1.className = "icon untoggled-icon";
+        img1.src = `static/visicon_${newColor}.png`;
+        const img2 = document.createElement('img');
+        img2.alt = "Visibility Icon";
+        img2.className = "icon toggled-icon";
+        img2.src = `static/visicon_${newColor}_2.png`;
+        img2.style.display = "none";
+        toggleButton.appendChild(img1);
+        toggleButton.appendChild(img2);
+        toggleButtonContainer.appendChild(toggleButton);
+    }
+}
+</script>
 <!-- CSS PINS -->
 <style>
+
+  .toggled {
+        background-color: lightgrey;
+        color: black;
+        border: 2px solid black;
+    }
 
 .overlay {
   position: fixed;
@@ -1506,6 +2082,16 @@ document.querySelectorAll('.toggle-button').forEach(button => {
 	border-radius: 10px;
 }
 
+.texteditor-button {
+    background-color: white;
+    color: black;
+    padding: 10px;
+    cursor: pointer;
+    border: none;
+	margin-right: 5px;
+	border-radius: 10px;
+}
+
 .star-button {
     background-color: black;
     color: white;
@@ -1516,6 +2102,10 @@ document.querySelectorAll('.toggle-button').forEach(button => {
 	border-radius: 10px;
 }
 
+ #editor-container {
+        height: 400px;
+		display: block;
+    }
 
 .remove-star-button {
     background-color: black;
@@ -1778,13 +2368,15 @@ border-radius: 50px:
 
 
 
-.info-field {
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    padding: 20px;
-    color: white;
-    text-align: center; /* Center the text */
-}
+    .info-field {
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 10px;
+        padding: 20px;
+        color: white;
+        text-align: center; /* Center the text */
+        overflow-y: auto; /* Make the div scrollable */
+        max-height: 100vh; /* Set a maximum height to prevent overflow */
+    }
 
 
 #current-selection {
@@ -1842,6 +2434,58 @@ border-radius: 50px:
     color: white;
 }
 
+
+.toggle-menu-button {
+    font-weight: bold;
+    border: 5px solid white;
+    padding: 7px 0;
+    margin: 2px 0;
+    cursor: pointer;
+    font-size: 24px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    box-sizing: border-box;
+    text-align: center;
+    color: white;
+}
+
+.pinsexport-menu-button {
+    font-weight: bold;
+    border: 5px solid white;
+    padding: 7px 0;
+    margin: 2px 0;
+    cursor: pointer;
+    font-size: 24px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    box-sizing: border-box;
+    text-align: center;
+    color: white;
+}
+
+
+.admin-menu-button {
+    font-weight: bold;
+    border: 5px solid white;
+    padding: 7px 0;
+    margin: 2px 0;
+    cursor: pointer;
+    font-size: 24px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    box-sizing: border-box;
+    text-align: center;
+    color: white;
+}
 
     font-weight: bold;
     border: 4px solid white;
@@ -1921,7 +2565,11 @@ border-radius: 50px:
 // Add this CSS to your stylesheet
 .star-icon {
     pointer-events: none;
+	  width: auto !important;
+    height: auto !important;
 }
+	
+
 
 .pin-menu:hover {
     background-color: #e0e0e0;
@@ -2297,20 +2945,23 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+
+
 function loadPins(pins) {
     pins.forEach(pin => {
         const markerHtml = `
-            <div style="position: relative; text-align: center; width: 24px;">
+            <div style="position: relative; text-align: center; width: ${pinSize}px;">
                 <div class="molen-id hidden" style="position: absolute; width: 100%; top: -15px;">M${pin.molen_id}</div>
-                <div class="pin-style pin-${pin.pin_type}" style="width: 24px; height: 24px;"></div>
+                <div class="pin-style pin-${pin.pin_type}" style="width: ${pinSize}px; height: ${pinSize}px;"></div>
             </div>
         `;
 
         const markerIcon = L.divIcon({
             className: '',
-            iconSize: [24, 24],
+            iconSize: [pinSize, pinSize],
             html: markerHtml
         });
+
 
         const deleteButtonHtml = `<button class="delete-button" style="margin-top: 5px;" data-pin-id="${pin.id}" data-molen-id="${pin.molen_id}">📍 Löschen</button>`;
         const starButtonHtml = `<button class="star-button" data-molen-id="${pin.molen_id}">⭐ Markieren</button>`;
@@ -2327,7 +2978,7 @@ function loadPins(pins) {
     console.log(`highlight_id is set for pin: ${pin.molen_id}`);  // Debug line
     const starIcon = L.icon({
         iconUrl: '/static/star_icon.png',
-        iconSize: [30, 30],
+        iconSize: [26, 26],
         iconAnchor: [10, 10],
         className: 'star-icon'  // Add a class name to the star icon
     });
@@ -2467,17 +3118,54 @@ function handleMapClick(mapInstance) {
 
 handleMapClick(map);
 handleMapClick(mapMobile);
-
-document.getElementById('aboutBtn').addEventListener('click', function() {
-    document.getElementById('infoModal').style.display = 'flex';
-});
-
-document.getElementById('infoModal').addEventListener('click', function(event) {
-    if (event.target === this) {
-        this.style.display = 'none';
-    }
-});
 </script>
+
+<script type="text/javascript">
+    // ... your existing code ...
+
+    // Function to load rectangles from the server and add them to the map
+    async function loadRectangles() {
+        try {
+            // Fetch rectangles data from the server
+            const response = await fetch('/get_rectangles');
+            const data = await response.json();
+
+            // Loop through the rectangles data and add each rectangle to the map
+            data.rectangles.forEach(rectangleData => {
+                const latlngBounds = [
+                    [rectangleData.lat1, rectangleData.lng1],
+                    [rectangleData.lat2, rectangleData.lng2]
+                ];
+                const rectangle = L.rectangle(latlngBounds).addTo(map);
+                // If you have a mobile map, add the rectangle to that map too
+                // const rectangleMobile = L.rectangle(latlngBounds).addTo(mapMobile);
+            });
+        } catch (error) {
+            console.error('Error loading rectangles:', error);
+        }
+    }
+
+    // Call the function to load the rectangles
+    loadRectangles();
+
+    // ... the rest of your code ...
+	rectanglesLayer.eachLayer(function (layer) {
+    var pinType = layer.feature.properties.pin_type;
+    layer.setStyle({ fillColor: getColorForPinType(pinType) });
+});
+
+function getColorForPinType(pinType) {
+    // Define your color mapping logic here
+    switch (pinType) {
+        case 'type1': return '#ff5c00';
+        case 'type2': return '#9A031E';
+        // Add more cases as needed
+        default: return '#000000'; // Default color
+    }
+}
+</script>
+
+
 <script>
 document.getElementById('aboutBtn').addEventListener('click', function() {
     document.getElementById('infoModal').style.display = 'flex';
@@ -2490,6 +3178,35 @@ document.getElementById('infoModal').addEventListener('click', function(event) {
     }
 });
 </script>
+
+<script>
+document.getElementById('aboutBtnEditor').addEventListener('click', function() {
+    document.getElementById('infoModalEditor').style.display = 'flex';
+});
+
+// Close the modal when clicking outside the info field
+document.getElementById('infoModalEditor').addEventListener('click', function(event) {
+    if (event.target === this) {
+        this.style.display = 'none';
+    }
+});
+</script>
+
+<script>
+document.getElementById('aboutBtnEditorAdminMenu').addEventListener('click', function() {
+    document.getElementById('infoModalEditorAdminMenu').style.display = 'flex';
+});
+
+// Close the modal when clicking outside the info field
+document.getElementById('infoModalEditorAdminMenu').addEventListener('click', function(event) {
+    if (event.target === this) {
+        this.style.display = 'none';
+    }
+});
+</script>
+
+
+
 <script>
 function deletePin(pinId) {
     fetch(`/delete_pin/${pinId}`, { method: 'POST' })
