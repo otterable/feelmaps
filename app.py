@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, jsonify, Response, session, redirect, url_for
+from flask_caching import Cache
+from flask import Flask, Flask, render_template, request, jsonify, Response, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from collections import Counter
 from flask_socketio import SocketIO
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from bs4 import BeautifulSoup
 from werkzeug.utils import secure_filename
@@ -11,6 +11,7 @@ import os
 import re
 import time
 import sqlite3
+import pyotp  # Importing pyotp for 2FA
 import random
 import string
 from datetime import timedelta
@@ -25,42 +26,20 @@ categories = {
 }
 
 app = Flask(__name__)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pins.db'
 app.config['SECRET_KEY'] = 'your_secret_key_here'  # Change this to a random secret key
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
 
 
-class User(UserMixin):
-    def __init__(self, id):
-        self.id = id
 
 class Category(db.Model):
     __tablename__ = 'categories'  # Explicitly specify table name
     color_code = db.Column(db.String, primary_key=True)
     name = db.Column(db.String, nullable=False)
     
-class Rectangle(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    lat1 = db.Column(db.Float, nullable=False)
-    lng1 = db.Column(db.Float, nullable=False)
-    lat2 = db.Column(db.Float, nullable=False)
-    lng2 = db.Column(db.Float, nullable=False)
-    coordinates = db.Column(db.String, nullable=False)  # Retain for backward compatibility
-    note = db.Column(db.String)
-    rectangle_id = db.Column(db.String)
-    highlight_id = db.Column(db.String)
-    pin_type = db.Column(db.String, nullable=False, default='')  # Add this line
 
-
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User(user_id)
 
 class Pin(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -70,47 +49,6 @@ class Pin(db.Model):
     description = db.Column(db.String)
     molen_id = db.Column(db.String)
     highlight_id = db.Column(db.String)
-
-@app.route('/add_rectangle', methods=['POST'])
-def add_rectangle():
-    data = request.get_json()
-    coordinates = data.get('coordinates')
-    note = data.get('note')
-    rectangle_id = data.get('rectangle_id')
-    pin_type = data.get('pin_type')  # Add this line to retrieve pin_type
-    
-    # Assuming coordinates is a list of two lists, each containing two floats
-    # e.g., [[lat1, lng1], [lat2, lng2]]
-    lat1, lng1 = coordinates[0]
-    lat2, lng2 = coordinates[1]
-
-    new_rectangle = Rectangle(
-        lat1=lat1, lng1=lng1, lat2=lat2, lng2=lng2,
-        coordinates=str(coordinates), 
-        note=note, 
-        rectangle_id=rectangle_id,
-        pin_type=pin_type  # Add pin_type here
-    )
-    db.session.add(new_rectangle)
-    db.session.commit()
-    
-    return jsonify({'success': True, 'rectangle_id': rectangle_id})
-
-@app.route('/get_rectangles', methods=['GET'])
-def get_rectangles():
-    rectangles = Rectangle.query.all()
-    response_data = [{
-        'lat1': rectangle.lat1,
-        'lng1': rectangle.lng1,
-        'lat2': rectangle.lat2,
-        'lng2': rectangle.lng2,
-        'note': rectangle.note,
-        'rectangle_id': rectangle.rectangle_id,
-        'highlight_id': rectangle.highlight_id
-    } for rectangle in rectangles]
-    # Remove the line below
-    # logging.info(f'Response data: {response_data}')
-    return jsonify(rectangles=response_data)
 
 
 
@@ -124,7 +62,6 @@ def add_category():
     if not color_code or not category_name:
         return jsonify({'error': 'Invalid data'}), 400
 
-    html_file_path = 'templates/admin.html'
 
     with open(html_file_path, 'r', encoding='utf-8') as file:
         soup = BeautifulSoup(file, 'html.parser')
@@ -254,16 +191,6 @@ def get_editable_content():
     return jsonify({'areas': all_areas})
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if username == 'stimmungskarte' and password == 'techdemo':
-            user = User(username)
-            login_user(user)
-            return redirect(url_for('admin'))
-    return render_template('login.html')
 
 @app.route('/highlight_pin/<string:molen_id>', methods=['POST'])
 def highlight_pin(molen_id):
@@ -288,11 +215,6 @@ def upload_overlay_image():
         return redirect(url_for('index'))  # Redirect to home page after successful upload
     return "File upload failed!", 400
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
 
 
 @app.route('/get_pin_counts')
@@ -422,6 +344,7 @@ def rename_category():
 
 
 @app.route('/')
+@cache.cached(timeout=50)
 def index():
     conn = sqlite3.connect('instance/pins.db')
     cursor = conn.cursor()
@@ -454,10 +377,7 @@ def delete_pin_by_molen_id(molen_id):
 
 
 
-@app.route('/admin')
-@login_required
-def admin():
-    return render_template('admin.html')
+
 
 
 @app.route('/add_pin', methods=['POST'])
@@ -591,14 +511,97 @@ def export_geojson():
 
 
 
-if __name__ == "__main__":
-       with app.app_context():
-        db.create_all()
-        # Create an admin user if doesn't exist
-        admin_user = User.query.filter_by(username='stimmungskarte').first()
-        if not admin_user:
-            hashed_password = generate_password_hash('techdemo', method='sha256')
-            new_user = User(username='stimmungskarte', password=hashed_password)
-            db.session.add(new_user)
-            db.session.commit()
-            app.run(debug=True)
+
+# New Rectangle model
+class Rectangle(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    coordinates = db.Column(db.String, nullable=False)
+    rectangle_type = db.Column(db.String, nullable=False)
+    description = db.Column(db.String)
+    rectangle_id = db.Column(db.String)
+    highlight_id = db.Column(db.String)
+
+# Route to add a rectangle
+@app.route('/add_rectangle', methods=['POST'])
+def add_rectangle():
+    data = request.get_json()
+    coordinates = data.get('coordinates')
+    rectangle_type = data.get('rectangle_type')
+    description = data.get('description')
+    
+    # Generate a unique rectangle_id
+    while True:
+        rectangle_id = 'RR' + ''.join(random.choices(string.digits, k=9))  # 11 character ID starting with RR
+        existing_rectangle = Rectangle.query.filter_by(rectangle_id=rectangle_id).first()
+        if not existing_rectangle:
+            break  # Break the loop if the rectangle_id is unique
+    
+    new_rectangle = Rectangle(coordinates=coordinates, rectangle_type=rectangle_type, description=description, rectangle_id=rectangle_id)
+    db.session.add(new_rectangle)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'rectangle_id': rectangle_id})
+
+# Route to get all rectangles
+@app.route('/get_rectangles', methods=['GET'])
+def get_rectangles():
+    rectangles = Rectangle.query.all()
+    return jsonify(rectangles=[{
+        'coordinates': rectangle.coordinates,
+        'rectangle_type': rectangle.rectangle_type,
+        'description': rectangle.description,
+        'rectangle_id': rectangle.rectangle_id,
+        'highlight_id': rectangle.highlight_id
+    } for rectangle in rectangles])
+ 
+# Endpoint to save rectangle and feedback text
+@app.route('/save_rectangle', methods=['POST'])
+def save_rectangle():
+    from flask import Flask, request, jsonify
+    import sqlite3
+
+    # Get rectangle coordinates and feedback text from the request
+    coords = request.json.get('coords', None)
+    feedback_text = request.json.get('feedback_text', None)
+
+    if coords and feedback_text:
+        try:
+            conn = sqlite3.connect('pins.db')  # Replace 'pins.db' with the actual database name if different
+            c = conn.cursor()
+
+            # Insert the rectangle and feedback text into the database (you may need to adjust the SQL query based on your actual database schema)
+            c.execute("INSERT INTO rectangles (coords, feedback_text) VALUES (?, ?)", (coords, feedback_text))
+            conn.commit()
+            conn.close()
+
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+    else:
+        return jsonify({"status": "error", "message": "Missing coordinates or feedback text"}), 400
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    # Get form data
+    username = request.form.get('username')
+    password = request.form.get('password')
+    otp_token = request.form.get('otp')
+    
+    # Validate username and password
+    if username == USER_CREDENTIALS['username'] and password == USER_CREDENTIALS['password']:
+        # Validate OTP token
+        totp = pyotp.TOTP(OTP_SECRET)
+        if totp.verify(otp_token):
+            return jsonify({'status': 'success', 'message': 'Login successful!'}), 200
+        else:
+            return jsonify({'status': 'failed', 'message': 'Invalid OTP token'}), 401
+    else:
+        return jsonify({'status': 'failed', 'message': 'Invalid username or password'}), 401
+
+# Hardcoded user credentials and OTP secret
+USER_CREDENTIALS = {
+    'username': 'stimmungskarte',
+    'password': 'techdemo',
+}
+OTP_SECRET = 'MangoOttersLove'

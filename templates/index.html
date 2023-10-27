@@ -1,190 +1,547 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet"/>
+<link href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" rel="stylesheet"/>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+const popupTexts = {
+    'Login': {
+        title: 'Admin-Zugriff',
+        text: `<form id="loginForm">
+    <label for="username">Benutzer:</label>
+    <input type="text" id="username" name="username"><br><br>
+    
+    <label for="password">Passwort:</label>
+    <input type="password" id="password" name="password"><br><br>
+    
+    <label for="otp">OTP 2FA Token:</label>
+    <input type="text" id="otp" name="otp"><br><br>
+    
+<button type="submit" class="button-menu" style="padding: 20px; background-color: #35b7ff; border: none; cursor: pointer;">
+    <span style="position: relative; top: 0px;">Anmelden</span>
+</button>
+</form>`,
+        color: 'white',
+        persist: true  // Add persist field to control popup persistence
+    },
+   'Willkommen auf der Stimmungskarte!': {
+        title: 'Willkommen auf der Stimmungskarte!',
+        text: 'Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.<br><br>Sie können Hinweise an Orten anbringen, die Sie entweder als angenehm oder problematisch empfinden.<br><br><span style="color: #f77f00; font-weight: bold;">Und so funktioniert es:</span><br><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.<br><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie einen Pin auf der Karte.<br><span style="color: #f77f00; font-weight: bold;">3.</span> Teilen Sie uns Ihre Meinung mit!<br><br><span style="font-weight: bold;">Ihre Beiträge sind anonym und können von der Gemeinde zur Verbesserung des öffentlichen Raums genutzt werden.</span> ',
+        color: '#f77f00'
+    },
+    'Dieser Ort gefällt mir.': { title: 'Was kann man zum Beispiel aufschreiben?', text: 'Dieser Ort strahlt eine beruhigende Ruhe aus und bietet eine angenehme Atmosphäre, die zum Entspannen einlädt. <br><br> Ob durch seine natürliche Schönheit oder aufregende Aktivitäten, er vermag es, einen positiven Eindruck zu hinterlassen.', color: '#FF7043' },
+    'Hier fühle ich mich unsicher.': { title: 'Was kann man zum Beispiel aufschreiben?', text: 'Die schlechte Straßenbeleuchtung lässt ein Gefühl der Unsicherheit aufkommen, während betrunkene oder obdachlose Personen die Unbehaglichkeit weiter verstärken.  <br><br> Hier wäre eine Aufwertung der öffentlichen Infrastruktur und mehr soziale Dienste wünschenswert.', color: '#B71C1C' },
+    'Hier gibt es Probleme mit dem Parken.': { title: 'Was kann man zum Beispiel aufschreiben?', text: 'Die knappen Parkmöglichkeiten und rücksichtslos abgestellte Fahrzeuge erschweren die Durchfahrt und schaffen ein chaotisches Straßenbild.  <br><br> Eine bessere Regulierung und Beschilderung könnte hier Abhilfe schaffen.', color: '#1565C0' },
+    'Hier verbringe ich gerne meine Freizeit.': { title: 'Was kann man zum Beispiel aufschreiben?', text: 'Dieser Ort bietet eine friedliche Oase zum Abschalten oder ein lebendiges Markttreiben, das zum Stöbern einlädt.  <br><br> Die angenehme Umgebung, sei es ein Bauernmarkt oder ein Kino, macht ihn zu einem beliebten Freizeitziel.', color: '#4CAF50' },
+    'Dieser Ort braucht eine Verbesserung.': { title: 'Was kann man zum Beispiel aufschreiben?', text: 'Die fehlende Fußgängerüberquerung und der heruntergekommene Anblick, gepaart mit Schlaglöchern im Straßenbelag, rufen nach Verbesserungen.  <br><br> Eine Aufwertung der Ästhetik und Sicherheit würde den Ort deutlich attraktiver machen.', color: '#4E342E' },
+    'An diesem Ort fehlt ein Service.': { title: 'Was kann man zum Beispiel aufschreiben?', text: 'Die mangelhafte Busanbindung und geschlossene Apotheken erschweren den Alltag und lassen den Ort weniger serviceorientiert erscheinen.  <br><br> Eine Verbesserung der öffentlichen Dienstleistungen wäre hier von Vorteil.', color: 'white' },
+};
 
-    <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+// Function to create and show the popup
+let popupTimer;
+    let buttonTimer;
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-	<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-	<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
-	<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>  <!-- Include Socket.io library -->
+    function showPopup(info) {
+    const existingPopup = document.getElementById("info-popup");
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+
+    const popup = document.createElement("div");
+	popup.id = "info-popup";
+	popup.style.backgroundColor = "rgba(17, 17, 17, 1)";  // Changed to RGBA for 90% visibility
+	popup.style.color = "white";
+	popup.style.borderRadius = "30px";
+	popup.style.position = "absolute";
+	popup.style.bottom = "10px";
+	popup.style.right = "10px";
+	popup.style.marginLeft = "10px";  // Added this line for a 10px gap from the left
+	popup.style.marginTop = "10px";  // Added this line for a 10px gap from the left
+	popup.style.zIndex = "1000";
+	popup.style.opacity = "0";
+	popup.style.transition = "opacity 0.2s ease-in";
+
+
+    const title = document.createElement("h3");
+    title.style.color = info.color;
+    title.style.fontWeight = "bold";
+    title.style.fontSize = "24px";
+    title.innerHTML = info.title;
+    popup.appendChild(title);
+
+    const text = document.createElement("p");
+    text.style.fontWeight = "bold";
+    text.style.fontSize = "18px";
+    text.innerHTML = info.text;
+    popup.appendChild(text);
+
+    document.getElementById("map").appendChild(popup);
+
+    // Stop propagation of click events from the popup
+    popup.addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+
+    setTimeout(() => {
+        popup.style.opacity = "1";
+    }, 0);
+
+    if (!info.persist) {
+        clearTimeout(popupTimer);
+        popupTimer = setTimeout(() => {
+            popup.style.opacity = "0";
+            setTimeout(() => {
+                popup.remove();
+            }, 500);
+        }, 5000);
+    }
+}
+
+
+    function activatePopup() {
+        const info = popupTexts['Willkommen auf der Stimmungskarte!'];
+        showPopup(info);
+    }
+
+    function activatePopupByKey() {
+        const info = popupTexts['Login'];
+        showPopup(info);
+
+        const loginForm = document.getElementById("loginForm");
+        if (loginForm) {
+            loginForm.addEventListener("submit", function(event) {
+                event.preventDefault();
+                const formData = new FormData(loginForm);
+                const username = formData.get("username");
+                const password = formData.get("password");
+                const otp = formData.get("otp");
+
+                fetch("/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: `username=${username}&password=${password}&otp=${otp}`,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert("Success!");
+                    } else {
+                        alert("Failed: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert("An error occurred: " + error);
+                });
+            });
+        }
+    }
+
+    const keyDiv = document.querySelector("#keyDiv");
+    if (keyDiv) {
+        keyDiv.addEventListener("click", activatePopupByKey);
+    }
+
+    const buttonMenu = document.querySelector(".button-menu");
+    if (buttonMenu) {
+        buttonMenu.addEventListener("click", activatePopup);
+    }
+
+    const categorybuttons = document.querySelectorAll(".categorybutton");
+    categorybuttons.forEach(menu => {
+        menu.addEventListener("click", (event) => {
+            const title = event.currentTarget.querySelector("h3").textContent;
+            const info = popupTexts[title];
+            showPopup(info);
+        });
+    });
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+<script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script> <!-- Include Socket.io library -->
+<title>Stimmungskarte Krems | MUSTER</title>
+<style type="text/css">body { background-color: #1b1b1b; }
+/* Ensure categorybutton-container takes up all remaining space but doesn't extend beyond sidebar */
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Hide overflow */
+}
+#categorybutton-container {
+    flex-grow: 1;
+    overflow-y: auto; /* Add scroll if content overflows */
+}
+.categorybutton {
+    flex-shrink: 1; /* Allow categorybuttons to shrink */
+}
+</style>
+<style>
+.text-padding {
+    padding: 0 2px;
+}
+
+#hamburger-menu-container {
+    width: 100%;
+    box-sizing: border-box;
+    flex-grow: 1;
+}
+
+#hamburger-dropdown .categorybutton {
+    border: none;  /* Remove borders */
+    border-radius: 30px;  /* Remove rounded edges */
+    height: 20px;  /* Make it thin */
+    width: 100%;  /* Take full width of the parent container */
+    box-sizing: border-box;  /* To include padding and border in width */
+}
+
+#hamburger-dropdown {
+  max-height: calc(135% + 0px);  /* 17px away from the bottom */
+    width: 100%;  /* Take the full width of hamburger-menu-container */
+    box-sizing: border-box; /* To include padding and border in width */
+    position: relative;  /* Change from absolute to relative */
+    z-index: 1;  /* To make sure it appears above other elements */
+    overflow-y: auto;  /* Enable vertical scrolling if content overflows */
+
+}
 
 
 
-    <title>Stimmungskarte Krems | MUSTER</title>
-</head>
+.button-menu {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px 0;
+    padding: 15px;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-decoration: none;
+	    white-space: normal;
+    border-radius: 30px;
+    transition: background-color 0.2s ease-in-out;
+    color: white;
+    text-align: center;
+    line-height: 1;
+    max-height: 40px;
+    width: 100%;
+}
+
+
+.categorybutton {
+    font-weight: bold;
+    margin: 8px 0;  /* Increased vertical margin for more gap between elements */
+
+    line-height: 1;  /* Adjusted line-height */
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;  /* Changed to flexbox */
+    align-items: center;  /* Vertically center content */
+    justify-content: center;  /* Horizontally center content */
+    width: 100%;
+	height: auto;
+    box-sizing: border-box;  /* Ensure padding and border are included in the width */
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    text-align: center;
+
+}
+
+.categorybutton h3 {
+    padding: 5px 5px;  /* Adds 2px padding to left and right */
+    margin: 5px;  /* Removes any default margin */
+    color: white;
+}
+
+#categorybutton-container {
+    width: 100%;
+    box-sizing: border-box;
+    padding-bottom: 17px; /* Added to ensure 17px space at the bottom */
+}
+
+
+
+/* Hover effect */
+.button-menu:hover, .categorybutton:hover, .post-button:hover, .key-div:hover, .video-div:hover {
+    filter: brightness(85%);
+    border-color: white;
+	border: 3px solid white;
+}
+
+
+/* Existing styles, updated */
+.button-menu, .categorybutton, .post-button, .key-div, .video-div {
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
+    border: 5px solid transparent; /* Set initial transparent border */
+}
+
+
+
+
+
+
+
+/* Selected effect */
+.button-menu.selected, .categorybutton.selected, .key-div.selected, .video-div.selected {
+    filter: brightness(85%);
+    border-width: 5px;
+    border-color: white;
+}
+</style>
+<style>
+    #info-popup {
+        padding: 20px;
+        max-width: 500px;
+        font-size: 14px;
+        z-index: 1000;  /* Make sure the popup appears above the map */
+    }
+</style>
+<script>
+function addAndRemoveClass() {
+    // Get the button element
+    const buttonMenu = document.getElementById('buttonMenu');
+
+    // Add the 'selected' class
+    buttonMenu.classList.add('selected');
+
+    // Remove the 'selected' class after 5 seconds
+    setTimeout(function() {
+        buttonMenu.classList.remove('selected');
+    }, 15000);
+}
+
+</script>
+<style>
+        /* New styles for the popup */
+        .leaflet-popup-content-wrapper,.leaflet-popup-tip {
+            background-color: #111111 !important;
+            color: white !important;
+            font-family: 'Roboto', sans-serif !important;
+            z-index: 1000 !important;
+        }
+    </style>
+<style>
+  #info-popup {
+    border-radius: 30px !important;
+  }
+  #feedbackText {
+    font-family: 'Roboto', sans-serif !important;
+  }
+</style>
+<style>
+  #info-popup,
+  .leaflet-popup,
+  #postFeedback,
+  #cancelFeedback {
+    border-radius: 30px !important;
+  }
+  #feedbackText {
+    color: white !important;
+  }
+</style>
+<style>
+/* Ensure categorybutton-container takes up all remaining space */
+#sidebar {
+    display: flex;
+    flex-direction: column;
+}
+#categorybutton-container {
+    flex-grow: 1;
+}
+</style></head>
 <body>
-
 <!-- POPUP -->
-
-   <!-- Counter container -->
-
-<div class="main-container">
+<!-- Counter container -->
+<div class="main-container" style="background-color= solid #0D1F22">
 <!-- Add this button where you want it to appear on your HTML page -->
-
-
 <div style="display: flex; height: 100vh">
-    <div id="map" style="flex-basis: 70%; border-radius: 0px">
-	
-	
-	<!-- COUNTER / VIS DIV -->
-	<div class="parent-container">
-<div id="counter-container" class="countercontainer"></div>
+<div id="map" style="flex-basis: 70%; border-radius: 30px; margin-left: 15px; margin-top: 15px; margin-bottom: 15px; border: 3px solid #0D1F22">
+<!-- COUNTER / VIS DIV -->
+<div class="parent-container">
+<div class="countercontainer" id="counter-container"></div>
 </div>
-<div id="togglebutton-container" class="togglebuttoncontainer">
-<button class="toggle-button" data-pin-type="ff5c00" data-toggled="true">
-    <img src="static/visicon_ff5c00.png" alt="Visibility Icon" class="icon untoggled-icon">
-    <img src="static/visicon_ff5c00_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+<div class="togglebuttoncontainer" id="togglebutton-container">
+<button class="toggle-button" data-pin-type="FF7043" data-toggled="true">
+<img alt="Visibility Icon" class="icon untoggled-icon" src="static/visicon_FF7043.png"/>
+<img alt="Visibility Icon" class="icon toggled-icon" src="static/visicon_FF7043_2.png" style="display:none;"/>
 </button>
-<button class="toggle-button" data-pin-type="9A031E" data-toggled="true">
-    <img src="static/visicon_9A031E.png" alt="Visibility Icon" class="icon untoggled-icon">
-    <img src="static/visicon_9A031E_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+<button class="toggle-button" data-pin-type="B71C1C" data-toggled="true">
+<img alt="Visibility Icon" class="icon untoggled-icon" src="static/visicon_B71C1C.png"/>
+<img alt="Visibility Icon" class="icon toggled-icon" src="static/visicon_B71C1C_2.png" style="display:none;"/>
 </button>
-<button class="toggle-button" data-pin-type="133873" data-toggled="true">
-    <img src="static/visicon_133873.png" alt="Visibility Icon" class="icon untoggled-icon">
-    <img src="static/visicon_133873_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+<button class="toggle-button" data-pin-type="1565C0" data-toggled="true">
+<img alt="Visibility Icon" class="icon untoggled-icon" src="static/visicon_1565C0.png"/>
+<img alt="Visibility Icon" class="icon toggled-icon" src="static/visicon_1565C0_2.png" style="display:none;"/>
 </button>
-<button class="toggle-button" data-pin-type="358400" data-toggled="true">
-    <img src="static/visicon_358400.png" alt="Visibility Icon" class="icon untoggled-icon">
-    <img src="static/visicon_358400_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+<button class="toggle-button" data-pin-type="4CAF50" data-toggled="true">
+<img alt="Visibility Icon" class="icon untoggled-icon" src="static/visicon_4CAF50.png"/>
+<img alt="Visibility Icon" class="icon toggled-icon" src="static/visicon_4CAF50_2.png" style="display:none;"/>
 </button>
-<button class="toggle-button" data-pin-type="431307" data-toggled="true">
-    <img src="static/visicon_431307.png" alt="Visibility Icon" class="icon untoggled-icon">
-    <img src="static/visicon_431307_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+<button class="toggle-button" data-pin-type="4E342E" data-toggled="true">
+<img alt="Visibility Icon" class="icon untoggled-icon" src="static/visicon_4E342E.png"/>
+<img alt="Visibility Icon" class="icon toggled-icon" src="static/visicon_4E342E_2.png" style="display:none;"/>
 </button>
-<button class="toggle-button" data-pin-type="070707" data-toggled="true">
-    <img src="static/visicon_070707.png" alt="Visibility Icon" class="icon untoggled-icon">
-    <img src="static/visicon_070707_2.png" alt="Visibility Icon" class="icon toggled-icon" style="display:none;">
+<button class="toggle-button" data-pin-type="212121" data-toggled="true">
+<img alt="Visibility Icon" class="icon untoggled-icon" src="static/visicon_212121.png"/>
+<img alt="Visibility Icon" class="icon toggled-icon" src="static/visicon_212121_2.png" style="display:none;"/>
 </button>
-
 </div>
 </div>
-    <div id="sidebar" style="flex-basis: 30%; padding: 10px; background-color: #ffffff; margin-bottom: 0px;">
-
-
+<div id="sidebar" style="flex-basis: 30%; background-color: #111111; margin-bottom: 15px; margin-top: 15px; border-radius: 30px">
 <div style="display: flex; align-items: center;">
-
-<div id="infoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
-    <div class="info-field" id="conditionsField">
 <!-- BEGINNING OF EDITABLE AREA -->
-            <div class="info-subtitle" style="margin-bottom: 30px">Willkommen auf der Stimmungskarte!</div> 
-            <div class="info-text" >Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.</div>
-			            <div class="info-text" style="margin-bottom: 30px">Sie können Hinweise an Orten anbringen, die Sie entweder als angenehm oder problematisch empfinden.</div>  
-
-                 <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">Und so funktioniert es:</span></div>
-            <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.</div> 
-          <div class="info-subtitle"><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie einen Pin auf der Karte.</div> 
-          <div class="info-subtitle"style="margin-bottom: 30px"><span style="color: #f77f00; font-weight: bold;">3.</span> Teilen Sie uns Ihre Meinung mit!</div> 
-            <div class="info-text"> <span style="font-weight: bold;">Ihre Beiträge sind anonym und können von der Gemeinde zur Verbesserung des öffentlichen Raums genutzt werden.</div>
 <!-- ENDING OF EDITABLE AREA -->
-        </div>
 </div>
-</div>
-
-
-<img src="static/logo_long.png" style="max-width: 100%; height: auto; border: 5px solid white; display: block; margin-top: -5px;     border-radius: 0px;">
-
+<img class="resistant-image" src="static/logo_long.png" style="max-width: 100%; height: auto; display: block; margin-bottom: 7px; border-radius: 0px;"/>
 <!-- BEGINNING OF EDITABLE AREA -->
-  <h2>Wie stehen Sie zu den Orten in Ihrer Gemeinde?</h2>
-  <h2>Lassen Sie es uns auf dieser Karte wissen! </h2>
+<h3 class="resistant-h3" style="color: white;">Wie stehen Sie zu den Orten in Ihrer Gemeinde?</h3>
+<h3 class="resistant-h3" style="color: white; margin-top: -10px; margin-bottom: 7px">Lassen Sie es uns auf dieser Karte wissen! </h3>
 <!-- ENDING OF EDITABLE AREA -->
 
 
-		<button id="aboutBtn" class="button-menu" style="background-color: #031927; margin-top: 10px">Wie funktioniert's?</button>
+ <div class="xdxd">
+    <div class="left-container">
+      <div class="video-div" id="videoDiv" onclick="togglePopup()" style="border-radius:30px;">
+        <img src="static/videoicon.png"/>
+      </div>
+      <div class="info-div" id="infoDiv" onclick="togglePopup()" style="border-radius:30px;">
+        <img src="static/infoicon.png"/>
+      </div>
+    </div>
+
+    <!-- Center aligned button -->
+    <div class="button-menu" id="buttonMenu" onclick="addAndRemoveClass()" style="background-color: #3a3a3a; margin-left:auto; margin-right:auto; width: auto; height: auto; padding: 15px;">
+      <h3> Wie funktioniert's?</h3>
+    </div>
+
+    <!-- Container for right-aligned elements -->
+    <div class="right-container">
+      <div class="lightswitch-div" id="lightswitchDiv" onclick="togglePopup()" style="border-radius:30px;">
+        <img src="static/sunicon.png"/>
+      </div>
+      <div class="key-div" id="keyDiv" onclick="togglePopup()" style="border-radius:30px;">
+        <img src="static/keyicon.png"/>
+      </div>
+  </div>
 
 
+</div>
 
-
-<img src="static/overlay.jpg" class="hide-on-mobile" style="max-width: 98%; height: auto; border: 5px solid white; display: block; margin-bottom: -4px; border-radius: 30px;">
-
+<img class="hide-on-mobile resistant-image" src="static/overlay.jpg" style="max-width: 100%; height: auto; display: block; margin-left:auto; margin-right:auto; margin-top: 3px; margin-bottom: 8px; border-radius: 30px;">
 <!-- Mappy Container -->
 <div id="mappy-container">
-    <div id="mapMobile">
-	<!-- COUNTER / VIS DIV -->
-
+<div id="mapMobile">
+<!-- COUNTER / VIS DIV -->
 </div>
-	
 </div>
-
-
-        <!-- Pin Menu -->
-         
+<!-- Pin Menu -->
 <div class="centered-text-container" style="margin-bottom: 0px;">
-	</div>
-	<div class="current-desktop">
-<div id="current-selection" class="current">Ausgewählt: <span id="selected-pin-type">...</span></div>
 </div>
-	
-	<div class="dropdown-container">
-
-  <div id="dropdown-options" class="options">
-        <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-            <h3>Dieser Ort gefällt mir.</h3>
-        </div>
-        <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
-            <h3>Hier fühle ich mich unsicher.</h3>
-        </div>
-        <div class="pin-menu" data-color="133873" style="background-color: #133873;">
-            <h3>Hier gibt es Probleme mit dem Parken.</h3>
-        </div>
-        <div class="pin-menu" data-color="358400" style="background-color: #358400;">
-            <h3>Hier verbringe ich gerne meine Freizeit.</h3>
-        </div>
-        <div class="pin-menu" data-color="431307" style="background-color: #431307;">
-            <h3>Dieser Ort braucht eine Verbesserung.</h3>
-        </div>
-        <div class="pin-menu" data-color="070707" style="background-color: #070707;">
-            <h3>An diesem Ort fehlt ein Service.</h3>
-        </div>
+<div class="current-desktop">
+<div class="options" id="dropdown-options">
+<div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
+<h3>Dieser Ort gefällt mir.</h3>
+</div>
+<div class="categorybutton" data-color="B71C1C" style="background-color: #B71C1C;">
+<h3>Hier fühle ich mich unsicher.</h3>
+</div>
+<div class="categorybutton" data-color="1565C0" style="background-color: #1565C0;">
+<h3>Hier gibt es Probleme mit dem Parken.</h3>
+</div>
+<div class="categorybutton" data-color="4CAF50" style="background-color: #4CAF50;">
+<h3>Hier verbringe ich gerne meine Freizeit.</h3>
+</div>
+<div class="categorybutton" data-color="4E342E" style="background-color: #4E342E;">
+<h3>Dieser Ort braucht eine Verbesserung.</h3>
+</div>
+<div class="categorybutton" data-color="212121" style="background-color: #212121;">
+<h3>An diesem Ort fehlt ein Service.</h3>
+</div>
+</div>
+</div>
+   <!-- Hamburger menu container -->
+<div id="hamburger-menu-container" style="display: none;">
+    <!-- Hamburger menu -->
+    <div id="hamburger-menu" onclick="toggleHamburgerDropdown()">
+   
     </div>
+    
+    <!-- Hamburger dropdown -->
+	
+	<div id="hamburger-dropdown" style="display: none">
+    <!-- Copy the existing category buttons here -->
+<div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
+<h3>Dieser Ort gefällt mir.</h3>
+</div>
+<div class="categorybutton" data-color="B71C1C" style="background-color: #B71C1C;">
+<h3>Hier fühle ich mich unsicher.</h3>
+</div>
+<div class="categorybutton" data-color="1565C0" style="background-color: #1565C0;">
+<h3>Hier gibt es Probleme mit dem Parken.</h3>
+</div>
+<div class="categorybutton" data-color="4CAF50" style="background-color: #4CAF50;">
+<h3>Hier verbringe ich gerne meine Freizeit.</h3>
+</div>
+<div class="categorybutton" data-color="4E342E" style="background-color: #4E342E;">
+<h3>Dieser Ort braucht eine Verbesserung.</h3>
+</div>
+<div class="categorybutton" data-color="212121" style="background-color: #212121;">
+<h3>An diesem Ort fehlt ein Service.</h3>
 </div>
 
-	<div id="pin-menu-desktop">
-        <div class="pin-menu" data-color="ff5c00" style="background-color: #ff5c00;">
-            <h3>Dieser Ort gefällt mir.</h3>
-        </div>
-        <div class="pin-menu" data-color="9A031E" style="background-color: #9A031E;">
-            <h3>Hier fühle ich mich unsicher.</h3>
-        </div>
-        <div class="pin-menu" data-color="133873" style="background-color: #133873;">
-            <h3>Hier gibt es Probleme mit dem Parken.</h3>
-        </div>
-        <div class="pin-menu" data-color="358400" style="background-color: #358400;">
-            <h3>Hier verbringe ich gerne meine Freizeit.</h3>
-        </div>
-        <div class="pin-menu" data-color="431307" style="background-color: #431307;">
-            <h3>Dieser Ort braucht eine Verbesserung.</h3>
-        </div>
-        <div class="pin-menu" data-color="070707" style="background-color: #070707;">
-            <h3>An diesem Ort fehlt ein Service.</h3>
-        </div>
-		</div>
+</div>
+</div>
 
+<div id="categorybutton-container">
+<div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
+<h3>Dieser Ort gefällt mir.</h3>
+</div>
+<div class="categorybutton" data-color="B71C1C" style="background-color: #B71C1C;">
+<h3>Hier fühle ich mich unsicher.</h3>
+</div>
+<div class="categorybutton" data-color="1565C0" style="background-color: #1565C0;">
+<h3>Hier gibt es Probleme mit dem Parken.</h3>
+</div>
+<div class="categorybutton" data-color="4CAF50" style="background-color: #4CAF50;">
+<h3>Hier verbringe ich gerne meine Freizeit.</h3>
+</div>
+<div class="categorybutton" data-color="4E342E" style="background-color: #4E342E;">
+<h3>Dieser Ort braucht eine Verbesserung.</h3>
+</div>
+<div class="categorybutton" data-color="212121" style="background-color: #212121;">
+<h3>An diesem Ort fehlt ein Service.</h3>
+</div>
+</div>
+</img></div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let clickableMenus = document.querySelectorAll('.categorybutton, .button-menu');
 
+    clickableMenus.forEach(menu => {
+        menu.addEventListener('click', function(e) {
+            // Unselect all
+            clickableMenus.forEach(m => m.classList.remove('selected'));
 
-
-
-
-	</div>
-	</div>
-	
-	</div>
-</body>
-
+            // Select the clicked one
+            e.currentTarget.classList.add('selected');
+        });
+    });
+});
+</script>
 <!-- LOGIC -->
-
-
-
-
-  <script>
-
-    </script>
+<script>
+</script>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
 
@@ -248,12 +605,12 @@
 	
 	
 	const layers = {
-    "ff5c00": L.layerGroup().addTo(map).addTo(mapMobile),
-    "9A031E": L.layerGroup().addTo(map).addTo(mapMobile),
-    "133873": L.layerGroup().addTo(map).addTo(mapMobile),
-    "358400": L.layerGroup().addTo(map).addTo(mapMobile),
-    "431307": L.layerGroup().addTo(map).addTo(mapMobile),
-    "070707": L.layerGroup().addTo(map).addTo(mapMobile)
+    "FF7043": L.layerGroup().addTo(map).addTo(mapMobile),
+    "B71C1C": L.layerGroup().addTo(map).addTo(mapMobile),
+    "1565C0": L.layerGroup().addTo(map).addTo(mapMobile),
+    "4CAF50": L.layerGroup().addTo(map).addTo(mapMobile),
+    "4E342E": L.layerGroup().addTo(map).addTo(mapMobile),
+    "212121": L.layerGroup().addTo(map).addTo(mapMobile)
 };
 
 // Function to add marker to both map and mapMobile
@@ -454,8 +811,8 @@ document.getElementById('togglebutton-container').addEventListener('click', func
 
         const popupContent = `
             <textarea id="feedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
-            <button id="postFeedback" style="font-size: ${fontSize}px;">Fertig</button>
-            <button id="cancelFeedback" style="font-size: ${fontSize}px;">Löschen</button>
+            <button id="postFeedback" class="post-button" style="font-size: ${fontSize}px;">Fertig</button>
+            <button id="cancelFeedback" class="cancel-button"style="font-size: ${fontSize}px;">Löschen</button>
         `;
 
         const popup = L.popup()
@@ -552,12 +909,12 @@ function deletePin(molen_id) {
     }).addTo(map);
 
     const pins = {
-        "ff5c00": "Something to be proud of",
-        "9A031E": "Unsafe area",
-        "133873": "Parking issues",
-        "358400": "Nice to spend free time at",
-        "431307": "Needs improvement",
-        "070707": "Missing service"
+        "FF7043": "Something to be proud of",
+        "B71C1C": "Unsafe area",
+        "1565C0": "Parking issues",
+        "4CAF50": "Nice to spend free time at",
+        "4E342E": "Needs improvement",
+        "212121": "Missing service"
     };
 	
 	 // Function to create checkboxes dynamically
@@ -594,7 +951,7 @@ function deletePin(molen_id) {
 
     let selectedColor = null;
 
-    document.querySelectorAll(".pin-menu").forEach(menu => {
+    document.querySelectorAll(".categorybutton").forEach(menu => {
         menu.addEventListener("click", function() {
             selectedColor = this.getAttribute("data-color");
             document.getElementById("selected-pin-type").innerText = pins[selectedColor];
@@ -616,22 +973,22 @@ function deletePin(molen_id) {
 
 // Global object to keep track of toggle states
 const toggleStates = {
-    "ff5c00": true,
-    "9A031E": true,
-    "133873": true,
-    "358400": true,
-    "431307": true,
-    "070707": true
+    "FF7043": true,
+    "B71C1C": true,
+    "1565C0": true,
+    "4CAF50": true,
+    "4E342E": true,
+    "212121": true
 };
 
 // Store the markers in an object so you can reference them later
 const markers = {
-    "ff5c00": [],
-    "9A031E": [],
-    "133873": [],
-    "358400": [],
-    "431307": [],
-    "070707": []
+    "FF7043": [],
+    "B71C1C": [],
+    "1565C0": [],
+    "4CAF50": [],
+    "4E342E": [],
+    "212121": []
 };
 
 // Updated loadPins function to handle opacity
@@ -671,10 +1028,6 @@ function loadPins(pins) {
 
 
 </script>
-
-
-
-
 <script>
 
 <!-- LOGIC - DROPDOWN MOBILE -->
@@ -688,8 +1041,8 @@ document.querySelector('#dropdown-button').addEventListener('click', function() 
     }
 });
 
-let pinMenus = document.querySelectorAll('.pin-menu');
-pinMenus.forEach(function(menu) {
+let categorybuttons = document.querySelectorAll('.categorybutton');
+categorybuttons.forEach(function(menu) {
     menu.addEventListener('click', function() {
         let color = this.getAttribute('data-color');
         let text = this.querySelector('h3').textContent;
@@ -699,7 +1052,7 @@ pinMenus.forEach(function(menu) {
         document.addEventListener('DOMContentLoaded', function () {
     const dropdownButton = document.getElementById('dropdown-button');
     const dropdownOptions = document.getElementById('dropdown-options');
-    const pinMenus = document.querySelectorAll('.pin-menu');
+    const categorybuttons = document.querySelectorAll('.categorybutton');
     const allPins = document.querySelectorAll('.pin'); // Assuming all pins have a class of 'pin'
 
     // Toggle the visibility of the dropdown options when the button is clicked
@@ -708,9 +1061,9 @@ pinMenus.forEach(function(menu) {
     });
 
     // Add a click event for each pin menu option
-    pinMenus.forEach(function (menu) {
+    categorybuttons.forEach(function (menu) {
         menu.addEventListener('click', function (e) {
-            const selectedText = e.target.closest('.pin-menu').querySelector('h3').textContent; // Get the text of the selected option
+            const selectedText = e.target.closest('.categorybutton').querySelector('h3').textContent; // Get the text of the selected option
 
             dropdownButton.textContent = `Ausgewählt: ${selectedText}`; // Update the button text
 
@@ -736,23 +1089,17 @@ pinMenus.forEach(function(menu) {
 });
 
 </script>
-
-
-
-
-
-
 <script>
 
 <!-- LOGIC - COLOR OF CURRENTLY CHOSEN TEXT -->
 document.addEventListener("DOMContentLoaded", function() {
-    // Get all pin-menu elements
-    var pinMenus = document.querySelectorAll('.pin-menu');
+    // Get all categorybutton elements
+    var categorybuttons = document.querySelectorAll('.categorybutton');
 
-    // Add click event to each pin-menu
-    pinMenus.forEach(function(menu) {
+    // Add click event to each categorybutton
+    categorybuttons.forEach(function(menu) {
         menu.addEventListener('click', function() {
-            // Get the color from the clicked pin-menu
+            // Get the color from the clicked categorybutton
             var color = menu.getAttribute('data-color');
 
             // Update the color and text of the 'selected-pin-type' span
@@ -770,17 +1117,41 @@ window.addEventListener("resize", function() {
 });
 
 </script>
+
+
+
 <!-- LOGIC - BUTTON RESIZING -->
 <script>
+
+
 function updateFontSize() {
-    const containerWidth = document.querySelector('#sidebar').offsetWidth;
-    const isMobile = window.innerWidth <= 900; // Check if the device is mobile
+    const windowWidth = window.innerWidth;
+    const isMobile = windowWidth <= 768; // Check if the device is mobile
+    const sidebar = document.querySelector('#sidebar');
+    const containerWidth = sidebar.offsetWidth;
 
-    const baseFontSize = isMobile ? 
-                         Math.max(16, containerWidth / 20) :  
-                         Math.max(12, containerWidth / 30);
+    // Dynamically update flex-basis for #map and #sidebar
+    const mapElement = document.querySelector('#map');
+    const sidebarElement = sidebar;
 
-    document.querySelectorAll('.pin-menu h3, #aboutBtn, #dropdown-button, #current-selection').forEach(el => {
+    if (!isMobile) {
+        mapElement.style.flexBasis = '70%';
+        sidebarElement.style.flexBasis = '30%';
+    } else {
+        mapElement.style.flexBasis = '100%';
+        sidebarElement.style.flexBasis = '0%';
+    }
+
+    flexBasisSidebar = 100 - flexBasisMap;
+
+    mapElement.style.flexBasis = `${flexBasisMap}%`;
+    sidebarElement.style.flexBasis = `${flexBasisSidebar}%`;
+   
+
+    const baseFontSize = isMobile ? Math.max(16, containerWidth / 20) : Math.max(12, containerWidth / 30);
+
+    // Update the font sizes for elements as before
+    document.querySelectorAll('#aboutBtn, #dropdown-button, #current-selection').forEach(el => {
         el.style.fontSize = `${baseFontSize}px`;
     });
 
@@ -794,19 +1165,142 @@ function updateFontSize() {
         h2.style.fontSize = `${centeredH2FontSize}px`;
     });
 
-    // Adjust the pin-menu font size on mobile
-    if (isMobile) {
-        document.querySelectorAll('.pin-menu h3').forEach(el => {
-            el.style.fontSize = `${Math.max(12, baseFontSize * 0.8)}px`; // You can adjust the factor "0.8" as required
-        });
+    // Handling categorybutton and button-menu separately to prevent resizing until necessary
+    ['categorybutton', 'button-menu'].forEach(menuClass => {
+        if (!isMobile) {
+            document.querySelectorAll(`.${menuClass}`).forEach(el => {
+                el.style.fontSize = 'initial';
+            });
+        } else {
+            const menuWidth = document.querySelector(`.${menuClass}`).offsetWidth;
+            const menuFontSize = Math.max(12, menuWidth / 30);
+            document.querySelectorAll(`.${menuClass}`).forEach(el => {
+                el.style.fontSize = `${menuFontSize}px`;
+            });
+        }
+    });
+
+    // Add the logic to scale the elements inside the 'xdxd' div
+    const xdxdFontSize = Math.max(12, containerWidth / 30);
+    document.querySelectorAll('.xdxd').forEach(div => {
+        div.style.fontSize = `${xdxdFontSize}px`;
+    });
+
+        const sidebarHeight = sidebar.offsetHeight;
+    const availableSpace = sidebarHeight - 17; // 17px away from the bottom
+    const categorybuttonDesktop = document.querySelector('#categorybutton-container');
+    const allPins = document.querySelectorAll('.categorybutton');
+
+    const numberOfPins = allPins.length;
+    const newMaxHeight = Math.max(20, Math.floor(availableSpace / numberOfPins) - 2); // -2 to account for margins
+
+    allPins.forEach(pin => {
+        pin.style.maxHeight = `${newMaxHeight}px`;
+        // Force repaint for max-height to take effect
+        void pin.offsetHeight;
+    });
+}
+
+// Function to update category button heights
+function updateCategoryButtonHeight() {
+    const sidebar = document.getElementById('sidebar');
+    const categorybuttonContainer = document.getElementById('categorybutton-container');
+    const categorybuttons = categorybuttonContainer.querySelectorAll('.categorybutton');
+    const hamburgerDropdown = document.getElementById('hamburger-dropdown');
+    const dropdownCategoryButtons = hamburgerDropdown.querySelectorAll('.categorybutton');
+
+    let otherElementsHeight = 0;
+    Array.from(sidebar.children).forEach(child => {
+      if (child.id !== 'categorybutton-container' && child.id !== 'hamburger-menu-container') {
+        otherElementsHeight += child.offsetHeight;
+      }
+    });
+
+    const availableHeight = sidebar.offsetHeight - otherElementsHeight - 135; // 17px away from the bottom
+    let newHeight = Math.floor(availableHeight / categorybuttons.length);
+
+    // Update height for category buttons in main container
+    categorybuttons.forEach(button => {
+      button.style.height = `${newHeight}px`;
+    });
+
+    // Ensure a minimum height of 25px for dropdown category buttons
+    newHeight = Math.max(40, newHeight);
+    dropdownCategoryButtons.forEach(button => {
+      button.style.height = `${newHeight}px`;
+    });
+
+    // Enable or disable scrolling based on the total height of the dropdown buttons
+    const totalDropdownHeight = dropdownCategoryButtons.length * newHeight;
+    if (totalDropdownHeight > availableHeight) {
+      hamburgerDropdown.style.height = `${availableHeight}px`;
+      hamburgerDropdown.style.overflowY = 'scroll';
+    } else {
+      hamburgerDropdown.style.height = 'auto';
+      hamburgerDropdown.style.overflowY = 'hidden';
     }
 }
 
+
+function setHamburgerMenuHeight() {
+    const hamburgerMenuContainer = document.getElementById('hamburger-menu-container');
+    if (hamburgerMenuContainer) {
+        let currentHeight = parseInt(window.getComputedStyle(hamburgerMenuContainer).height, 0);
+        hamburgerMenuContainer.style.height = `${currentHeight + 20}px`;
+    }
+}
+
+
+
+// Function to toggle category buttons and hamburger menu based on window height
+function toggleCategoryMenu() {
+    const windowHeight = window.innerHeight;
+    const categoryContainer = document.getElementById('categorybutton-container');
+    const hamburgerMenuContainer = document.getElementById('hamburger-menu-container');
+    const hamburgerDropdown = document.getElementById('hamburger-dropdown');
+
+    if (windowHeight < 820) {
+        categoryContainer.style.display = 'none';
+        hamburgerMenuContainer.style.display = 'block';
+        hamburgerDropdown.style.display = 'block';  // Automatically display the dropdown
+
+        // Increase the height of the hamburger-menu-container by 20px
+        let currentHeightMenu = parseInt(window.getComputedStyle(hamburgerMenuContainer).height, 10);
+        hamburgerMenuContainer.style.height = `${currentHeightMenu + 20}px`;
+
+        // Increase the height of the hamburger-dropdown by 10px
+        let currentHeightDropdown = parseInt(window.getComputedStyle(hamburgerDropdown).height, 10);
+        hamburgerDropdown.style.height = `${currentHeightDropdown + 40}px`;
+
+        // Check and set the overflowY property based on content
+        const totalDropdownHeight = hamburgerDropdown.scrollHeight;
+        const availableHeight = parseInt(hamburgerDropdown.style.height, 10);
+        hamburgerDropdown.style.overflowY = totalDropdownHeight > availableHeight ? 'scroll' : 'hidden';
+        
+    } else {
+        categoryContainer.style.display = 'block';
+        hamburgerMenuContainer.style.display = 'none';
+        hamburgerDropdown.style.display = 'none';
+    }
+}
+
+// Function to toggle the visibility of the category buttons when the hamburger icon is clicked
+function toggleHamburgerDropdown() {
+    const dropdown = document.getElementById('hamburger-dropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+// Existing event listeners
 window.addEventListener('resize', updateFontSize);
-updateFontSize();
+window.addEventListener('load', updateFontSize);
+window.addEventListener('resize', updateCategoryButtonHeight);
+window.addEventListener('load', updateCategoryButtonHeight);
+window.addEventListener('resize', toggleCategoryMenu);
+window.addEventListener('load', toggleCategoryMenu);
+
+
 
 </script>
-
 
 <script>
 async function vote(pinId, action) {
@@ -823,7 +1317,6 @@ async function vote(pinId, action) {
     }
 }
 </script>
-
 <!--DELETE FUNCTION - PIN REMOVAL -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -866,7 +1359,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
-
 <script>
 function fetchAndDisplayCounters() {
     // Fetch the counter data from the server
@@ -916,13 +1408,9 @@ function fetchAndDisplayCounters() {
 fetchAndDisplayCounters();
 
 </script>
-
-
-
-
 <script>
     let filteredType = null;  // Keep track of the currently filtered pin type
-    const pinOrder = ['ff5c00', '9A031E', '133873', '358400', '431307', '070707'];  // Specify the order of pin types
+    const pinOrder = ['FF7043', 'B71C1C', '1565C0', '4CAF50', '4E342E', '212121'];  // Specify the order of pin types
 
     function toggleFilter(pin_type) {
         if (filteredType === pin_type) {
@@ -959,7 +1447,6 @@ fetchAndDisplayCounters();
     // Fetch the counter when the page loads
     fetchAndUpdateCounter();
 </script>
-
 <script>
 function fetchAndDisplayCounters() {
     // Fetch the counter data from the server
@@ -1008,8 +1495,6 @@ function fetchAndDisplayCounters() {
 fetchAndDisplayCounters();
 
 </script>
-
-
 <!-- CSS PINS -->
 <style>
 .custom-popup .leaflet-popup-content {
@@ -1017,10 +1502,10 @@ fetchAndDisplayCounters();
 }
 
 .countercontainer {
-    background-color: white;
-    border-radius: 50px;
+    background-color: #3a3a3a;
+    border-radius: 30px;
     padding: 11px;
-    color: black;
+    color: white;
     position: absolute;
     top: 0;
     left: 50%;
@@ -1039,8 +1524,8 @@ fetchAndDisplayCounters();
 }
 
 .togglebuttoncontainer {
-    background-color: white;
-    border-radius: 50px;
+    background-color: #3a3a3a;
+    border-radius: 30px;
     padding: 5px;
     color: black;
     position: absolute;
@@ -1075,7 +1560,65 @@ fetchAndDisplayCounters();
     height: auto;
 }
 
+        #keyDiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
 
+        #keyDiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
+		
+        #infoDiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
+
+        #infoDiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
+		
+        #videoDiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
+
+        #videoDiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
+		
+        #lightswitchDiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
+
+        #lightswitchDiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
 
 .countercontainer:hover .tooltip {
     display: block;
@@ -1117,16 +1660,19 @@ fetchAndDisplayCounters();
     top: 10px;
 }
 </style>
-
 <style>
+.bar {
+    width: 25px;
+    height: 3px;
+    margin: 3px 0;
+    background-color: #333;
+}
 
-   .leaflet-top.leaflet-center {
-        text-align: center;
-        margin-left: auto;
-        margin-right: auto;
-        left: 50%;
-        transform: translateX(-50%);
-    }
+
+
+#hamburger-dropdown .categorybutton {
+	
+}
 
 .pin-label {
     background: none;
@@ -1144,10 +1690,6 @@ fetchAndDisplayCounters();
     border: none;
 }
 
-#pin-menu-desktop {
-    width: 100%;
-    box-sizing: border-box; /* Ensure padding and border are included in the width */
-}
 
 
 .options {
@@ -1165,11 +1707,12 @@ fetchAndDisplayCounters();
 
 
 
-.pin-menu h3 {
-    color: white;
+
+.hide-on-mobile.resistant-image,
+.categorybutton {
+  width: 100%;
+  box-sizing: border-box;
 }
-
-
 
 
 /* Hide mobile version by default */
@@ -1178,7 +1721,7 @@ fetchAndDisplayCounters();
 }
 
 /* On larger screens, only show the desktop version */
-@media screen and (min-width: 901px) {
+@media screen and (min-width: 780px) {
 
     .current-mobile {
         display: none;
@@ -1188,8 +1731,8 @@ fetchAndDisplayCounters();
     }
 }
 
-/* On smaller screens (or equal to 900px), only show the mobile version */
-@media screen and (max-width: 900px) {
+/* On smaller screens (or equal to 780px), only show the mobile version */
+@media screen and (max-width: 780px) {
 
     .current-mobile {
         display: block;
@@ -1200,7 +1743,7 @@ fetchAndDisplayCounters();
     display: block; /* This shows the dropdown on mobile devices by default */
 }
 
-@media (max-width: 900px) {
+@media (max-width: 780px) {
     .countercontainer,
     .togglebuttoncontainer {
         border-radius: 25px;  /* Reduced border radius */
@@ -1219,8 +1762,10 @@ fetchAndDisplayCounters();
     display: none;
 }
 
+
+
 /* Show mappy-container only on smaller screens */
-@media (max-width: 900px) {
+@media (max-width: 780px) {
     #mappy-container {
         display: block;
         margin: 3px;
@@ -1237,6 +1782,8 @@ position: relative;
 	 .hide-on-mobile {
         display: none !important;
     }
+	
+	
 
 }
 
@@ -1245,16 +1792,16 @@ position: relative;
 
 
 /* Hide mobile dropdown by default */
-#pin-menu-mobile {
+#categorybutton-mobile {
     display: none;
 }
 
 /* Show mobile dropdown and hide desktop menu on smaller screens */
-@media (max-width: 900px) {
-    #pin-menu-desktop {
+@media (max-width: 780px) {
+    #categorybutton-container {
         display: none;
     }
-    #pin-menu-mobile {
+    #categorybutton-mobile {
         display: block;
     }
 }
@@ -1266,22 +1813,22 @@ position: relative;
     line-height: 24px;
     font-weight: bold;
     text-align: center;
-}
-
-
-.leaflet-control-container {
-border-radius: 50px:
-}
-
-/* Custom Layer Control styles */
-.leaflet-control-layers-toggle {
-    background-image: url('static/mapicon.png');  /* Check if this path is correct */
+	border-radius: 30px;
+	  background-image: url('static/mapicon.png');  /* Check if this path is correct */
     background-color: transparent;
     background-repeat: no-repeat;
     background-position: center;
-	border-radius: 50px;
-    width: 36px;
+	    width: 36px;
     height: 36px;
+}
+
+.leaflet-control-layers leaflet-control {
+border-radius: 30px;
+
+}
+
+.leaflet-top leaflet-right {
+border-radius: 50px:
 }
 
 
@@ -1330,65 +1877,65 @@ border-radius: 50px:
 }
 
 
-.satellite-view .pin-ff5c00 {
-    background-image: radial-gradient(circle, #ff5c00 50%, rgba(255, 177, 0, 0.7) 50%);
+.satellite-view .pin-FF7043 {
+    background-image: radial-gradient(circle, #FF7043 50%, rgba(255, 177, 0, 0.7) 50%);
     border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
-.satellite-view .pin-9A031E {
-    background-image: radial-gradient(circle, #9A031E 50%, rgba(154, 3, 30, 0.7) 50%);
+.satellite-view .pin-B71C1C {
+    background-image: radial-gradient(circle, #B71C1C 50%, rgba(154, 3, 30, 0.7) 50%);
     border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
-.satellite-view .pin-133873 {
-    background-image: radial-gradient(circle, #133873 50%, rgba(19, 56, 115, 0.7) 50%);
+.satellite-view .pin-1565C0 {
+    background-image: radial-gradient(circle, #1565C0 50%, rgba(19, 56, 115, 0.7) 50%);
     border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
-.satellite-view .pin-358400 {
-    background-image: radial-gradient(circle, #358400 50%, rgba(53, 134, 0, 0.7) 50%);
+.satellite-view .pin-4CAF50 {
+    background-image: radial-gradient(circle, #4CAF50 50%, rgba(53, 134, 0, 0.7) 50%);
     border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
-.satellite-view .pin-431307 {
-    background-image: radial-gradient(circle, #431307 50%, rgba(67, 19, 7, 0.7) 50%);
+.satellite-view .pin-4E342E {
+    background-image: radial-gradient(circle, #4E342E 50%, rgba(67, 19, 7, 0.7) 50%);
     border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
-.satellite-view .pin-070707 {
-    background-image: radial-gradient(circle, #070707 50%, rgba(7, 7, 7, 0.7) 50%);
+.satellite-view .pin-212121 {
+    background-image: radial-gradient(circle, #212121 50%, rgba(7, 7, 7, 0.7) 50%);
     border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
 
-.pin-ff5c00 {
-    color: #ff5c00;
-    background-image: radial-gradient(circle, #ff5c00 30%, rgba(255, 177, 0, 0.2) 40%);
+.pin-FF7043 {
+    color: #FF7043;
+    background-image: radial-gradient(circle, #FF7043 30%, rgba(255, 177, 0, 0.2) 40%);
 }
 
-.pin-9A031E {
-    color: #9A031E;
-    background-image: radial-gradient(circle, #9A031E 30%, rgba(154, 3, 30, 0.2) 40%);
+.pin-B71C1C {
+    color: #B71C1C;
+    background-image: radial-gradient(circle, #B71C1C 30%, rgba(154, 3, 30, 0.2) 40%);
 }
 
-.pin-133873 {
-    color: #133873;
-    background-image: radial-gradient(circle, #133873 30%, rgba(19, 56, 115, 0.2) 40%);
+.pin-1565C0 {
+    color: #1565C0;
+    background-image: radial-gradient(circle, #1565C0 30%, rgba(19, 56, 115, 0.2) 40%);
 }
 
-.pin-358400 {
-    color: #358400;
-    background-image: radial-gradient(circle, #358400 30%, rgba(53, 134, 0, 0.2) 40%);
+.pin-4CAF50 {
+    color: #4CAF50;
+    background-image: radial-gradient(circle, #4CAF50 30%, rgba(53, 134, 0, 0.2) 40%);
 }
 
-.pin-431307 {
-    color: #431307;
-    background-image: radial-gradient(circle, #431307 30%, rgba(67, 19, 7, 0.2) 40%);
+.pin-4E342E {
+    color: #4E342E;
+    background-image: radial-gradient(circle, #4E342E 30%, rgba(67, 19, 7, 0.2) 40%);
 }
 
-.pin-070707 {
-    color: #070707;
-    background-image: radial-gradient(circle, #070707 30%, rgba(7, 7, 7, 0.2) 40%);
+.pin-212121 {
+    color: #212121;
+    background-image: radial-gradient(circle, #212121 30%, rgba(7, 7, 7, 0.2) 40%);
 }
 
 
@@ -1398,6 +1945,7 @@ border-radius: 50px:
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 10px;
     padding: 20px;
+	border-radius: 30px;
     color: white;
     text-align: center; /* Center the text */
 }
@@ -1405,7 +1953,6 @@ border-radius: 50px:
 
 #current-selection {
     font-weight: bold;
-    border: 5px solid white;
     padding: 10px 0;
     margin: 2px 0;
     cursor: pointer;
@@ -1424,7 +1971,6 @@ border-radius: 50px:
 .dropdown-menu2 {
 
     font-weight: bold;
-    border: 5px solid white;
     margin: -1px 0;
 	padding: 0px 10px;
     line-height: 0;  /* Adjust line-height */
@@ -1441,40 +1987,7 @@ border-radius: 50px:
     text-align: center;
 }
 
-.button-menu {
-    font-weight: bold;
-    border: 5px solid white;
-    padding: 7px 0;
-    margin: 2px 0;
-    cursor: pointer;
-    font-size: 24px;
-    text-decoration: none;
-    display: block;
-    width: 100%;
-    transition: background-color 0.2s ease-in-out;
-    border-radius: 30px;
-    box-sizing: border-box;
-    text-align: center;
-    color: white;
-}
-
-
-    font-weight: bold;
-    border: 4px solid white;
-    margin: -1px 0;
-	padding: 0px 10px;
-    line-height: 0;  /* Adjust line-height */
-    cursor: pointer;
-    font-size: 24px;
-    text-decoration: none;
-    display: block;
-    width: 100%;
-    box-sizing: border-box; /* Ensure padding and border are included in the width */
-    padding: 0px 10px; /* Adjust padding as per design requirement */
-    transition: background-color 0.2s ease-in-out;
-    border-radius: 30px;
-    box-sizing: border-box;
-    text-align: center;
+    
 }
 .centered-text-container {
     display: flex;
@@ -1489,7 +2002,7 @@ border-radius: 50px:
     font-size: 4vw; /* This will make the font size 4% of the viewport width. Adjust this as necessary. */
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 780px) {
     .centered-text-container h2 {
         font-size: 5vw; /* Increase font size on smaller screens. Adjust as necessary. */
     }
@@ -1507,78 +2020,77 @@ border-radius: 50px:
 }
 
 
-.pin-ff5c00 { color: #ff5c00; }
-.pin-9A031E { color: #9A031E; }
-.pin-133873 { color: #133873; }
-.pin-358400 { color: #358400; }
-.pin-431307 { color: #431307; }
-.pin-070707 { color: #070707; }
+.pin-FF7043 { color: #FF7043; }
+.pin-B71C1C { color: #B71C1C; }
+.pin-1565C0 { color: #1565C0; }
+.pin-4CAF50 { color: #4CAF50; }
+.pin-4E342E { color: #4E342E; }
+.pin-212121 { color: #212121; }
 
-.pin-menu {
-    font-weight: bold;
-    border: 4px solid white;
-    margin: -1px 0;
-	padding: 0px 10px;
-    line-height: 0;  /* Adjust line-height */
-    cursor: pointer;
-    font-size: 24px;
-    text-decoration: none;
-    display: block;
-    width: 100%;
-    box-sizing: border-box; /* Ensure padding and border are included in the width */
-    padding: 0px 10px; /* Adjust padding as per design requirement */
-    transition: background-color 0.2s ease-in-out;
-    border-radius: 30px;
-    box-sizing: border-box;
-    text-align: center;
+
+
+  .xdxd {
+      display: flex;
+      justify-content: space-between;
+    }
+    .left-container, .right-container {
+      display: flex;
+      align-items: center;
+    }
+    .video-div, .info-div, .lightswitch-div, .key-div {
+      margin: 0 3px;
+    }
 }
 
+  
+    /* Individual icon divs */
+    .lightswitch-div, .key-div, .video-div, .info-div {
+      flex-direction: row;
+    }
 
-
-.pin-menu:hover {
-    background-color: #e0e0e0;
-}
-
-
-
-
-#sidebar img {
-    max-width: 100%;
-    height: auto;
-    border: 5px solid white;
-    display: block;
-    margin-bottom: 20px;
-    border-radius: 10px;
-}
-
+    /* Make the containers hidden when screen width is less than 1271px */
+    @media (max-width: 1271px) {
+      .left-container, .right-container, .countercontainer, .togglebuttoncontainer  {
+        display: none;
+      }
+    }
+	
+	
+	
 #sidebar {
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Vertically center the contents */
-    align-items: center;     /* Horizontally center the contents */
-    flex-basis: 20%;
+    flex-basis: 30%;
     padding: 20px;
     background-color: ##405F5E;  /* Updated this line */
-    margin-top: 1.5%;
-	    margin-bottom: 1.5%;
-    margin-left: 2.5%;
-    margin-right: 2.5%;
+    margin-top: 15px;
+	    margin-bottom: 15px ;
+    margin-left: 15px ;
+    margin-right: 15px;
+  overflow-y: auto;  /* Makes the sidebar scrollable vertically */
+    justify-content: flex-start;
+    align-items: stretch;
+    overflow: hidden;
+}
 
+#sidebar > * {
+    min-height: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
     border-radius: 10px;
 	
 }
 .current {
     font-weight: bold;
-    border: 5px solid white;
     padding: 50px 0;
-    margin: 2px 0;
     cursor: pointer;
     font-size: 15px;
     text-decoration: none;
     display: block;
     width: 100%;
     transition: background-color 0.2s ease-in-out;
-    border-radius: 10px;
+    border-radius: 30px;
     box-sizing: border-box;
     text-align: center;
        background-color: white;
@@ -1596,6 +2108,7 @@ border-radius: 50px:
     margin-bottom: 10px;
     font-weight: bold;
     border: none;
+	background-color: #111111;
     cursor: pointer;
     font-size: 20px;
     text-decoration: none;
@@ -1606,7 +2119,7 @@ border-radius: 50px:
 }
 
 #postFeedback {
-    background-color: #5DA271;
+    background-color: #4CAF50;
     border: none;
     color: white;
     padding: 10px 20px;
@@ -1617,11 +2130,11 @@ border-radius: 50px:
 }
 
 #postFeedback:hover {
-    background-color: #4D8A5D;
+    background-color: #388E3C;
 }
 
 #cancelFeedback {
-    background-color: #C84630;
+    background-color: #B71C1C;
     border: none;
     color: white;
     padding: 10px 20px;
@@ -1632,7 +2145,7 @@ border-radius: 50px:
 }
 
 #cancelFeedback:hover {
-    background-color: #AD3A26;
+    background-color: #9E0B0B;
 }
 
 
@@ -1651,11 +2164,15 @@ body {
 
 
 
+h3 {
+    text-align: center; /* Center text horizontally */
 
-
-/* MOBILE CSS */
-
-
+    /* If you want to center the h2 vertically within its container, you can use these properties, but they might not be necessary for all use cases: */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
 h2 {
     text-align: center; /* Center text horizontally */
 
@@ -1671,7 +2188,7 @@ h2 {
     box-shadow: none !important;
 }
 
-@media screen and (min-width: 901px) {
+@media screen and (min-width: 780px) {
     #dropdown-button {
         display: none;
 		margin-top:10px;
@@ -1681,8 +2198,8 @@ h2 {
 	
 }
 
-@media screen and (max-width: 900px) {
-    .pin-menu {
+@media screen and (max-width: 780px) {
+    .categorybutton {
 	 font-size: 2vw; /* adjust as needed */
         max-height: calc(2em + 14px); /* 2 times the font size + 2 times the padding */
         width: 100%;
@@ -1694,16 +2211,17 @@ h2 {
         align-items: center;
         height: auto;  // This ensures the container grows with its content
         padding: 7px;
+
     }
 }
 
-@media screen and (min-width: 901px) {
+@media screen and (min-width: 780px) {
     #dropdown-options {
         display: none !important; /* Important can ensure that this rule takes precedence over inline styles */
     }
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 780px) {
 
 
 .dropdown-container {
@@ -1722,7 +2240,7 @@ h2 {
 /* Dropdown button */
    #dropdown-button {
            font-weight: bold;
-    border: 5px solid white;
+    border: 5px solid #0D1F22;
     padding: 7px 0;
     margin: 2px 0;
     cursor: pointer;
@@ -1765,7 +2283,9 @@ h2 {
 
 }
 
-
+  h3 + h3 {
+        margin-top: -10px; /* Adjust this value to control the gap. Negative values bring the lines closer together. */
+    }
 
     h2 + h2 {
         margin-top: -10px; /* Adjust this value to control the gap. Negative values bring the lines closer together. */
@@ -1782,8 +2302,8 @@ h2 {
         margin: 0;  /* Ensure no margin */
     }
  #sidebar {
-        width: 90%; 
-        max-width: 90%;  /* Ensure it doesn't go beyond this width */
+        width: 95%; 
+        max-width: 95%;  /* Ensure it doesn't go beyond this width */
         padding: 10px;
         box-sizing: border-box; 
         height: auto; 
@@ -1804,7 +2324,7 @@ h2 {
 
 
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 780px) {
    
    div[style="display: flex; height: 100vh"] {
         flex-direction: column;
@@ -1845,27 +2365,26 @@ h2 {
 
 
 
-.cursor-pin-ff5c00 { 
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ff5c00" /></svg>'), auto; 
+.cursor-pin-FF7043 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23FF7043" /></svg>'), auto; 
 }
-.cursor-pin-9A031E { 
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%239A031E" /></svg>'), auto; 
+.cursor-pin-B71C1C { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23B71C1C" /></svg>'), auto; 
 }
-.cursor-pin-133873 { 
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23133873" /></svg>'), auto; 
+.cursor-pin-1565C0 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%231565C0" /></svg>'), auto; 
 }
-.cursor-pin-358400 { 
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23358400" /></svg>'), auto; 
+.cursor-pin-4CAF50 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%234CAF50" /></svg>'), auto; 
 }
-.cursor-pin-431307 { 
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23431307" /></svg>'), auto; 
+.cursor-pin-4E342E { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%234E342E" /></svg>'), auto; 
 }
-.cursor-pin-070707 { 
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23070707" /></svg>'), auto; 
+.cursor-pin-212121 { 
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23212121" /></svg>'), auto; 
 }
 
 </style>
-
 <script>
 function applyColor() {
     let selectedOption = $('#pin-dropdown option:selected');
@@ -1874,16 +2393,12 @@ function applyColor() {
     console.log(color);  // For testing purposes
 }
 </script>
-
 <!-- HAMBURGER MENU CLOSING LOGIC -->
 <script>
-
 </script>
-
-
 <!-- PIN CARRYING UPON CLICK -->
 <script>
-document.querySelectorAll(".pin-menu").forEach(menu => {
+document.querySelectorAll(".categorybutton").forEach(menu => {
     menu.addEventListener("click", function() {
         selectedColor = this.getAttribute("data-color");
         document.getElementById("selected-pin-type").innerText = pins[selectedColor];
@@ -1902,10 +2417,7 @@ map.on('click', function(e) {
     map.getContainer().classList.remove(...Array.from(map.getContainer().classList).filter(c => c.startsWith('cursor-pin-')));
 });
 </script>
-
-
 <!-- PIN RETRIEVAL -->
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     fetch('/get_pins')  // Assuming '/get_pins' is the endpoint that returns all pins
@@ -1978,7 +2490,7 @@ function applyColor() {
     console.log(color);  // For testing purposes
 }
 
-document.querySelectorAll(".pin-menu").forEach(menu => {
+document.querySelectorAll(".categorybutton").forEach(menu => {
     menu.addEventListener("click", function() {
         let selectedColor = this.getAttribute("data-color");
         document.getElementById("selected-pin-type").innerText = pins[selectedColor];
@@ -2024,7 +2536,6 @@ document.getElementById('infoModal').addEventListener('click', function(event) {
     }
 });
 </script>
-
 <script>
 document.getElementById('aboutBtn').addEventListener('click', function() {
     document.getElementById('infoModal').style.display = 'flex';
@@ -2037,7 +2548,18 @@ document.getElementById('infoModal').addEventListener('click', function(event) {
     }
 });
 </script>
+<script>
+        // JavaScript function to toggle the login popup
+        function togglePopup() {
+            const popup = document.getElementById('loginPopup');
+            popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+        }
 
+        // Your existing addAndRemoveClass function
+        function addAndRemoveClass() {
+            // Existing logic for addAndRemoveClass
+        }
+    </script>
 <script>
 function deletePin(pinId) {
     fetch(`/delete_pin/${pinId}`, { method: 'POST' })
@@ -2070,6 +2592,82 @@ function refreshMap() {
 }
 
 </script>
+</div></body></html>
+<audio id="buttonClickAudio"><source src="static/buttonclick.mp3" type="audio/mp3"/></audio>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the audio element
+    const audio = document.getElementById('buttonClickAudio');
+    
+    // Add click event listener to all elements with class 'button-menu'
+    const buttonMenus = document.querySelectorAll('.button-menu');
+    buttonMenus.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
 
+    // Add click event listener to all elements with class 'categorybutton'
+    const categorybuttons = document.querySelectorAll('.categorybutton');
+    categorybuttons.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+	    // Add click event listener to all elements with class 'button-menu'
+    const keyDivs = document.querySelectorAll('.key-div');
+    keyDivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+	    // Add click event listener to all elements with class 'button-menu'
+    const videoDivs = document.querySelectorAll('.video-div');
+    videoDivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+		    // Add click event listener to all elements with class 'button-menu'
+    const lightswitchDivs = document.querySelectorAll('.lightswitch-div');
+    lightswitchDivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+		    // Add click event listener to all elements with class 'button-menu'
+    const infoDivs = document.querySelectorAll('.info-div');
+    infoDivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+});
+</script>
+<audio id="buttonClickAudio2"><source src="static/buttonclickSuccess.mp3" type="audio/mp3"/></audio>
+<audio id="buttonClickAudio3"><source src="static/buttonclickClose.mp3" type="audio/mp3"/></audio>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the audio elements
+    const audioSuccess = document.getElementById('buttonClickAudio2');
+    const audioClose = document.getElementById('buttonClickAudio3');
+    
+    // Add event listener to the body element for delegation
+    document.body.addEventListener('click', function(event) {
+        if (event.target.id === 'postFeedback') {
+            audioSuccess.play();
+        } else if (event.target.id === 'cancelFeedback') {
+            audioClose.play();
+        }
+    });
+});
+</script>
 
-</html>
+<script>
+// Your new script content here
+</script>

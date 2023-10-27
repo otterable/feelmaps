@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>2FA Setup</title>
+</head>
+<body>
+    <h1>Two-Factor Authentication Setup</h1>
+    <p>Your secret key is: {{ secret }}</p>
+    <p>Scan the QR code below to set up 2FA on your device:</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ uri }}" alt="QR Code">
+</body>
+</html>

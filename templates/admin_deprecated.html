@@ -106,6 +106,7 @@
 
 
 
+
 </div>
 </div>
 </div>
@@ -123,12 +124,6 @@
 
 
 
-   <label>
-        <input type="checkbox" id="togglePins"> Place Pins
-    </label>
-    <label>
-        <input type="checkbox" id="toggleRectangles"> Place Rectangles
-    </label>
 
 
 
@@ -161,7 +156,6 @@
  
 </div>
 
-<button id="toggleRectangleDrawing" class="delete-button">Toggle Rectangle Drawing</button>
 
 
    <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
@@ -335,205 +329,203 @@
 </div>
 </div>
 <!-- WEBSITE LAYOUT DESKTOP END-->
-</div></body>
+</div><script>
+var drawing = false;
+var startLatLng;
+var endLatLng;
+var rectangle;
+var selectedPinType;
+var selectedPinColor;
+
+// Function to get the selected pin type and color
+function getSelectedPinDetails() {
+    selectedPinType = document.getElementById("pin_type").value;
+    // Assume that you have a mapping function to get color based on pin type
+    selectedPinColor = getColorFromPinType(selectedPinType);
+}
+
+// Function to initialize drawing when the "Create Rectangle" button is clicked
+document.getElementById("createRectangle").addEventListener("click", function() {
+    // Hide the popup
+    document.getElementById('map-popup').style.display = 'none';
+    
+    // Show alert with instructions
+    alert("Welcome to rectangle drawing! Click on two different places on the map to create a rectangle. A rectangle will be created between the two places you have clicked. After that, a popup will appear again, where you can write your note, and press the button 'Fertig' to have the rectangle saved on the website, or 'Cancel' to start over again. We wish you good luck! The rectangle will be the color and pin-type of the category you have previously selected in the pin-menu section.");
+    
+    // Initialize drawing mode
+    drawing = true;
+    
+    // Get selected pin details
+    getSelectedPinDetails();
+});
+
+// Function to handle map click for drawing rectangle
+map.on('click', function(e) {
+    if (drawing) {
+        if (!startLatLng) {
+            // Set start point
+            startLatLng = e.latlng;
+        } else {
+            // Set end point and draw rectangle
+            endLatLng = e.latlng;
+            var bounds = [startLatLng, endLatLng];
+            rectangle = L.rectangle(bounds, {color: selectedPinColor, weight: 1}).addTo(map);
+            
+            // Reset for next drawing
+            startLatLng = null;
+            endLatLng = null;
+            drawing = false;
+            
+            // Show the popup again for adding notes
+            document.getElementById('map-popup').style.display = 'block';
+        }
+    }
+});
+
+// Assume that getColorFromPinType function is defined to get the color based on pin type
+function getColorFromPinType(pinType) {
+    // Your logic to get color based on pin type
+    return "red";  // Returning a default color for demonstration
+}
+</script></body>
 
 
 <!-- LOGIC -->
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
+<script>
 
-        // Initialize main map
-        const map = L.map('map').setView([48.4102, 15.6022], 10);
-        map.setMinZoom(15);
+// Initialize main map
+    const map = L.map('map').setView([48.4102, 15.6022], 10);
+    map.setMinZoom(15);
 
-        // Initialize mobile map
-        const mapMobile = L.map('mapMobile').setView([48.4102, 15.6022], 10);
-        mapMobile.setMinZoom(14);
+    // Initialize mobile map
+    const mapMobile = L.map('mapMobile').setView([48.4102, 15.6022], 10);
+    mapMobile.setMinZoom(14);
 
-        setTimeout(() => {
-            mapMobile.invalidateSize(true);
-            map.invalidateSize(true);
-        }, 1000);
+    setTimeout(() => {
+        mapMobile.invalidateSize(true);
+        map.invalidateSize(true);
+    }, 1000);
 
-        map.doubleClickZoom.disable();
+    map.doubleClickZoom.disable();
 
-        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-        const osmLayerMobile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(mapMobile);
+    const osmLayerMobile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapMobile);
 
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        });
-        
-        // Initialize heatmap
-        function initHeatMap() {
-            // Your heatmap initialization logic...
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+	
+	initHeatMap();
+
+
+    L.control.layers({
+        "Standardkarte": osmLayer,
+        "Satellit": satelliteLayer
+    }).addTo(map);
+
+    L.control.layers({
+        "Standardkarte": osmLayerMobile,
+        "Satellit": satelliteLayer
+    }).addTo(mapMobile);
+	
+	
+
+    map.on('baselayerchange', function(eventLayer) {
+        if (eventLayer.name === 'Satellit') {
+            setSatelliteStyle(map);
+        } else {
+            resetStyle(map);
         }
+    });
 
-        L.control.layers({
-            "Standardkarte": osmLayer,
-            "Satellit": satelliteLayer
-        }).addTo(map);
-
-        L.control.layers({
-            "Standardkarte": osmLayerMobile,
-            "Satellit": satelliteLayer
-        }).addTo(mapMobile);
-
-        map.on('baselayerchange', function(eventLayer) {
-            if (eventLayer.name === 'Satellit') {
-                setSatelliteStyle(map);
-            } else {
-                resetStyle(map);
-            }
-        });
-
-        mapMobile.on('baselayerchange', function(eventLayer) {
-            if (eventLayer.name === 'Satellit') {
-                setSatelliteStyle(mapMobile);
-            } else {
-                resetStyle(mapMobile);
-            }
-        });
-
-        const layers = {
-            "ff5c00": L.layerGroup().addTo(map).addTo(mapMobile),
-            "9A031E": L.layerGroup().addTo(map).addTo(mapMobile),
-            "133873": L.layerGroup().addTo(map).addTo(mapMobile),
-            "358400": L.layerGroup().addTo(map).addTo(mapMobile),
-            "431307": L.layerGroup().addTo(map).addTo(mapMobile),
-            "070707": L.layerGroup().addTo(map).addTo(mapMobile)
-        };
-
-        // Function to add marker to both map and mapMobile
-        function addMarkerToMaps(latlng, pinType, description, molenId) {
-            const marker = L.marker(latlng, {
-                icon: L.divIcon({
-                    className: `pin-${pinType}`,
-                    iconSize: [24, 24]
-                })
-            });
-
-            const popupContent = `
-                ${description}
-                <br>
-                Molen ID: ${molenId}
-                <br>
-                <button onclick="markPin('${molenId}')">Markieren</button>
-                <button onclick="deletePin('${molenId}')">Löschen</button>
-                <button onclick="removePin('${molenId}')">Entfernen</button>
-            `;
-
-            marker.bindPopup(popupContent);
-            marker.addTo(layers[pinType]);
+    mapMobile.on('baselayerchange', function(eventLayer) {
+        if (eventLayer.name === 'Satellit') {
+            setSatelliteStyle(mapMobile);
+        } else {
+            resetStyle(mapMobile);
         }
+    });
+	
+	
+	const layers = {
+    "ff5c00": L.layerGroup().addTo(map).addTo(mapMobile),
+    "9A031E": L.layerGroup().addTo(map).addTo(mapMobile),
+    "133873": L.layerGroup().addTo(map).addTo(mapMobile),
+    "358400": L.layerGroup().addTo(map).addTo(mapMobile),
+    "431307": L.layerGroup().addTo(map).addTo(mapMobile),
+    "070707": L.layerGroup().addTo(map).addTo(mapMobile)
+};
 
-        let rectangleDrawingMode = false;
-        document.getElementById('toggleRectangleDrawing').addEventListener('click', function() {
-            rectangleDrawingMode = !rectangleDrawingMode;
-            if (rectangleDrawingMode) {
-                map.off('click', handleMapClick);
-                mapMobile.off('click', handleMapClick);
-            } else {
-                map.on('click', handleMapClick);
-                mapMobile.on('click', handleMapClick);
-            }
-        });
+// Function to add marker to both map and mapMobile
+function addMarkerToMaps(latlng, pinType, description, molenId) {
+    const marker = L.marker(latlng, {
+        icon: L.divIcon({
+            className: `pin-${pinType}`,
+            iconSize: [24, 24]
+        })
+    });
 
-        let rectangleCorners = [];
-        function handleRectangleDrawingClick(e) {
-            if (rectangleDrawingMode) {
-                rectangleCorners.push([e.latlng.lat, e.latlng.lng]);
-                if (rectangleCorners.length === 2) {
-                    const rectangle = L.rectangle(rectangleCorners, {color: 'black', weight: 1, fillOpacity: 0.5}).addTo(map);
-                    const popupContent = `
-                        <textarea id="rectangleNote" rows="4" cols="40" placeholder="Enter your note here"></textarea><br>
-                        <button id="publishRectangle">Publish</button>
-                        <button id="cancelRectangle">Cancel</button>
-                    `;
-                    rectangle.bindPopup(popupContent).openPopup();
-                    document.getElementById('publishRectangle').addEventListener('click', function() {
-                        const note = document.getElementById('rectangleNote').value;
-                        if (note) {
-                            // Send the rectangle data to the server
-                            fetch('/add_rectangle', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    coordinates: rectangleCorners,
-                                    note: note,
-                                    rectangle_id: `RR${Math.floor(Math.random() * 1e9)}`
-                                })
-                            }).then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    rectangle.bindPopup(note).openPopup();
-                                } else {
-                                    alert('Error saving rectangle');
-                                }
-                            });
-                            rectangleCorners = [];  // Reset the corners array for the next rectangle
-                        } else {
-                            alert('Please enter a note.');
-                        }
-                    });
-                    document.getElementById('cancelRectangle').addEventListener('click', function() {
-                        map.removeLayer(rectangle);
-                        rectangleCorners = [];  // Reset the corners array for the next rectangle
-                    });
-                }
-            }
+    const popupContent = `
+        ${description}
+        <br>
+        Molen ID: ${molenId}
+        <br>
+        <button onclick="markPin('${molenId}')">Markieren</button>
+        <button onclick="deletePin('${molenId}')">Löschen</button>
+        <button onclick="removePin('${molenId}')">Entfernen</button>
+    `;
+
+    marker.bindPopup(popupContent);
+    marker.addTo(layers[pinType]);
+}
+
+
+
+function loadPins(pins) {
+    pins.forEach(pin => addMarkerToMaps([pin.lat, pin.lon], pin.pin_type, pin.description));
+}
+// Event listeners for checkboxes
+document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
+    checkbox.addEventListener("change", function() {
+        const pinType = this.getAttribute("data-pin-type");
+        if (this.checked) {
+            map.addLayer(layers[pinType]);
+            mapMobile.addLayer(layers[pinType]);
+        } else {
+            map.removeLayer(layers[pinType]);
+            mapMobile.removeLayer(layers[pinType]);
         }
+    });
+});
 
-        map.on('click', handleRectangleDrawingClick);
-        mapMobile.on('click', handleRectangleDrawingClick);
+// New code to establish WebSocket connection
+const socket = io.connect(location.origin);
+
+// New event listener for 'update_counters' WebSocket message
+socket.on('update_counters', function() {
+    fetchAndDisplayCounters();
+});
 
 
-        function loadPins(pins) {
-            pins.forEach(pin => addMarkerToMaps([pin.lat, pin.lon], pin.pin_type, pin.description));
-        }
 
-        // Event listeners for checkboxes
-        document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
-            checkbox.addEventListener("change", function() {
-                const pinType = this.getAttribute("data-pin-type");
-                if (this.checked) {
-                    map.addLayer(layers[pinType]);
-                    mapMobile.addLayer(layers[pinType]);
-                } else {
-                    map.removeLayer(layers[pinType]);
-                    mapMobile.removeLayer(layers[pinType]);
-                }
-            });
-        });
+    function setSatelliteStyle(mapInstance) {
+        const mapContainer = mapInstance.getContainer();
+        mapContainer.classList.add("satellite-view");
+    }
 
-        // New code to establish WebSocket connection
-        const socket = io.connect(location.origin);
+    function resetStyle(mapInstance) {
+        const mapContainer = mapInstance.getContainer();
+        mapContainer.classList.remove("satellite-view");
+    }
 
-        // New event listener for 'update_counters' WebSocket message
-        socket.on('update_counters', function() {
-            fetchAndDisplayCounters();
-        });
-
-        function setSatelliteStyle(mapInstance) {
-            const mapContainer = mapInstance.getContainer();
-            mapContainer.classList.add("satellite-view");
-        }
-
-        function resetStyle(mapInstance) {
-            const mapContainer = mapInstance.getContainer();
-            mapContainer.classList.remove("satellite-view");
-        }
-
-        map.on('click', handleMapClick);
-        mapMobile.on('click', handleMapClick);
-
+    map.on('click', handleMapClick);
+    mapMobile.on('click', handleMapClick);
 
  
 
@@ -682,19 +674,13 @@ document.getElementById('togglebutton-container').addEventListener('click', func
 
     let currentPopupLatLng = null;
 
-    let enableRectangleDrawing = true;
+    function handleMapClick(e) {
+        const targetSquare = e.target === map ? squareForMap : squareForMapMobile;
 
-function handleMapClick(e) {
-    if (!enableRectangleDrawing) {
-        return;
-    }
-
-    const targetSquare = e.target === map ? squareForMap : squareForMapMobile;
-
-    if (selectedColor === null) {
-        createPopup("Wählen Sie zunächst eine Option aus.");
-        return;
-    }
+        if (selectedColor === null) {
+            createPopup("Wählen Sie zunächst eine Option aus.");
+            return;
+        }
 
     if (targetSquare.getBounds().contains(e.latlng)) {
         // Add this check to see if a popup is already open at the clicked position
@@ -702,6 +688,8 @@ function handleMapClick(e) {
             return;
         }
         currentPopupLatLng = e.latlng;
+		
+		
 
         const containerWidth = document.querySelector('#sidebar').offsetWidth;
         const fontSize = Math.max(12, containerWidth / 30);
@@ -710,14 +698,13 @@ function handleMapClick(e) {
             <textarea id="feedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
             <button id="postFeedback" style="font-size: ${fontSize}px;">Fertig</button>
             <button id="cancelFeedback" style="font-size: ${fontSize}px;">Löschen</button>
+<button id="createRectangle" style="font-size: ${fontSize}px;">Create Rectangle</button>
         `;
 
         const popup = L.popup()
             .setLatLng(e.latlng)
             .setContent(popupContent)
             .openOn(e.target);
-
-
 
 
 // Global variable to store the list of bad words
@@ -1036,46 +1023,6 @@ async function initHeatMap() {
 }
 
 </script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const map = L.map('map').setView([48.4102, 15.6022], 10);
-    // ... (your existing map initialization code)
-
-    const togglePins = document.getElementById('togglePins');
-    const toggleRectangles = document.getElementById('toggleRectangles');
-
-    togglePins.addEventListener('change', function() {
-        if (togglePins.checked) {
-            toggleRectangles.checked = false;
-        }
-    });
-
-    toggleRectangles.addEventListener('change', function() {
-        if (toggleRectangles.checked) {
-            togglePins.checked = false;
-        }
-    });
-
-    const pinMenus = document.querySelectorAll('.pin-menu');
-    pinMenus.forEach(function(menu) {
-        menu.addEventListener('click', function() {
-            const pinType = menu.dataset.color;
-            if (togglePins.checked) {
-                // Place pin logic here
-                // ...
-            } else if (toggleRectangles.checked) {
-                // Place rectangle logic here
-                // ...
-            }
-        });
-    });
-
-    // ... (your existing map-related code)
-
-});
-</script>
-
 <script>
     let pinSize = 24;  // Default pin size
     let starIconSize = 26;  // Default star icon size
@@ -1339,7 +1286,6 @@ pinMenus.forEach(function(menu) {
     const dropdownButton = document.getElementById('dropdown-button');
     const dropdownOptions = document.getElementById('dropdown-options');
     const pinMenus = document.querySelectorAll('.pin-menu');
-	
     const allPins = document.querySelectorAll('.pin'); // Assuming all pins have a class of 'pin'
 
     // Toggle the visibility of the dropdown options when the button is clicked
@@ -3120,50 +3066,6 @@ handleMapClick(map);
 handleMapClick(mapMobile);
 </script>
 
-<script type="text/javascript">
-    // ... your existing code ...
-
-    // Function to load rectangles from the server and add them to the map
-    async function loadRectangles() {
-        try {
-            // Fetch rectangles data from the server
-            const response = await fetch('/get_rectangles');
-            const data = await response.json();
-
-            // Loop through the rectangles data and add each rectangle to the map
-            data.rectangles.forEach(rectangleData => {
-                const latlngBounds = [
-                    [rectangleData.lat1, rectangleData.lng1],
-                    [rectangleData.lat2, rectangleData.lng2]
-                ];
-                const rectangle = L.rectangle(latlngBounds).addTo(map);
-                // If you have a mobile map, add the rectangle to that map too
-                // const rectangleMobile = L.rectangle(latlngBounds).addTo(mapMobile);
-            });
-        } catch (error) {
-            console.error('Error loading rectangles:', error);
-        }
-    }
-
-    // Call the function to load the rectangles
-    loadRectangles();
-
-    // ... the rest of your code ...
-	rectanglesLayer.eachLayer(function (layer) {
-    var pinType = layer.feature.properties.pin_type;
-    layer.setStyle({ fillColor: getColorForPinType(pinType) });
-});
-
-function getColorForPinType(pinType) {
-    // Define your color mapping logic here
-    switch (pinType) {
-        case 'type1': return '#ff5c00';
-        case 'type2': return '#9A031E';
-        // Add more cases as needed
-        default: return '#000000'; // Default color
-    }
-}
-</script>
 
 
 <script>
@@ -3238,6 +3140,93 @@ function refreshMap() {
         });
 }
 
+
+// Global variable to track rectangle drawing mode
+let enableRectangleDrawing = false;
+let rectanglePoints = [];
+
+// Function to toggle rectangle drawing mode
+function toggle
+
+
+Drawing() {
+    enableRectangleDrawing = !enableRectangleDrawing;
+    rectanglePoints = [];
+    // Add logic to update UI (e.g., change button color or text)
+}
+
+// Updated handleMapClick function to support rectangle drawing
+function handleMapClick(e) {
+    if (enableRectangleDrawing) {
+        rectanglePoints.push(e.latlng);
+        if (rectanglePoints.length === 2) {
+            // Draw rectangle and trigger popup for annotation
+            const bounds = [rectanglePoints[0], rectanglePoints[1]];
+            const rectangle = L.rectangle(bounds, {color: selectedColor}).addTo(map);
+            
+            // Reset rectanglePoints array
+            rectanglePoints = [];
+
+            // Open popup for annotation
+            // Similar logic to existing pin popup can be placed here
+        }
+        return;
+    }
+    // Existing logic for handling map clicks for pin placement
+    // ...
+}
+
+// Add an event listener or UI control to toggle rectangle drawing mode
+// Example: A button that calls toggleRectangleDrawing() when clicked.
+
+let rectangle;
+let firstPoint;
+let secondPoint;
+let rectangleDrawing = false;
+let enableRectangleDrawing = false;
+
+document.addEventListener('click', function(event) {
+    if (event.target.id === 'createRectangle') {
+        // Close the popup
+        map.closePopup();
+        mapMobile.closePopup();
+        enableRectangleDrawing = true;
+    }
+});
+
+function handleMapClick(e) {
+    if (enableRectangleDrawing) {
+        if (rectangle) {
+            map.removeLayer(rectangle);
+        }
+        
+        if (!firstPoint) {
+            firstPoint = e.latlng;
+        } else if (!secondPoint) {
+            secondPoint = e.latlng;
+            
+            const bounds = [firstPoint, secondPoint];
+            rectangle = L.rectangle(bounds, {color: selectedColor}).addTo(map);
+            // Reset points and disable rectangle drawing mode
+            firstPoint = null;
+            secondPoint = null;
+            enableRectangleDrawing = false;
+            
+            // Reopen the popup for the user to enter notes
+            // You can customize this part
+            const popupContent = `
+                <textarea id="rectangleFeedbackText" rows="4" cols="40" placeholder="Was denken Sie über diesen Ort?" style="font-size: ${fontSize}px;"></textarea><br>
+                <button id="publishRectangle" style="font-size: ${fontSize}px;">Publish</button>
+                <button id="cancelRectangle" style="font-size: ${fontSize}px;">Cancel</button>
+            `;
+            const popup = L.popup()
+                .setLatLng(secondPoint)
+                .setContent(popupContent)
+                .openOn(map);
+        }
+    }
+    // Existing code ...
+}
 </script>
 
 
