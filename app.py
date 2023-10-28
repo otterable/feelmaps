@@ -17,12 +17,12 @@ import string
 from datetime import timedelta
 
 categories = {
-    'ff5c00': 'Dieser Ort gefällt mir.',
-    '9A031E': 'Hier fühle ich mich unsicher.',
-    '133873': 'Hier gibt es Probleme mit dem Parken.',
-    '358400': 'Hier verbringe ich gerne meine Freizeit.',
-    '431307': 'Dieser Ort braucht eine Verbesserung.',
-    '070707': 'An diesem Ort fehlt ein Service.'
+    'FF7043': 'Dieser Ort gefällt mir.',
+    'B71C1C': 'Hier fühle ich mich unsicher.',
+    '1565C0': 'Hier gibt es Probleme mit dem Parken.',
+    '4CAF50': 'Hier verbringe ich gerne meine Freizeit.',
+    '4E342E': 'Dieser Ort braucht eine Verbesserung.',
+    '212121': 'An diesem Ort fehlt ein Service.'
 }
 
 app = Flask(__name__)
@@ -181,7 +181,7 @@ def update_text():
 @app.route('/get_editable_content', methods=['GET'])
 def get_editable_content():
     print("get_editable_content route accessed")
-    file_paths = ['templates/admin.html', 'templates/index.html']
+    file_paths = ['templates/index.html']
     all_areas = []
     for file_path in file_paths:
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -219,7 +219,7 @@ def upload_overlay_image():
 
 @app.route('/get_pin_counts')
 def get_pin_counts():
-    pin_types = ['ff5c00', '9A031E', '133873', '358400', '431307', '070707']
+    pin_types = ['FF7043', 'B71C1C', '1565C0', '4CAF50', '4E342E', '212121']
     counts = {}
     total_count = 0  # Counter for all existing pins
 
@@ -335,7 +335,6 @@ def rename_category():
         category.name = new_name
         db.session.commit()
         # Call update_category_name for both HTML files
-        update_category_name('templates/admin.html', value, new_name)
         update_category_name('templates/index.html', value, new_name)
         return jsonify({'success': True})
     else:
@@ -452,7 +451,7 @@ def upload_geojson():
 
         db.session.commit()
         time.sleep(1)  # Delay for 1 second
-        return redirect(url_for('admin'))  # Redirect to /admin page
+        return redirect(url_for('index'))  # Redirect to /index page
     return jsonify({'message': 'Failed to upload GeoJSON file.'})
 
 
@@ -595,7 +594,7 @@ def login():
         if totp.verify(otp_token):
             return jsonify({'status': 'success', 'message': 'Login successful!'}), 200
         else:
-            return jsonify({'status': 'failed', 'message': 'Invalid OTP token'}), 401
+            return jsonify({'status': 'failed', 'message': 'Falsches OTP-Passwort. Fordern Sie den Zugriff bei Ihrem Administrator an.'}), 401
     else:
         return jsonify({'status': 'failed', 'message': 'Invalid username or password'}), 401
 
