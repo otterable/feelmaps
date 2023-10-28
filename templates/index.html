@@ -7,16 +7,16 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet"/>
 <link href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" rel="stylesheet"/>
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+</style><script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 <!-- DEPENDENCY: ADMIN LOGIN LOGIC -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
 <!-- DEPENDENCY: TEXT EDITOR -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet"/>
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <!-- DEPENDENCY: COLOR PICKER -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.5/jscolor.min.js"></script>
 <!-- SCRIPT DEPENDENCIES END -->
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const popupTexts = {
@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
             text: 'Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.<br><br>Sie können Hinweise an Orten anbringen, die Sie entweder als angenehm oder problematisch empfinden.<br><br><span style="color: #f77f00; font-weight: bold;">Und so funktioniert es:</span><br><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.<br><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie einen Pin auf der Karte.<br><span style="color: #f77f00; font-weight: bold;">3.</span> Teilen Sie uns Ihre Meinung mit!<br><br><span style="font-weight: bold;">Ihre Beiträge sind anonym und können von der Gemeinde zur Verbesserung des öffentlichen Raums genutzt werden.</span> ',
             color: '#f77f00'
         },
+		<!-- CATEGORY EDITING AREA START -->
         'Dieser Ort gefällt mir.': {
             title: 'Was kann man zum Beispiel aufschreiben?',
             text: 'Dieser Ort strahlt eine beruhigende Ruhe aus und bietet eine angenehme Atmosphäre, die zum Entspannen einlädt.  Ob durch seine natürliche Schönheit oder aufregende Aktivitäten, er vermag es, einen positiven Eindruck zu hinterlassen.',
@@ -92,6 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
             text: 'Die mangelhafte Busanbindung und geschlossene Apotheken erschweren den Alltag und lassen den Ort weniger serviceorientiert erscheinen.   Eine Verbesserung der öffentlichen Dienstleistungen wäre hier von Vorteil.',
             color: 'white'
         },
+		<!-- CATEGORY EDITING AREA END -->
+
     };
 
     // Function to create and show the popup
@@ -107,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const popup = document.createElement("div");
         popup.id = "info-popup";
-        popup.style.backgroundColor = "rgba(17, 17, 17, 1)";
-        popup.style.color = "white";
+        popup.style.backgroundColor = isLightMode ? "rgba(212,215,218, 1)" : "rgba(17, 17, 17, 1)";
+        popup.style.color = isLightMode ? "black" : "white";
         popup.style.borderRadius = "30px";
         popup.style.position = "absolute";
         popup.style.bottom = "10px";
@@ -302,7 +305,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 <script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" rel="stylesheet"/>
@@ -578,8 +580,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 </style>
 <script>
-
-
 </script>
 <style>
         /* New styles for the popup */
@@ -631,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
 /* Light mode styles */
 .light-mode {
     --bg-color1: #F4F4ED;
-    --bg-color2: #90A4AE;
+    --bg-color2: #D4D7DA;
     --bg-color3: #263238;
     --text-color: #000000;
     --img-src: "static/logo_long2.png";
@@ -651,29 +651,22 @@ function togglePopup() {
 <div class="main-container" style="background-color= solid #0D1F22">
 <!-- Add this button where you want it to appear on your HTML page -->
 <div style="display: flex; height: 100vh">
-<div id="map" style="flex-basis: 70%; border-radius: 30px; margin-left: 15px; margin-top: 15px; margin-bottom: 15px; border: 3px solid #0D1F22">
+<div id="map" style="flex-basis: 70%; border-radius: 30px; margin-left: 15px; margin-top: 15px; margin-bottom: 15px;">
 <!-- COUNTER / VIS DIV -->
 <div class="parent-container">
-<div class="countercontainer" id="counter-container">
-
-
-
+<div class="countercontainer" id="counter-container" style="background-color: #3a3a3a;">
 </div>
-
-
 </div>
 <div class="togglebuttoncontainer" id="togglebutton-container">
-
 </div>
 </div>
-<div id="sidebar" style="flex-basis: 30%; background-color: #111111; margin-bottom: 15px; margin-top: 15px; border-radius: 30px">
+<div class="color-111111" id="sidebar" style="flex-basis: 30%; background-color: #111111; margin-bottom: 15px; margin-top: 15px; border-radius: 30px">
 <div style="display: flex; align-items: center;">
-
 </div>
-<img class="resistant-image" src="static/logo_long.png" style="max-width: 100%; height: auto; display: block; margin-bottom: 7px; border-radius: 0px;"/>
+<img class="logo-img" src="static/logo_long.png" style="max-width: 100%; height: auto; display: block; margin-bottom: 7px; border-radius: 0px;"/>
 <!-- BEGINNING OF EDITABLE AREA -->
-<h3 class="resistant-h3" style="color: white;">Wie stehen Sie zu den Orten in Ihrer Gemeinde?</h3>
-<h3 class="resistant-h3" style="color: white; margin-top: -10px; margin-bottom: 7px">Lassen Sie es uns auf dieser Karte wissen! </h3>
+<h3 class="resistant-h3 text-white" style="color: white;">Wie stehen Sie zu den Orten in Ihrer Gemeinde?</h3>
+<h3 class="resistant-h3 text-white" style="color: white; margin-top: -10px; margin-bottom: 7px">Lassen Sie es uns auf dieser Karte wissen! </h3>
 <!-- ENDING OF EDITABLE AREA -->
 <div class="xdxd">
 <div class="left-container">
@@ -685,7 +678,7 @@ function togglePopup() {
 </div>
 </div>
 <!-- Center aligned button -->
-<div class="button-menu" id="buttonMenu" onclick="addAndRemoveClass()" style="background-color: #3a3a3a; margin-left:auto; margin-right:auto; width: auto; height: auto; padding: 15px;">
+<div class="button-menu color-3a3a3a" id="buttonMenu" onclick="addAndRemoveClass()" style="background-color: #3a3a3a; margin-left:auto; margin-right:auto; width: auto; height: auto; padding: 15px;">
 <h3> Wie funktioniert's?</h3>
 </div>
 <!-- Container for right-aligned elements -->
@@ -696,82 +689,50 @@ function togglePopup() {
 <div class="key-div" id="keyDiv" onclick="togglePopup()" style="border-radius:30px;">
 <img src="static/keyicon.png"/>
 </div>
-
-
 <!-- ADMIN IMPORT TBD START -->
-
 <!-- RESIZER IMPORT -->
-
 <!-- TEXT EDITOR: WIE FUNKTIONIERTS ADMIN END -->
-
-
-
-
-
-
-
-
-
-
-
 </div>
 </div>
-
-<div class="admintools-container" style="display:none;             color: #ffffff;  /* This makes the text color white */
+<div class="admintools-container color-111111 text-white" style="display:none;             color: #ffffff;  /* This makes the text color white */
 background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius: 30px">
-<button class="button-menu" id="aboutBtnEditor" style="background-color: #35b7ff" onclick="toggleEditorMenu()">Texteditor</button>
-
+<button class="button-menu" id="aboutBtnEditor" onclick="toggleEditorMenu()" style="background-color: #35b7ff">Texteditor</button>
 <!-- Popup Container -->
 <div id="editor-menu" style="display:none;">
-
 <!-- TEXT EDITOR: WIE FUNKTIONIERTS ADMIN -->
-
-
 <div id="infoModalEditor" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.7); align-items:center; justify-content:center; z-index:100000;">
-    <div class="info-field" id="conditionsField" style="overflow-y: auto; max-height: 100vh;">
-        <div id="editor-container" style="height: 400px; overflow-y: auto;"></div>
-        <button class="texteditor-button" id="prevAreaButton" onclick="prevArea()" style="margin-top:10px; text-align: center;">Vorheriger Teil</button>
-        <button class="texteditor-button" id="nextAreaButton" onclick="nextArea()" style="margin-top:10px; text-align: center;">Nächster Teil</button>
-        <button class="texteditor-button" id="saveButton" onclick="updateText()" style="margin-top:10px; text-align: center;">Änderungen speichern</button>
-    </div>
+<div class="info-field" id="conditionsField" style="overflow-y: auto; max-height: 100vh;">
+<div id="editor-container" style="height: 400px; overflow-y: auto;"></div>
+<button class="texteditor-button" id="prevAreaButton" onclick="prevArea()" style="margin-top:10px; text-align: center;">Vorheriger Teil</button>
+<button class="texteditor-button" id="nextAreaButton" onclick="nextArea()" style="margin-top:10px; text-align: center;">Nächster Teil</button>
+<button class="texteditor-button" id="saveButton" onclick="updateText()" style="margin-top:10px; text-align: center;">Änderungen speichern</button>
+</div>
 </div>
 <!-- TEXT EDITOR: WIE FUNKTIONIERTS ADMIN END -->
-
- 
 </div>
-
-
-<button class="button-menu" id="titelbild-menu-button" style="background-color: #35b7ff" onclick="toggletitelbildMenu()">Titelbild</button>
+<button class="button-menu" id="titelbild-menu-button" onclick="toggletitelbildMenu()" style="background-color: #35b7ff">Titelbild</button>
 <div id="titelbild-menu" style="display:none;">
 <div id="hoverDiv" style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
-    <h3>Titelbild ersetzen:</h3>
-    <form action="/upload_overlay_image" method="post" enctype="multipart/form-data" style="text-align: left;">
-        <label for="file"></label>
-        <input type="file" name="file" id="file" accept="image/*" required>
-        <input type="submit" value="Ändern" class="delete-button">
-    </form>
+<h3>Titelbild ersetzen:</h3>
+<form action="/upload_overlay_image" enctype="multipart/form-data" method="post" style="text-align: left;">
+<label for="file"></label>
+<input accept="image/*" id="file" name="file" required="" type="file"/>
+<input class="delete-button" type="submit" value="Ändern"/>
+</form>
 </div>
 </div>
-
-
-
-
-	
-<button class="button-menu" id="pinsexport-menu-button" style="background-color: #35b7ff" onclick="togglePinsExportMenu()">Pins</button>
+<button class="button-menu" id="pinsexport-menu-button" onclick="togglePinsExportMenu()" style="background-color: #35b7ff">Pins</button>
 <div id="pinsexport-menu" style="display:none;">
-	
-	
 <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
-    <h3>Pingröße ändern:</h3>
-    <div style="display: flex; flex-direction: row; align-items: center; gap: 10px">
-        <div id="resize-section" style="display: flex; flex-direction: row; align-items: center; gap: 10px;"></div>
-    </div>
+<h3>Pingröße ändern:</h3>
+<div style="display: flex; flex-direction: row; align-items: center; gap: 10px">
+<div id="resize-section" style="display: flex; flex-direction: row; align-items: center; gap: 10px;"></div>
 </div>
-
+</div>
 <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
-    <h3>Pins löschen:</h3>
-    <div style="display: inline-block; text-align: left; margin-top: 6px;">
-        <select id="delete-pin-type-dropdown">
+<h3>Pins löschen:</h3>
+<div style="display: inline-block; text-align: left; margin-top: 6px;">
+<select id="delete-pin-type-dropdown">
 <option value="all">Alle Pins</option> <!-- New option for all pins -->
 <option value="ff5c00">Dieser Ort gefällt mir.</option>
 <option value="9A031E">Hier fühle ich mich unsicher.</option>
@@ -779,84 +740,70 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 <option value="358400">Hier verbringe ich gerne meine Freizeit.</option>
 <option value="431307">Dieser Ort braucht eine Verbesserung.</option>
 <option value="070707">An diesem Ort fehlt ein Service.</option>
- </select>
-        <button class="delete-button" id="deletePinsByType" style="margin-left: 6px">Pins löschen</button>
-    </div>
-    <h3>Pins herunterladen:</h3>
-    <div style="display: inline-block; text-align: left; margin-top: 6px;">
-        <form action="/export_geojson" method="get" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+</select>
+<button class="delete-button" id="deletePinsByType" style="margin-left: 6px">Pins löschen</button>
+</div>
+<h3>Pins herunterladen:</h3>
+<div style="display: inline-block; text-align: left; margin-top: 6px;">
+<form action="/export_geojson" method="get" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
 <select id="pin-type-dropdown" name="pin_type">
 <option value="">Alle Pins</option>
+<!-- CATEGORY EDITING AREA START -->
 <option value="ff5c00">Dieser Ort gefällt mir.</option>
 <option value="9A031E">Hier fühle ich mich unsicher.</option>
 <option value="133873">Hier gibt es Probleme mit dem Parken.</option>
 <option value="358400">Hier verbringe ich gerne meine Freizeit.</option>
 <option value="431307">Dieser Ort braucht eine Verbesserung.</option>
 <option value="070707">An diesem Ort fehlt ein Service.</option>
+<!-- CATEGORY EDITING AREA END -->
 </select>
 <button class="delete-button" type="submit">GeoJSON herunterladen (Pins)</button>
 </form>
 </div>
-  <h3 style="margin-top: 10px;">Laden Sie eine GeoJSON Datei hoch:</h3>
-    <div style="display: inline-block; text-align: left; margin-top: 6px;">
-        <form action="/upload_geojson" enctype="multipart/form-data" method="post">
-            <label for="geojson_file"></label>
-            <input accept=".json,application/json" name="geojson_file" type="file"/>
-            <button class="delete-button" type="submit">Hochladen</button>
+<h3 style="margin-top: 10px;">Laden Sie eine GeoJSON Datei hoch:</h3>
+<div style="display: inline-block; text-align: left; margin-top: 6px;">
+<form action="/upload_geojson" enctype="multipart/form-data" method="post">
+<label for="geojson_file"></label>
+<input accept=".json,application/json" name="geojson_file" type="file"/>
+<button class="delete-button" type="submit">Hochladen</button>
 </form>
-	</div>
 </div>
-
-	</div>
-
-<button class="button-menu" id="category2-menu-button" style="background-color: #35b7ff" onclick="toggleCategory2Menu()">Kategorien</button>
+</div>
+</div>
+<button class="button-menu" id="category2-menu-button" onclick="toggleCategory2Menu()" style="background-color: #35b7ff">Kategorien</button>
 <div id="category2-menu" style="display:none;">
-
 <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
-    <h3>Create New Pin Category:</h3>
-    <form id="new-category-form" style="text-align: left; margin-top: 6px">
-        <label for="category-name">Category Name:</label>
-        <input id="category-name" name="category-name" required="" type="text"/><br/><br/>
-        <label for="category-color">Category Color:</label>
-        <input id="category-color" name="category-color" required="" type="color" value="#EDFF86"/><br/><br/>
-        <input type="submit" value="Create Category" class="delete-button"/>
-        <button id="add-category-button" class="delete-button">Add a Category</button>
-    </form>
+<h3>Create New Pin Category:</h3>
+<form id="new-category-form" style="text-align: left; margin-top: 6px">
+<label for="category-name">Category Name:</label>
+<input id="category-name" name="category-name" required="" type="text"/><br/><br/>
+<label for="category-color">Category Color:</label>
+<input id="category-color" name="category-color" required="" type="color" value="#EDFF86"/><br/><br/>
+<input class="delete-button" type="submit" value="Create Category"/>
+<button class="delete-button" id="add-category-button">Add a Category</button>
+</form>
 </div>
-
 <div style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
-    <h3>Kategorien umfärben:</h3>
-    <form id="recolor-form" style="text-align: left; margin-top: 6px">
-        <div style="display: flex; justify-content: center; gap: 10px;">
-            <select id="recolor-category-dropdown" name="category"></select>
-            <input id="new-color" name="newColor" type="color" value="#ffffff"/>
-            <button id="recolorCategory" type="button" class="delete-button">Recolor Category</button>
-        </div>
-    </form>
+<h3>Kategorien umfärben:</h3>
+<form id="recolor-form" style="text-align: left; margin-top: 6px">
+<div style="display: flex; justify-content: center; gap: 10px;">
+<select id="recolor-category-dropdown" name="category"></select>
+<input id="new-color" name="newColor" type="color" value="#ffffff"/>
+<button class="delete-button" id="recolorCategory" type="button">Recolor Category</button>
 </div>
-
+</form>
+</div>
 <div style="text-align: center;">
 <div style="display: flex; flex-direction: column; align-items: center;">
-    <h3>Kategorien umbenennen:</h3>
-    <div style="display: flex; margin-top: 6px">
-        <select id="rename-category-dropdown"></select>
-        <input id="new-category-name" placeholder="Neuer Name" type="text"/>
-        <button class="delete-button" id="renameCategory" style="margin-left: 8px">Umbenennen</button>
-    </div>
-	</div>
-	</div>
-	</div>
-	
-
-
-
-
-
-
-
-
-
-
+<h3>Kategorien umbenennen:</h3>
+<div style="display: flex; margin-top: 6px">
+<select id="rename-category-dropdown"></select>
+<input id="new-category-name" placeholder="Neuer Name" type="text"/>
+<button class="delete-button" id="renameCategory" style="margin-left: 8px">Umbenennen</button>
+</div>
+</div>
+</div>
+</div>
 </div>
 <img class="hide-on-mobile resistant-image" src="static/overlay.jpg" style="max-width: 100%; height: auto; display: block; margin-left:auto; margin-right:auto; margin-top: 3px; margin-bottom: 8px; border-radius: 30px;"/>
 <!-- Mappy Container -->
@@ -870,6 +817,7 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 <div class="current-desktop">
 <div class="options" id="dropdown-options">
+<!-- CATEGORY EDITING AREA START -->
 <div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
 <h3>Dieser Ort gefällt mir.</h3>
 </div>
@@ -887,6 +835,8 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 <div class="categorybutton" data-color="212121" style="background-color: #212121;">
 <h3>An diesem Ort fehlt ein Service.</h3>
+<!-- CATEGORY EDITING AREA END -->
+
 </div>
 </div>
 </div>
@@ -897,7 +847,8 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 <!-- Hamburger dropdown -->
 <div id="hamburger-dropdown" style="display: none">
-<!-- Copy the existing category buttons here -->
+
+<!-- CATEGORY EDITING AREA START -->
 <div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
 <h3>Dieser Ort gefällt mir.</h3>
 </div>
@@ -916,9 +867,11 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 <div class="categorybutton" data-color="212121" style="background-color: #212121;">
 <h3>An diesem Ort fehlt ein Service.</h3>
 </div>
+<!-- CATEGORY EDITING AREA END -->
 </div>
 </div>
 <div id="categorybutton-container">
+<!-- CATEGORY EDITING AREA START -->
 <div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
 <h3>Dieser Ort gefällt mir.</h3>
 </div>
@@ -936,6 +889,7 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 <div class="categorybutton" data-color="212121" style="background-color: #212121;">
 <h3>An diesem Ort fehlt ein Service.</h3>
+<!-- CATEGORY EDITING AREA END -->
 </div>
 </div>
 </div>
@@ -1533,13 +1487,7 @@ window.addEventListener("resize", function() {
 });
 
 </script>
-
-
-
-
-
 <!-- TEXT EDITOR GENERAL BEGINNING -->
-
 <script>
     function toggleEditorMenu() {
         var editorMenu = document.getElementById('editor-menu');
@@ -1552,7 +1500,6 @@ window.addEventListener("resize", function() {
 	
 	
 </script>
-
 <script>
     var quill;
     var editableAreas = [];
@@ -1630,13 +1577,8 @@ window.addEventListener("resize", function() {
     const sheet = window.document.styleSheets[0];
     sheet.insertRule('#editor-container * { text-align: center; }', sheet.cssRules.length);
 </script>
-
 <!-- TEXT EDITOR GENERAL END -->
-
-
-
 <!-- PIN RESIZING START -->
-
 <script>
     let pinSize = 24;  // Default pin size
     let starIconSize = 26;  // Default star icon size
@@ -1768,9 +1710,7 @@ window.addEventListener("resize", function() {
     });
 
 </script>
-
 <!-- PIN RESIZING END -->
-
 <!-- PIN DELETING GENERAL START -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1829,7 +1769,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </script>
 <!-- PIN DELETING GENERAL END -->
-
 <!--CATEGORY RENAMING START -->
 <script>
    document.addEventListener('DOMContentLoaded', (event) => {
@@ -1870,7 +1809,6 @@ document.getElementById('renameCategory').addEventListener('click', () => {
 });
 </script>
 <!-- CATEGORY RENAMING END -->
-
 <!-- ADMINTOOLS CATEGORY LOADING START -->
 <script>
     function toggleMenu() {
@@ -1882,7 +1820,6 @@ document.getElementById('renameCategory').addEventListener('click', () => {
         }
     }
 </script>
-
 <script>
     function toggleAdminMenu() {
         var adminMenu = document.getElementById('admin-menu');
@@ -1893,7 +1830,6 @@ document.getElementById('renameCategory').addEventListener('click', () => {
         }
     }
 </script>
-
 <script>
     function togglePinsExportMenu() {
         var menu = document.getElementById('pinsexport-menu');
@@ -1907,7 +1843,6 @@ document.getElementById('renameCategory').addEventListener('click', () => {
         }
     }
 </script>
-
 <script>
     function toggleCategory2Menu() {
         var category2Menu = document.getElementById('category2-menu');
@@ -1918,7 +1853,6 @@ document.getElementById('renameCategory').addEventListener('click', () => {
         }
     }
 </script>
-
 <script>
     function toggletitelbildMenu() {
         var titelbildMenu = document.getElementById('titelbild-menu');
@@ -1929,8 +1863,6 @@ document.getElementById('renameCategory').addEventListener('click', () => {
         }
     }
 </script>
-
-
 <script>
     function toggleEditorMenu() {
         var editorMenu = document.getElementById('editor-menu');
@@ -1944,8 +1876,6 @@ document.getElementById('renameCategory').addEventListener('click', () => {
 	
 </script>
 <!-- ADMINTOOLS CATEGORY LOADING END-->
-
-
 <!-- RESIZING LOGIC GENERAL BEGINNING -->
 <script>
 function updateFontSize() {
@@ -2231,8 +2161,6 @@ function fetchAndDisplayCounters() {
 fetchAndDisplayCounters();
 
 </script>
-
-
 <script>
 // Your existing toggleStates object
 let toggleStates = {};
@@ -2419,7 +2347,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 }
 
 .countercontainer {
-    background-color: #3a3a3a;
     border-radius: 30px;
     padding: 11px;
     color: white;
@@ -3299,7 +3226,7 @@ h2 {
 
 
 
-
+<!-- CATEGORY EDITING AREA START -->
 .cursor-pin-FF7043 { 
     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23FF7043" /></svg>'), auto; 
 }
@@ -3318,7 +3245,7 @@ h2 {
 .cursor-pin-212121 { 
     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23212121" /></svg>'), auto; 
 }
-
+<!-- CATEGORY EDITING AREA END -->
 </style>
 <script>
 function applyColor() {
@@ -3600,7 +3527,64 @@ function refreshMap() {
 }
 
 </script>
-</div></body></html>
+</div>
+<script>
+  console.log("Light mode script loaded.");
+  let isLightMode = false;  // Initialize with dark mode
+
+  // Function to switch between light and dark mode
+  function toggleLightMode() {
+    console.log("Toggling light mode.");
+    const elements1b1b1b = document.querySelectorAll('.color-1b1b1b');
+    const elements111111 = document.querySelectorAll('.color-111111');
+    const elements3a3a3a = document.querySelectorAll('.color-3a3a3a');
+    const elements000000 = document.querySelectorAll('.color-000000');
+    const textElements = document.querySelectorAll('.text-white');
+    const logoElement = document.querySelector('.logo-img');
+    
+    if (isLightMode) {
+      document.body.style.backgroundColor = '#1b1b1b';
+      elements1b1b1b.forEach(el => el.style.backgroundColor = '#1b1b1b');
+      elements111111.forEach(el => el.style.backgroundColor = '#111111');
+      elements3a3a3a.forEach(el => el.style.backgroundColor = '#3a3a3a');
+      elements000000.forEach(el => el.style.backgroundColor = '#000000');
+      textElements.forEach(el => el.style.color = 'white');
+      logoElement.src = 'static/logo_long.png';
+    } else {
+      document.body.style.backgroundColor = '#F4F4ED';
+      elements1b1b1b.forEach(el => el.style.backgroundColor = '#F4F4ED');
+      elements111111.forEach(el => el.style.backgroundColor = '#D4D7DA');
+      elements3a3a3a.forEach(el => el.style.backgroundColor = '#263238');
+      elements000000.forEach(el => el.style.backgroundColor = '#ffffff');
+      textElements.forEach(el => el.style.color = 'black');
+      logoElement.src = 'static/logo_long2.png';
+    }
+    
+    isLightMode = !isLightMode;  // Toggle the mode
+  }
+
+  // Add event listener to the light switch div
+  document.getElementById('lightswitchDiv').addEventListener('click', toggleLightMode);
+</script>
+
+<!-- New Category Form START -->
+<div id="new-category-form">
+    <h2>Create New Category</h2>
+    <form id="create-category-form">
+        <label for="category-name">Category Name:</label>
+        <input type="text" id="category-name" name="category-name" required><br><br>
+        
+        <label for="category-color">Category Color (Hex):</label>
+        <input type="text" id="category-color" name="category-color" required><br><br>
+        
+        <label for="category-popup">Popup Text:</label>
+        <input type="text" id="category-popup" name="category-popup" required><br><br>
+        
+        <input type="submit" value="Create Category">
+    </form>
+</div>
+<!-- New Category Form END -->
+</body></html>
 <audio id="buttonClickAudio"><source src="static/buttonclick.mp3" type="audio/mp3"/></audio>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -3669,7 +3653,6 @@ document.getElementById('infoModalEditor').addEventListener('click', function(ev
     }
 });
 </script>
-
 <script>
 document.getElementById('aboutBtnEditorAdminMenu').addEventListener('click', function() {
     document.getElementById('infoModalEditorAdminMenu').style.display = 'flex';
@@ -3682,7 +3665,6 @@ document.getElementById('infoModalEditorAdminMenu').addEventListener('click', fu
     }
 });
 </script>
-
 <audio id="buttonClickAudio2"><source src="static/buttonclickSuccess.mp3" type="audio/mp3"/></audio>
 <audio id="buttonClickAudio3"><source src="static/buttonclickClose.mp3" type="audio/mp3"/></audio>
 <script>

@@ -15,7 +15,7 @@ import pyotp  # Importing pyotp for 2FA
 import random
 import string
 from datetime import timedelta
-
+# <!-- CATEGORY EDITING AREA START -->
 categories = {
     'FF7043': 'Dieser Ort gefällt mir.',
     'B71C1C': 'Hier fühle ich mich unsicher.',
@@ -24,6 +24,7 @@ categories = {
     '4E342E': 'Dieser Ort braucht eine Verbesserung.',
     '212121': 'An diesem Ort fehlt ein Service.'
 }
+# <!-- CATEGORY EDITING AREA END -->
 
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
@@ -219,7 +220,9 @@ def upload_overlay_image():
 
 @app.route('/get_pin_counts')
 def get_pin_counts():
+# <!-- CATEGORY EDITING AREA START -->
     pin_types = ['FF7043', 'B71C1C', '1565C0', '4CAF50', '4E342E', '212121']
+# <!-- CATEGORY EDITING AREA END -->
     counts = {}
     total_count = 0  # Counter for all existing pins
 
