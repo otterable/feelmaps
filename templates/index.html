@@ -144,7 +144,14 @@ document.addEventListener("DOMContentLoaded", () => {
             popup.style.opacity = "1";
         }, 0);
 
-        let timeout = (info.title === 'Dieses Bild wird ersetzt:') ? -1 : 15000;  // 15 seconds for 'Willkommen' popup, -1 for infinite for 'Overlay' popup
+        let timeout = 5000;  // Default timeout in milliseconds
+        if (info.title === 'Willkommen auf der Stimmungskarte!') {
+            timeout = 15000;  // 15 seconds for 'Willkommen' popup
+        } else if (info.title === 'Dieses Bild wird ersetzt:') {
+            timeout = -1;  // Infinite for 'Overlay' popup
+        }
+		
+		
 
         if (!info.persist) {
             clearTimeout(popupTimer);
@@ -279,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const infoDiv = document.getElementById('infoDiv');
     if (infoDiv) {
         infoDiv.addEventListener('click', () => {
-            window.open('https://stimmungskompass.at', '_blank');
+            window.open('https://info.stimmungskompass.at', '_blank');
         });
     }
 
@@ -652,15 +659,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* Hover effect */
-.button-menu:hover, .categorybutton:hover, .post-button:hover, .key-div:hover, .video-div:hover {
+.button-menu:hover, .categorybutton:hover, .post-button:hover, .key-div:hover, .video-div:hover, .info-div:hover, .lightswitch-div:hover {
     filter: brightness(85%);
+    border-width: 5px;  /* Make this the same as the initial border width */
     border-color: white;
-	border: 3px solid white;
 }
 
-
 /* Existing styles, updated */
-.button-menu, .categorybutton, .post-button, .key-div, .video-div {
+.button-menu, .categorybutton, .post-button, .key-div, .video-div, .info-div, .lightswitch-div {
     box-sizing: border-box;
     transition: all 0.2s ease-in-out;
     border: 5px solid transparent; /* Set initial transparent border */
@@ -678,7 +684,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* Selected effect */
-.button-menu.selected, .categorybutton.selected, .key-div.selected, .video-div.selected {
+.button-menu.selected, .categorybutton.selected, .key-div.selected, .video-div.selected, .info-div.selected, .lightswitch-div.selected {
     filter: brightness(85%);
     border-width: 5px;
     border-color: white;
