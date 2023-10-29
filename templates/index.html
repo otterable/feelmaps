@@ -7,8 +7,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet"/>
 <link href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" rel="stylesheet"/>
-
-</style><script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+</head></html><script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 <!-- DEPENDENCY: ADMIN LOGIN LOGIC -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
 <!-- DEPENDENCY: TEXT EDITOR -->
@@ -537,6 +536,120 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 
 
+/* Map zoom control CSS */
+.leaflet-bar {
+  border-radius: 30px !important;
+  background-color: #3a3a3a !important;
+}
+
+/* Style the zoom-in and zoom-out buttons */
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  background-color: #3a3a3a !important;
+  color: white !important;
+  border: none !important;
+  font-size: 18px !important;
+  line-height: 30px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+
+/* Change the color when zooming is disabled */
+.leaflet-disabled {
+  background-color: #111111 !important;
+  color: white !important;
+}
+
+/* Remove borders from buttons */
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  border-top: none !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+}
+
+/* Add rounded corners to the first and last buttons */
+.leaflet-bar > a:first-child {
+  border-top-left-radius: 30px !important;
+  border-top-right-radius: 30px !important;
+}
+
+.leaflet-bar > a:last-child {
+  border-bottom-left-radius: 30px !important;
+  border-bottom-right-radius: 30px !important;
+}
+
+
+
+
+
+
+
+/* Layer control CSS */
+.leaflet-control-layers-toggle {
+    font-size: 30px;
+    line-height: 24px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 30px;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 36px;
+    height: 36px;
+}
+
+.leaflet-control-layers {
+    border-radius: 30px;
+    opacity: 1;
+}
+
+.leaflet-control-layers::before {
+    content: "";
+    background-image: url('static/mapicon2.png');
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 30px;
+    background-size: cover;
+    opacity: 1;
+}
+
+.leaflet-control-layers-expanded {
+    background-color: #3a3a3a !important;
+}
+
+/* Hide the background image when the control layers menu is expanded */
+.leaflet-control-layers-expanded::before {
+    content: none !important;
+}
+
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px;  /* Added padding here */
+}
+
+.leaflet-control-layers-selector {
+    border: 1px solid white !important;
+    margin: 2px !important;
+}
+
+.leaflet-popup .leaflet-popup-content-wrapper .leaflet-popup-content {
+    font-size: 20px !important;
+}
+
+/* Your existing rules for .leaflet-control-layers and .leaflet-top leaflet-right had typos, corrected below */
+.leaflet-control-layers.leaflet-control {
+    border-radius: 30px;
+}
+
+.leaflet-top.leaflet-right {
+    border-radius: 50px;
+}
+
 
 /* Hover effect */
 .button-menu:hover, .categorybutton:hover, .post-button:hover, .key-div:hover, .video-div:hover {
@@ -618,25 +731,37 @@ document.addEventListener("DOMContentLoaded", () => {
 #categorybutton-container {
     flex-grow: 1;
 }
-</style><style>
+</style>
+
+<style>
 /* Dark mode styles (default) */
 .dark-mode {
     --bg-color1: #1b1b1b;
     --bg-color2: #111111;
     --bg-color3: #3a3a3a;
     --text-color: #ffffff;
-    --img-src: "static/logo_long.png";
+    --logo-img: "static/logo_long.png";
+    --key-icon: "static/keyicon.png";
+    --sun-icon: "static/sunicon.png";
+    --info-icon: "static/infoicon.png";
+    --video-icon: "static/videoicon.png";
 }
 
 /* Light mode styles */
 .light-mode {
     --bg-color1: #F4F4ED;
     --bg-color2: #D4D7DA;
-    --bg-color3: #263238;
+    --bg-color3: #000000;
     --text-color: #000000;
-    --img-src: "static/logo_long2.png";
+    --logo-img: "static/logo_long2.png";
+    --key-icon: "static/keyicon2.png";
+    --sun-icon: "static/sunicon2.png";
+    --info-icon: "static/infoicon2.png";
+    --video-icon: "static/videoicon2.png";
 }
-</style><script>
+</style>
+
+<script>
 let isDarkMode = true; // Initially, the website is in dark mode
 
 function togglePopup() {
@@ -644,7 +769,7 @@ function togglePopup() {
     document.documentElement.classList.toggle('dark-mode', isDarkMode);
     document.documentElement.classList.toggle('light-mode', !isDarkMode);
 }
-</script></head>
+</script>
 <body>
 <!-- POPUP -->
 <!-- Counter container -->
@@ -818,6 +943,27 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 <div class="current-desktop">
 <div class="options" id="dropdown-options">
 <!-- CATEGORY EDITING AREA START -->
+<form id="new-category-form">
+<h3>Add New Category</h3>
+<label for="category-name">Name:</label>
+<input id="category-name" name="category-name" required="" type="text"/><br/>
+<label for="category-color">Color (Hex):</label>
+<input id="category-color" name="category-color" required="" type="text"/><br/>
+<label for="category-popup">Popup Text:</label>
+<textarea id="category-popup" name="category-popup" required=""></textarea><br/>
+<input type="submit" value="Create Category"/>
+</form>
+
+<form id="new-category-form">
+<h3>Add New Category</h3>
+<label for="category-name">Name:</label>
+<input id="category-name" name="category-name" required="" type="text"/><br/>
+<label for="category-color">Color (Hex):</label>
+<input id="category-color" name="category-color" required="" type="text"/><br/>
+<label for="category-popup">Popup Text:</label>
+<textarea id="category-popup" name="category-popup" required=""></textarea><br/>
+<input type="submit" value="Create Category"/>
+</form>
 <div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
 <h3>Dieser Ort gefällt mir.</h3>
 </div>
@@ -836,7 +982,6 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 <div class="categorybutton" data-color="212121" style="background-color: #212121;">
 <h3>An diesem Ort fehlt ein Service.</h3>
 <!-- CATEGORY EDITING AREA END -->
-
 </div>
 </div>
 </div>
@@ -847,7 +992,6 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 <!-- Hamburger dropdown -->
 <div id="hamburger-dropdown" style="display: none">
-
 <!-- CATEGORY EDITING AREA START -->
 <div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
 <h3>Dieser Ort gefällt mir.</h3>
@@ -891,6 +1035,7 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 <h3>An diesem Ort fehlt ein Service.</h3>
 <!-- CATEGORY EDITING AREA END -->
 </div>
+
 </div>
 </div>
 </div>
@@ -2658,35 +2803,6 @@ position: relative;
     }
 }
 
-/* Remove conflicting styles, if any */
-.leaflet-control-layers-toggle {
-    background-image: none;
-    font-size: 20px;
-    line-height: 24px;
-    font-weight: bold;
-    text-align: center;
-	border-radius: 30px;
-	  background-image: url('static/mapicon.png');  /* Check if this path is correct */
-    background-color: transparent;
-    background-repeat: no-repeat;
-    background-position: center;
-	    width: 36px;
-    height: 36px;
-}
-
-.leaflet-control-layers leaflet-control {
-border-radius: 30px;
-
-}
-
-.leaflet-top leaflet-right {
-border-radius: 50px:
-}
-
-
-.leaflet-popup .leaflet-popup-content-wrapper .leaflet-popup-content {
-    font-size: 20px !important;  /* Adjust size as desired */
-}
 
     h2 {
         margin-top: 0px;    /* Adjust as needed */
@@ -2912,12 +3028,18 @@ border-radius: 50px:
 
     /* Make the containers hidden when screen width is less than 1271px */
     @media (max-width: 1271px) {
-      .left-container, .right-container, .countercontainer, .togglebuttoncontainer  {
+      .left-container, .right-container,  .togglebuttoncontainer  {
         display: none;
       }
     }
 	
-	
+	  /* Make the containers hidden when screen width is less than 1271px */
+    @media (max-width: 1050px) {
+	.countercontainer {
+	        display: none;
+
+	    }
+    }
 	
 #sidebar {
     display: flex;
@@ -3528,63 +3650,153 @@ function refreshMap() {
 
 </script>
 </div>
+
+
+
+<!-- DARK LIGHT MODE SWITCH -->
 <script>
   console.log("Light mode script loaded.");
   let isLightMode = false;  // Initialize with dark mode
 
-  // Function to switch between light and dark mode
-  function toggleLightMode() {
-    console.log("Toggling light mode.");
-    const elements1b1b1b = document.querySelectorAll('.color-1b1b1b');
-    const elements111111 = document.querySelectorAll('.color-111111');
-    const elements3a3a3a = document.querySelectorAll('.color-3a3a3a');
-    const elements000000 = document.querySelectorAll('.color-000000');
-    const textElements = document.querySelectorAll('.text-white');
-    const logoElement = document.querySelector('.logo-img');
+// Function to switch between light and dark mode
+function toggleLightMode() {
+  console.log("Toggling light mode.");
+  const elements1b1b1b = document.querySelectorAll('.color-1b1b1b');
+  const elements111111 = document.querySelectorAll('.color-111111');
+  const elements3a3a3a = document.querySelectorAll('.color-3a3a3a');
+  const elements000000 = document.querySelectorAll('.color-000000');
+  const textElements = document.querySelectorAll('.text-white');
+  const logoElement = document.querySelector('.logo-img');
+  const videoIcon = document.querySelector('#videoDiv img');
+  const infoIcon = document.querySelector('#infoDiv img');
+  const sunIcon = document.querySelector('#lightswitchDiv img');
+  const keyIcon = document.querySelector('#keyDiv img');
+  const counterContainer = document.getElementById('counter-container');
+
+    // Query selectors for Leaflet controls
+  const leafletBar = document.querySelectorAll('.leaflet-bar');
+  const zoomInButtons = document.querySelectorAll('.leaflet-control-zoom-in');
+  const zoomOutButtons = document.querySelectorAll('.leaflet-control-zoom-out');
+  const leafletLayersList = document.querySelectorAll('.leaflet-control-layers-expanded .leaflet-control-layers-list');
+  const leafletLayersExpanded = document.querySelectorAll('.leaflet-control-layers-expanded');
+  const leafletDisabled = document.querySelectorAll('.leaflet-disabled');
+
+
+  if (isLightMode) {
+    document.body.style.backgroundColor = '#1b1b1b';
+    elements1b1b1b.forEach(el => el.style.backgroundColor = '#1b1b1b');
+    elements111111.forEach(el => el.style.backgroundColor = '#111111');
+    elements3a3a3a.forEach(el => el.style.backgroundColor = '#3a3a3a');
+    elements000000.forEach(el => el.style.backgroundColor = '#000000');
+    textElements.forEach(el => el.style.color = 'white');
+    logoElement.src = 'static/logo_long.png';
+	videoIcon.src = 'static/videoicon.png';
+    infoIcon.src = 'static/infoicon.png';
+    sunIcon.src = 'static/sunicon.png';
+    keyIcon.src = 'static/keyicon.png';
+    counterContainer.style.backgroundColor = '#3a3a3a';
+    counterContainer.style.color = 'white';  // Resetting text color to white in dark mode
+	
+	// Updating Leaflet controls for dark mode
+    leafletBar.forEach(el => el.style.backgroundColor = '#3a3a3a !important');
+    zoomInButtons.forEach(el => {
+      el.style.backgroundColor = '#3a3a3a !important';
+      el.style.color = 'white !important';
+    });
+    zoomOutButtons.forEach(el => {
+      el.style.backgroundColor = '#3a3a3a !important';
+      el.style.color = 'white !important';
+    });
+    leafletLayersList.forEach(el => el.style.color = 'white');
+    leafletLayersExpanded.forEach(el => el.style.backgroundColor = '#3a3a3a !important');
+    leafletDisabled.forEach(el => {
+      el.style.backgroundColor = '#111111 !important';
+      el.style.color = 'white !important';
+    });
+  } else {
+    document.body.style.backgroundColor = '#F4F4ED';
+    elements1b1b1b.forEach(el => el.style.backgroundColor = '#F4F4ED');
+    elements111111.forEach(el => el.style.backgroundColor = '#D4D7DA');
+    elements3a3a3a.forEach(el => el.style.backgroundColor = '#000000');
+    elements000000.forEach(el => el.style.backgroundColor = '#ffffff');
+    textElements.forEach(el => el.style.color = 'black');
+    logoElement.src = 'static/logo_long2.png';
+	videoIcon.src = 'static/videoicon2.png';
+    infoIcon.src = 'static/infoicon2.png';
+    sunIcon.src = 'static/sunicon2.png';
+    keyIcon.src = 'static/keyicon2.png';
     
-    if (isLightMode) {
-      document.body.style.backgroundColor = '#1b1b1b';
-      elements1b1b1b.forEach(el => el.style.backgroundColor = '#1b1b1b');
-      elements111111.forEach(el => el.style.backgroundColor = '#111111');
-      elements3a3a3a.forEach(el => el.style.backgroundColor = '#3a3a3a');
-      elements000000.forEach(el => el.style.backgroundColor = '#000000');
-      textElements.forEach(el => el.style.color = 'white');
-      logoElement.src = 'static/logo_long.png';
-    } else {
-      document.body.style.backgroundColor = '#F4F4ED';
-      elements1b1b1b.forEach(el => el.style.backgroundColor = '#F4F4ED');
-      elements111111.forEach(el => el.style.backgroundColor = '#D4D7DA');
-      elements3a3a3a.forEach(el => el.style.backgroundColor = '#263238');
-      elements000000.forEach(el => el.style.backgroundColor = '#ffffff');
-      textElements.forEach(el => el.style.color = 'black');
-      logoElement.src = 'static/logo_long2.png';
-    }
-    
-    isLightMode = !isLightMode;  // Toggle the mode
+    // Updating counter-container background color and text color for light mode
+    counterContainer.style.backgroundColor = '#F4F4ED';
+    counterContainer.style.color = 'black';  // Changing text color to black in light mode
+   // Updating Leaflet controls for light mode
+    leafletBar.forEach(el => el.style.backgroundColor = '#f4f4ed !important');
+    zoomInButtons.forEach(el => {
+      el.style.backgroundColor = '#f4f4ed !important';
+      el.style.color = 'black !important';
+    });
+    zoomOutButtons.forEach(el => {
+      el.style.backgroundColor = '#f4f4ed !important';
+      el.style.color = 'black !important';
+    });
+    leafletLayersList.forEach(el => el.style.color = 'black');
+    leafletLayersExpanded.forEach(el => el.style.backgroundColor = '#f4f4ed !important');
+    leafletDisabled.forEach(el => {
+      el.style.backgroundColor = '#d4d7da !important';
+      el.style.color = 'black !important';
+    });
   }
+  
+  isLightMode = !isLightMode;  // Toggle the mode
+}
+
 
   // Add event listener to the light switch div
   document.getElementById('lightswitchDiv').addEventListener('click', toggleLightMode);
 </script>
 
-<!-- New Category Form START -->
-<div id="new-category-form">
-    <h2>Create New Category</h2>
-    <form id="create-category-form">
-        <label for="category-name">Category Name:</label>
-        <input type="text" id="category-name" name="category-name" required><br><br>
-        
-        <label for="category-color">Category Color (Hex):</label>
-        <input type="text" id="category-color" name="category-color" required><br><br>
-        
-        <label for="category-popup">Popup Text:</label>
-        <input type="text" id="category-popup" name="category-popup" required><br><br>
-        
-        <input type="submit" value="Create Category">
-    </form>
-</div>
-<!-- New Category Form END -->
-</body></html>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Get the form and the add category button
+        const form = document.getElementById("new-category-form");
+        const addButton = document.getElementById("add-category-button");
+
+        // Attach an event listener to the add category button
+        addButton.addEventListener("click", function() {
+            // Collect the form data
+            const formData = new FormData(form);
+            const name = formData.get("category-name");
+            const color = formData.get("category-color");
+            const popupText = formData.get("category-popup");
+
+            // Make an AJAX request to add the new category
+            fetch("/add_category", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    color: color,
+                    popup_text: popupText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert("Category added successfully!");
+                    // Reload or update the UI as needed
+                } else {
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(error => {
+                alert("An error occurred: " + error);
+            });
+        });
+    });
+</script>
+</body>
 <audio id="buttonClickAudio"><source src="static/buttonclick.mp3" type="audio/mp3"/></audio>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

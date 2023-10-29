@@ -56,13 +56,25 @@ class Pin(db.Model):
 
 @app.route('/add_category', methods=['POST'])
 def add_category():
-    data = request.get_json()
-    color_code = data.get('color_code')
-    category_name = data.get('category_name')
+    try:
+        # Get the new category details from the request JSON payload
+        data = request.json
+        name = data.get('name')
+        color = data.get('color')
+        popup_text = data.get('popup_text')
 
-    if not color_code or not category_name:
-        return jsonify({'error': 'Invalid data'}), 400
+        # Validate the inputs (you may add more validation logic here)
+        if not all([name, color, popup_text]):
+            return jsonify({"error": "All fields are required"}), 400
 
+        # Update pin_types and categories (add more logic to update other data structures)
+        pin_types.append(color)
+        categories[color] = name
+
+        return jsonify({"message": "Category added successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
     with open(html_file_path, 'r', encoding='utf-8') as file:
         soup = BeautifulSoup(file, 'html.parser')
@@ -607,3 +619,6 @@ USER_CREDENTIALS = {
     'password': 'techdemo',
 }
 OTP_SECRET = 'MangoOttersLove'
+
+
+
