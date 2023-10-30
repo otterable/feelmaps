@@ -15,7 +15,7 @@ import pyotp  # Importing pyotp for 2FA
 import random
 import string
 from datetime import timedelta
-# <!-- CATEGORY EDITING AREA START -->
+
 categories = {
     'FF7043': 'Dieser Ort gefällt mir.',
     'B71C1C': 'Hier fühle ich mich unsicher.',
@@ -24,7 +24,6 @@ categories = {
     '4E342E': 'Dieser Ort braucht eine Verbesserung.',
     '212121': 'An diesem Ort fehlt ein Service.'
 }
-# <!-- CATEGORY EDITING AREA END -->
 
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
@@ -56,25 +55,13 @@ class Pin(db.Model):
 
 @app.route('/add_category', methods=['POST'])
 def add_category():
-    try:
-        # Get the new category details from the request JSON payload
-        data = request.json
-        name = data.get('name')
-        color = data.get('color')
-        popup_text = data.get('popup_text')
+    data = request.get_json()
+    color_code = data.get('color_code')
+    category_name = data.get('category_name')
 
-        # Validate the inputs (you may add more validation logic here)
-        if not all([name, color, popup_text]):
-            return jsonify({"error": "All fields are required"}), 400
+    if not color_code or not category_name:
+        return jsonify({'error': 'Invalid data'}), 400
 
-        # Update pin_types and categories (add more logic to update other data structures)
-        pin_types.append(color)
-        categories[color] = name
-
-        return jsonify({"message": "Category added successfully"}), 201
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
     with open(html_file_path, 'r', encoding='utf-8') as file:
         soup = BeautifulSoup(file, 'html.parser')
@@ -159,7 +146,11 @@ def add_category():
     with open(app_py_file_path, 'w', encoding='utf-8') as file:
         file.write(app_py_content)
 
-    return jsonify({'success': True})
+    
+    # Fetch the new set of pins after deletion for refreshing the heatmap
+    new_pins = fetch_new_pins()  # Implement this function to get the new set of pins
+    return jsonify({'success': True, 'new_pins': new_pins})
+
 
 # TEXT EDITOR: WIE FUNKTIONIERTS ADMIN
 @app.route('/update_text', methods=['POST'])
@@ -232,9 +223,7 @@ def upload_overlay_image():
 
 @app.route('/get_pin_counts')
 def get_pin_counts():
-# <!-- CATEGORY EDITING AREA START -->
     pin_types = ['FF7043', 'B71C1C', '1565C0', '4CAF50', '4E342E', '212121']
-# <!-- CATEGORY EDITING AREA END -->
     counts = {}
     total_count = 0  # Counter for all existing pins
 
@@ -294,14 +283,22 @@ def delete_pin(pin_id):
     if pin_to_delete:
         db.session.delete(pin_to_delete)
         db.session.commit()
-        return jsonify({'success': True})
+        
+    # Fetch the new set of pins after deletion for refreshing the heatmap
+    new_pins = fetch_new_pins()  # Implement this function to get the new set of pins
+    return jsonify({'success': True, 'new_pins': new_pins})
+
     return jsonify({'success': False})
 
 @app.route('/delete_all_pins', methods=['POST'])
 def delete_all_pins():
     db.session.query(Pin).delete()
     db.session.commit()
-    return jsonify({'success': True})
+    
+    # Fetch the new set of pins after deletion for refreshing the heatmap
+    new_pins = fetch_new_pins()  # Implement this function to get the new set of pins
+    return jsonify({'success': True, 'new_pins': new_pins})
+
     
 @app.route('/get_categories', methods=['GET'])
 def get_categories():
@@ -619,6 +616,3 @@ USER_CREDENTIALS = {
     'password': 'techdemo',
 }
 OTP_SECRET = 'MangoOttersLove'
-
-
-
