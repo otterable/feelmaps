@@ -957,10 +957,7 @@ function togglePopup() {
 <!-- ENDING OF EDITABLE AREA -->
 
 
-
-
-
-
+ 
 
 
 <div class="xdxd">
@@ -1005,6 +1002,48 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 <!-- TEXT EDITOR: WIE FUNKTIONIERTS ADMIN END -->
 </div>
+
+<!-- HEATMAPZ EDITOR ADMIN START -->
+
+
+ <!-- Heatmap settings menu -->
+ <button class="button-menu" id="heatmap-menu-button" onclick="toggleHeatmapMenu()" style="background-color: #35b7ff">Heatmapeditor</button>
+  <div class ="heatmapsettings" id="heatmapSettings" style="display:none;">
+    
+<h2>Heatmap Settings</h2>
+<label>
+  Min Opacity: <input type="range" id="minOpacity" step="0.1" value="0.1" min="0" max="1">
+</label><br>
+<label>
+  Max Zoom: <input type="range" id="maxZoom" value="18" min="0" max="20">
+</label><br>
+<label>
+  Max Intensity: <input type="range" id="max" step="0.1" value="1.0" min="0" max="2">
+</label><br>
+<label>
+  Radius: <input type="range" id="radius" value="25" min="0" max="50">
+</label><br>
+<label>
+  Blur: <input type="range" id="blur" value="15" min="0" max="30">
+</label><br>
+ </label><br>
+    <label>
+      Gradient (JSON):
+      <textarea id="gradient" rows="4" cols="50">{"0.4": "blue", "0.65": "lime", "1": "red"}</textarea>
+    </label><br>
+	
+	  <!-- Buttons for import and export -->
+  <button class="delete-button"onclick="updateHeatmapSettings()">Update Settings</button>
+  <button class="delete-button" onclick="exportSettings()">Export Settings</button>
+  <input class="delete-button" type="file" id="importFile" style="display:none;" onchange="importSettings()" />
+  <button class="delete-button" onclick="document.getElementById('importFile').click()">Import Settings</button>
+  </div>
+
+
+
+
+
+
 <button class="button-menu" id="titelbild-menu-button" onclick="toggletitelbildMenu()" style="background-color: #35b7ff">Titelbild</button>
 <div id="titelbild-menu" style="display:none;">
 <div id="hoverDiv" style="display: flex; justify-content: center; flex-direction: column; align-items: center; margin-top: 10px">
@@ -1016,7 +1055,10 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </form>
 </div>
 </div>
+
+
 <button class="button-menu" id="pinsexport-menu-button" onclick="togglePinsExportMenu()" style="background-color: #35b7ff">Pins</button>
+
 <div id="pinsexport-menu" style="display:none;">
 
 
@@ -1282,17 +1324,31 @@ document.addEventListener("DOMContentLoaded", function() {
 		
 		
 		
-		
+    // Function to load settings from local storage
+    function loadSettings() {
+      const settings = JSON.parse(localStorage.getItem('heatmapSettings'));
+      if (settings) {
+        document.getElementById('minOpacity').value = settings.minOpacity;
+        document.getElementById('maxZoom').value = settings.maxZoom;
+        document.getElementById('max').value = settings.max;
+        document.getElementById('radius').value = settings.radius;
+        document.getElementById('blur').value = settings.blur;
+        document.getElementById('gradient').value = JSON.stringify(settings.gradient, null, 2);
+      }
+    }		
 		
 	let heatmapLayer;
 let heatmapLayerMobile;
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Initialize empty heat layers after map is fully loaded
-   map.whenReady(function() {
-    heatmapLayer = L.heatLayer(heatmapData, { radius: 25 });  // Do not add to map by default
-    console.log("Heatmap layer initialized"); // Log for initialization
-});
+    map.whenReady(function() {
+        // Initialize empty heat layers after map is fully loaded
+        heatmapLayer = L.heatLayer([], { radius: 25, scaleRadius: true });  // Do not add to map by default
+        console.log("Heatmap layer initialized"); // Log for initialization
+        loadSettings();  // Load saved settings
+        updateHeatmapSettings();  // Apply saved settings
+    });
+
 function loadHeatmap(pins) {
     heatmapData = pins.map(pin => [parseFloat(pin.lat), parseFloat(pin.lon), 0.5])
                       .filter(coord => !isNaN(coord[0]) && !isNaN(coord[1]));
@@ -1435,10 +1491,103 @@ function addCustomCheckbox() {
 setTimeout(addCustomCheckbox, 1000);  // Delay by 1 second to ensure layer control is added
 
 
+ // Function to export settings as JSON file
+  function exportSettings() {
+    const settings = {
+      minOpacity: document.getElementById('minOpacity').value,
+      maxZoom: document.getElementById('maxZoom').value,
+      max: document.getElementById('max').value,
+      radius: document.getElementById('radius').value,
+      blur: document.getElementById('blur').value,
+      gradient: document.getElementById('gradient').value
+    };
+    const blob = new Blob([JSON.stringify(settings)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'heatmap_settings.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
+  // Function to import settings from JSON file and auto-update
+  function importSettings() {
+    const fileInput = document.getElementById('importFile');
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const settings = JSON.parse(e.target.result);
+      document.getElementById('minOpacity').value = settings.minOpacity;
+      document.getElementById('maxZoom').value = settings.maxZoom;
+      document.getElementById('max').value = settings.max;
+      document.getElementById('radius').value = settings.radius;
+      document.getElementById('blur').value = settings.blur;
+      document.getElementById('gradient').value = settings.gradient;
+      
+      // Call the updateHeatmapSettings function to apply the imported settings
+      updateHeatmapSettings();
+    };
+    reader.readAsText(file);
+  }
 
+// Function to update heatmap settings
+    function updateHeatmapSettings() {
+        const minOpacity = parseFloat(document.getElementById('minOpacity').value);
+        const maxZoom = parseInt(document.getElementById('maxZoom').value);
+        const max = parseFloat(document.getElementById('max').value);
+        const radius = parseInt(document.getElementById('radius').value);
+        const blur = parseInt(document.getElementById('blur').value);
+        const gradient = JSON.parse(document.getElementById('gradient').value);
 
+        if (heatmapLayer) {
+            heatmapLayer.setOptions({
+                minOpacity: minOpacity,
+                maxZoom: maxZoom,
+                max: max,
+                radius: radius,
+                blur: blur,
+                gradient: gradient,
+                scaleRadius: true  // Keep the form constant
+            });
+        }
 
+        if (heatmapLayerMobile) {
+            heatmapLayerMobile.setOptions({
+                minOpacity: minOpacity,
+                maxZoom: maxZoom,
+                max: max,
+                radius: radius,
+                blur: blur,
+                gradient: gradient,
+                scaleRadius: true  // Keep the form constant
+            });
+        }
+
+        // Save settings to local storage
+        localStorage.setItem('heatmapSettings', JSON.stringify({
+            minOpacity,
+            maxZoom,
+            max,
+            radius,
+            blur,
+            gradient
+        }));
+    }
+
+  // Add event listeners to update heatmap settings whenever the user changes them
+  document.getElementById('minOpacity').addEventListener('change', updateHeatmapSettings);
+  document.getElementById('maxZoom').addEventListener('change', updateHeatmapSettings);
+  document.getElementById('max').addEventListener('change', updateHeatmapSettings);
+  document.getElementById('radius').addEventListener('change', updateHeatmapSettings);
+  document.getElementById('blur').addEventListener('change', updateHeatmapSettings);
+  document.getElementById('gradient').addEventListener('change', updateHeatmapSettings);
+
+  // Load settings on page load
+  loadSettings();
+  updateHeatmapSettings();
+
+   // Load saved settings on page load
+    window.addEventListener('load', loadSettings);
 
 // New code to establish WebSocket connection
 const socket = io.connect(location.origin);
@@ -2283,6 +2432,18 @@ document.getElementById('renameCategory').addEventListener('click', () => {
         }
     }
 </script>
+
+<script>
+function toggleHeatmapMenu() {
+  var heatmapSettings = document.getElementById("heatmapSettings");
+  if (heatmapSettings.style.display === "none" || heatmapSettings.style.display === "") {
+    heatmapSettings.style.display = "block";
+  } else {
+    heatmapSettings.style.display = "none";
+  }
+}
+</script>
+
 <script>
     function toggleEditorMenu() {
         var editorMenu = document.getElementById('editor-menu');
@@ -2842,6 +3003,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
 .icon {
     width: 24px; /* or whatever size you want */
     height: auto;
+}
+.heatmapsettings {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* Optional: You can specify the height */
 }
 
         #keyDiv {
@@ -3802,6 +3969,42 @@ function refreshMap() {
 			}
 		});
 	}
+	
+function updateHeatmapSettings() {
+  const minOpacity = parseFloat(document.getElementById('minOpacity').value);
+  const maxZoom = parseInt(document.getElementById('maxZoom').value);
+  const max = parseFloat(document.getElementById('max').value);
+  const radius = parseInt(document.getElementById('radius').value);
+  const blur = parseInt(document.getElementById('blur').value);
+  const gradient = JSON.parse(document.getElementById('gradient').value);
+
+  // Update settings for heatmapLayer
+  if (heatmapLayer) {
+    heatmapLayer.setOptions({
+      minOpacity: minOpacity,
+      maxZoom: maxZoom,
+      max: max,
+      radius: radius,
+      blur: blur,
+      gradient: gradient
+    });
+    console.log("heatmapLayer settings updated");
+  }
+
+  // Update settings for heatmapLayerMobile (if it exists)
+  if (heatmapLayerMobile) {
+    heatmapLayerMobile.setOptions({
+      minOpacity: minOpacity,
+      maxZoom: maxZoom,
+      max: max,
+      radius: radius,
+      blur: blur,
+      gradient: gradient
+    });
+    console.log("heatmapLayerMobile settings updated");
+  }
+}
+
 
 function handleDeleteButtonClick(event) {
     const deleteButton = event.popup._contentNode.querySelector('.delete-button');
@@ -4337,4 +4540,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Add event listeners to HTML input fields to update and save settings immediately
+document.getElementById('minOpacity').addEventListener('change', updateHeatmapSettings);
+document.getElementById('maxZoom').addEventListener('change', updateHeatmapSettings);
+document.getElementById('max').addEventListener('change', updateHeatmapSettings);
+document.getElementById('radius').addEventListener('change', updateHeatmapSettings);
+document.getElementById('blur').addEventListener('change', updateHeatmapSettings);
+document.getElementById('gradient').addEventListener('change', updateHeatmapSettings);
+
+// Load saved settings on page load
+window.addEventListener('load', function() {
+    loadSettings();
+});
+
+// Update Settings button already calls updateHeatmapSettings() as per your HTML
 </script>
