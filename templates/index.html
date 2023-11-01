@@ -1341,13 +1341,49 @@ document.addEventListener("DOMContentLoaded", function() {
 let heatmapLayerMobile;
 
 document.addEventListener("DOMContentLoaded", function() {
-    map.whenReady(function() {
-        // Initialize empty heat layers after map is fully loaded
-        heatmapLayer = L.heatLayer([], { radius: 25, scaleRadius: true });  // Do not add to map by default
-        console.log("Heatmap layer initialized"); // Log for initialization
-        loadSettings();  // Load saved settings
-        updateHeatmapSettings();  // Apply saved settings
-    });
+    // Initialize empty heat layers after map is fully loaded
+map.whenReady(function() {
+    heatmapLayer = L.heatLayer([], { blur: 15 });  // Do not add to map by default, with initial blur
+    console.log("Heatmap layer initialized"); // Log for initialization
+    loadSettings();  // Load saved settings
+    updateHeatmapSettings();  // Apply saved settings
+    updateRadius(map);
+    updateBlur(map);
+});
+
+function updateRadius(mapInstance) {
+    const zoomLevel = mapInstance.getZoom();
+    // You can adjust the base radius (in meters) and scale factor as needed
+    const baseRadiusInMeters = 50;
+    
+    // Convert the radius from meters to pixels based on the current zoom level
+    const radiusInPixels = baseRadiusInMeters / (40075016.686 * Math.abs(Math.cos(mapInstance.getCenter().lat * 180/Math.PI)) / Math.pow(2, zoomLevel + 8));
+    
+    heatmapLayer.setOptions({ radius: radiusInPixels });
+}
+
+
+// Listen to zoom events to update the radius accordingly
+// Function to update blur settings based on zoom level
+function updateBlur(mapInstance) {
+    const zoomLevel = mapInstance.getZoom();
+    // Adjust the base blur (in pixels) as needed
+    const baseBlurInPixels = 15;
+    
+    // Calculate blur in pixels based on the current zoom level
+    const blurInPixels = baseBlurInPixels * Math.pow(2, (mapInstance.getZoom() - zoomLevel));
+    
+    heatmapLayer.setOptions({ blur: blurInPixels });
+}
+
+// Listen to zoom events to update the blur accordingly
+map.on('zoomend', function() {
+    updateBlur(map);
+});
+
+map.on('zoomend', function() {
+    updateRadius(map);
+});
 
 function loadHeatmap(pins) {
     heatmapData = pins.map(pin => [parseFloat(pin.lat), parseFloat(pin.lon), 0.5])
