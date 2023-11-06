@@ -28,7 +28,7 @@ categories = {
 app = Flask(__name__)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pins.db'
-app.config['SECRET_KEY'] = 'your_secret_key_here'  # Change this to a random secret key
+app.config['SECRET_KEY'] = 'XDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD'  # Change this to a random secret key
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
 
@@ -362,7 +362,10 @@ def index():
     cursor.execute('SELECT * FROM Pin')
     pins = cursor.fetchall()
     conn.close()
+    # Query all pins from the database
+    pins = Pin.query.all()
     return render_template('index.html', pins=pins)
+
 
 @app.route('/get_pins_by_molen_id/<string:molen_id>', methods=['GET'])
 def get_pins_by_molen_id(molen_id):
@@ -616,3 +619,13 @@ USER_CREDENTIALS = {
     'password': 'techdemo',
 }
 OTP_SECRET = 'MangoOttersLove'
+
+@app.route('/get-admintools', methods=['GET'])
+def get_admintools():
+    if 'logged_in' in session:  # Assuming you set this in the session after login
+        return send_file('admintools.html')
+    else:
+        return jsonify({'status': 'failed', 'message': 'Not logged in'}), 401
+
+if __name__ == '__main__':
+    app.run()

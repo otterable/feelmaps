@@ -1,6 +1,17 @@
 
 <html lang="en">
 <head>
+<style>
+    .pinlist-container {
+        max-height: 379px; /* Assuming each pin entry is around 40px high, adjust as needed */
+        overflow-y: auto;
+    }
+	
+    #pins-list, #pins-list th, #pins-list td {
+        color: white;
+    }
+</style>
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -355,14 +366,7 @@ if (adminPinResize) {
         }
     };
 	
-	 // Add new code here
-    const videoDiv = document.getElementById('videoDiv');
 
-    if (videoDiv) {
-        videoDiv.addEventListener('click', () => {
-            window.open('https://www.youtube.com/watch?v=rHXzX-cQWIs', '_blank');
-        });
-    }
 	
 	// New code for infoDiv
     const infoDiv = document.getElementById('infoDiv');
@@ -777,14 +781,14 @@ img[src="/static/star_icon.png"] {
 
 
 /* Hover effect */
-.button-menu:hover, .categorybutton:hover, .post-button:hover, .key-div:hover, .video-div:hover, .info-div:hover, .lightswitch-div:hover {
+.button-menu:hover, .categorybutton:hover, .post-button:hover, .key-div:hover, .pinlist-div:hover, .info-div:hover, .lightswitch-div:hover {
     filter: brightness(85%);
     border-width: 5px;  /* Make this the same as the initial border width */
     border-color: white;
 }
 
 /* Existing styles, updated */
-.button-menu, .categorybutton, .post-button, .key-div, .video-div, .info-div, .lightswitch-div {
+.button-menu, .categorybutton, .post-button, .key-div, .pinlist-div, .info-div, .lightswitch-div {
     box-sizing: border-box;
     transition: all 0.2s ease-in-out;
     border: 5px solid transparent; /* Set initial transparent border */
@@ -802,7 +806,7 @@ img[src="/static/star_icon.png"] {
 
 
 /* Selected effect */
-.button-menu.selected, .categorybutton.selected, .key-div.selected, .video-div.selected, .info-div.selected, .lightswitch-div.selected {
+.button-menu.selected, .categorybutton.selected, .key-div.selected, .pinlist-div.selected, .info-div.selected, .lightswitch-div.selected {
     filter: brightness(85%);
     border-width: 5px;
     border-color: white;
@@ -906,7 +910,7 @@ opacity: 0;
     --key-icon: "static/keyicon.png";
     --sun-icon: "static/sunicon.png";
     --info-icon: "static/infoicon.png";
-    --video-icon: "static/videoicon.png";
+    --pinlist-icon: "static/pinlisticon.png";
 }
 
 /* Light mode styles */
@@ -919,7 +923,7 @@ opacity: 0;
     --key-icon: "static/keyicon2.png";
     --sun-icon: "static/sunicon2.png";
     --info-icon: "static/infoicon2.png";
-    --video-icon: "static/videoicon2.png";
+    --pinlist-icon: "static/pinlisticon2.png";
 }
 </style>
 
@@ -937,7 +941,7 @@ function togglePopup() {
 <!-- Counter container -->
 <div class="main-container" style="background-color= solid #0D1F22">
 <!-- Add this button where you want it to appear on your HTML page -->
-<div style="display: flex; height: 100vh">
+<div class="mobilesafe" style="display: flex; height: 100vh">
 <div id="map" style="flex-basis: 70%; border-radius: 30px; margin-left: 15px; margin-top: 15px; margin-bottom: 15px;">
 <!-- COUNTER / VIS DIV -->
 <div class="parent-container">
@@ -957,15 +961,13 @@ function togglePopup() {
 <!-- ENDING OF EDITABLE AREA -->
 
 
- 
-
-
+	
 <div class="xdxd">
 <div class="left-container">
-<div class="video-div" id="videoDiv" onclick="togglePopup()" style="border-radius:30px;">
-<img src="static/videoicon.png"/>
+<div class="pinlist-div" id="pinlistdiv" onclick="togglePopup()"  style="border-radius:30px;">
+<img src="static/pinlisticon.png"/>
 </div>
-<div class="info-div" id="infoDiv" onclick="togglePopup()" style="border-radius:30px;">
+<div class="info-div" id="infoDiv"  style="border-radius:30px;">
 <img src="static/infoicon.png"/>
 </div>
 </div>
@@ -975,10 +977,10 @@ function togglePopup() {
 </div>
 <!-- Container for right-aligned elements -->
 <div class="right-container">
-<div class="lightswitch-div" id="lightswitchDiv" onclick="togglePopup()" style="border-radius:30px;">
+<div class="lightswitch-div" id="lightswitchDiv"  style="border-radius:30px;">
 <img src="static/sunicon.png"/>
 </div>
-<div class="key-div" id="keyDiv" onclick="togglePopup()" style="border-radius:30px;">
+<div class="key-div" id="keyDiv"  style="border-radius:30px;">
 <img src="static/keyicon.png"/>
 </div>
 <!-- ADMIN IMPORT TBD START -->
@@ -986,6 +988,35 @@ function togglePopup() {
 <!-- TEXT EDITOR: WIE FUNKTIONIERTS ADMIN END -->
 </div>
 </div>
+
+
+<div class="pinlist-container" id="pinlist-container" style="display:none;">
+ <div id="search-container">
+    <input type="text" id="search-box" placeholder="Suchen Sie nach einer Pin..." onkeyup="filterPins()">
+</div>
+
+<div id="pins-list" style="color:white;">
+    <table>
+        <tr>
+            <th></th>
+        </tr>
+        {% for pin in pins %}
+        <tr class="pin-row" data-lat="{{ pin.lat }}" data-lon="{{ pin.lon }}">
+            <td>
+                <div style="background-color: #{{ pin.pin_type }}; 
+                            width: 24px; 
+                            height: 24px; 
+                            border-radius: 50%;
+                            display: inline-block;">
+                </div>
+            </td>
+            <td>{{ pin.description }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</div>	
+	
 <div class="admintools-container color-111111 text-white" style="display:none;             color: #ffffff;  /* This makes the text color white */
 background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius: 30px">
 <button class="button-menu" id="aboutBtnEditor" onclick="toggleEditorMenu()" style="background-color: #35b7ff">Texteditor</button>
@@ -1004,6 +1035,9 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 
 <!-- HEATMAPZ EDITOR ADMIN START -->
+
+
+
 
 
  <!-- Heatmap settings menu -->
@@ -1158,7 +1192,7 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 </div>
 </div>
 </div>
-<img class="hide-on-mobile resistant-image" src="static/overlay.jpg" style="max-width: 100%; height: auto; display: block; margin-left:auto; margin-right:auto; margin-top: 3px; margin-bottom: 8px; border-radius: 30px;"/>
+<img id="overlay-image" class="hide-on-mobile resistant-image" src="static/overlay.jpg" style="max-width: 100%; height: auto; display: block; margin-left:auto; margin-right:auto; margin-top: 3px; margin-bottom: 8px; border-radius: 30px;"/>
 <!-- Mappy Container -->
 <div id="mappy-container">
 <div id="mapMobile">
@@ -1192,76 +1226,18 @@ background-color: #111111; margin-top: 15px;  margin-bottom: 15px; border-radius
 <textarea id="category-popup" name="category-popup" required=""></textarea><br/>
 <input type="submit" value="Create Category"/>
 </form>
-<div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
-<h3>Dieser Ort gefällt mir.</h3>
-</div>
-<div class="categorybutton" data-color="B71C1C" style="background-color: #B71C1C;">
-<h3>Hier fühle ich mich unsicher.</h3>
-</div>
-<div class="categorybutton" data-color="1565C0" style="background-color: #1565C0;">
-<h3>Hier gibt es Probleme mit dem Parken.</h3>
-</div>
-<div class="categorybutton" data-color="4CAF50" style="background-color: #4CAF50;">
-<h3>Hier verbringe ich gerne meine Freizeit.</h3>
-</div>
-<div class="categorybutton" data-color="4E342E" style="background-color: #4E342E;">
-<h3>Dieser Ort braucht eine Verbesserung.</h3>
-</div>
-<div class="categorybutton" data-color="212121" style="background-color: #212121;">
-<h3>An diesem Ort fehlt ein Service.</h3>
 <!-- CATEGORY EDITING AREA END -->
-</div>
-</div>
-</div>
-<!-- Hamburger menu container -->
-<div id="hamburger-menu-container" style="display: none;">
-<!-- Hamburger menu -->
-<div id="hamburger-menu" onclick="toggleHamburgerDropdown()">
-</div>
-<!-- Hamburger dropdown -->
-<div id="hamburger-dropdown" style="display: none">
-<!-- CATEGORY EDITING AREA START -->
-<div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
-<h3>Dieser Ort gefällt mir.</h3>
-</div>
-<div class="categorybutton" data-color="B71C1C" style="background-color: #B71C1C;">
-<h3>Hier fühle ich mich unsicher.</h3>
-</div>
-<div class="categorybutton" data-color="1565C0" style="background-color: #1565C0;">
-<h3>Hier gibt es Probleme mit dem Parken.</h3>
-</div>
-<div class="categorybutton" data-color="4CAF50" style="background-color: #4CAF50;">
-<h3>Hier verbringe ich gerne meine Freizeit.</h3>
-</div>
-<div class="categorybutton" data-color="4E342E" style="background-color: #4E342E;">
-<h3>Dieser Ort braucht eine Verbesserung.</h3>
-</div>
-<div class="categorybutton" data-color="212121" style="background-color: #212121;">
-<h3>An diesem Ort fehlt ein Service.</h3>
-</div>
-<!-- CATEGORY EDITING AREA END -->
-</div>
 </div>
 <div id="categorybutton-container">
-<!-- CATEGORY EDITING AREA START -->
-<div class="categorybutton" data-color="FF7043" style="background-color: #FF7043;">
-<h3>Dieser Ort gefällt mir.</h3>
+
 </div>
-<div class="categorybutton" data-color="B71C1C" style="background-color: #B71C1C;">
-<h3>Hier fühle ich mich unsicher.</h3>
+
 </div>
-<div class="categorybutton" data-color="1565C0" style="background-color: #1565C0;">
-<h3>Hier gibt es Probleme mit dem Parken.</h3>
-</div>
-<div class="categorybutton" data-color="4CAF50" style="background-color: #4CAF50;">
-<h3>Hier verbringe ich gerne meine Freizeit.</h3>
-</div>
-<div class="categorybutton" data-color="4E342E" style="background-color: #4E342E;">
-<h3>Dieser Ort braucht eine Verbesserung.</h3>
-</div>
-<div class="categorybutton" data-color="212121" style="background-color: #212121;">
-<h3>An diesem Ort fehlt ein Service.</h3>
+<!-- Hamburger menu container -->
+<!-- Hamburger menu -->
+<div id="categorybutton-container">
 <!-- CATEGORY EDITING AREA END -->
+</div>
 </div>
 
 </div>
@@ -1303,23 +1279,97 @@ document.addEventListener("DOMContentLoaded", function() {
 
     map.doubleClickZoom.disable();
 	
+	 // Function to create and show a circle on the map
+    function showCircle(lat, lon) {
+        var circle = L.circle([lat, lon], {
+            color: 'white',
+            fillColor: '#ffffff',
+            fillOpacity: 1, // Changed to full opacity for visibility
+            radius: 12 // Changed to radius: 12 for the circle size in meters
+        }).addTo(map);
+        map.setView([lat, lon], 16); // Optional: Center the map on the circle
+        return circle;
+    }
 
+    // Function to remove a circle from the map
+    function removeCircle(circle) {
+        if (circle) {
+            map.removeLayer(circle);
+        }
+    }
 
-
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    const osmLayerMobile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(mapMobile);
-
-    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    // Add event listeners to table rows
+    document.querySelectorAll('.pin-row').forEach(function(row) {
+        var circle;
+        row.addEventListener('mouseenter', function() {
+            var lat = parseFloat(this.getAttribute('data-lat'));
+            var lon = parseFloat(this.getAttribute('data-lon'));
+            circle = showCircle(lat, lon);
+        });
+        row.addEventListener('mouseleave', function() {
+            removeCircle(circle);
+        });
+        row.addEventListener('click', function() {
+            var lat = parseFloat(this.getAttribute('data-lat'));
+            var lon = parseFloat(this.getAttribute('data-lon'));
+            circle = showCircle(lat, lon);
+        });
     });
-	
-		
-		
+
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+const osmLayerMobile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(mapMobile);
+
+const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});
+
+const thunderforestLayers = {
+    "Outdoors": L.tileLayer('https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Landscape": L.tileLayer('https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Cycle": L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Transport": L.tileLayer('https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Spinal_Map": L.tileLayer('https://tile.thunderforest.com/spinal-map/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Pioneer": L.tileLayer('https://tile.thunderforest.com/pioneer/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Mobile_Atlas": L.tileLayer('https://tile.thunderforest.com/mobile-atlas/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Neighbourhood": L.tileLayer('https://tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Transport_Dark": L.tileLayer('https://tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    }),
+    "Atlas": L.tileLayer('https://tile.thunderforest.com/atlas/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        maxZoom: 19,
+        attribution: '© Thunderforest, © OpenStreetMap contributors'
+    })
+};
 		
 		
 		
@@ -1343,12 +1393,11 @@ let heatmapLayerMobile;
 document.addEventListener("DOMContentLoaded", function() {
     // Initialize empty heat layers after map is fully loaded
 map.whenReady(function() {
-    heatmapLayer = L.heatLayer([], { blur: 15 });  // Do not add to map by default, with initial blur
+    heatmapLayer = L.heatLayer([], {});  // Do not add to map by default
     console.log("Heatmap layer initialized"); // Log for initialization
     loadSettings();  // Load saved settings
     updateHeatmapSettings();  // Apply saved settings
     updateRadius(map);
-    updateBlur(map);
 });
 
 function updateRadius(mapInstance) {
@@ -1364,23 +1413,6 @@ function updateRadius(mapInstance) {
 
 
 // Listen to zoom events to update the radius accordingly
-// Function to update blur settings based on zoom level
-function updateBlur(mapInstance) {
-    const zoomLevel = mapInstance.getZoom();
-    // Adjust the base blur (in pixels) as needed
-    const baseBlurInPixels = 15;
-    
-    // Calculate blur in pixels based on the current zoom level
-    const blurInPixels = baseBlurInPixels * Math.pow(2, (mapInstance.getZoom() - zoomLevel));
-    
-    heatmapLayer.setOptions({ blur: blurInPixels });
-}
-
-// Listen to zoom events to update the blur accordingly
-map.on('zoomend', function() {
-    updateBlur(map);
-});
-
 map.on('zoomend', function() {
     updateRadius(map);
 });
@@ -1405,15 +1437,27 @@ function loadHeatmap(pins) {
         }
     });
 });
-    L.control.layers({
-        "Standardkarte": osmLayer,
-        "Satellit": satelliteLayer
-    }).addTo(map);
+L.control.layers({
+    "Standardkarte": osmLayer,
+    "Satellit": satelliteLayer,
+	"Klar 1": thunderforestLayers.Atlas,
+    "Klar 2": thunderforestLayers.Neighbourhood,
+	"Öffi": thunderforestLayers.Transport,
+    "Radwege": thunderforestLayers.Cycle,
+    "Atlas": thunderforestLayers.Mobile_Atlas,
+    "Papyrus": thunderforestLayers.Pioneer,
+}).addTo(map);
 
-    L.control.layers({
-        "Standardkarte": osmLayerMobile,
-        "Satellit": satelliteLayer
-    }).addTo(mapMobile);
+L.control.layers({
+    "Standardkarte": osmLayerMobile,
+    "Satellit": satelliteLayer,
+	"Klar 1": thunderforestLayers.Atlas,
+    "Klar 2": thunderforestLayers.Neighbourhood,
+	"Öffi": thunderforestLayers.Transport,
+    "Radwege": thunderforestLayers.Cycle,
+    "Atlas": thunderforestLayers.Mobile_Atlas,
+    "Papyrus": thunderforestLayers.Pioneer,
+}).addTo(mapMobile);
 	
 	map.on('layercontroladd', function() {
     var customButton = document.createElement('button');
@@ -2200,6 +2244,7 @@ window.addEventListener("resize", function() {
     document.addEventListener('DOMContentLoaded', initEditor);
 
 </script>
+
 <!-- TEXT EDITOR GENERAL END -->
 <!-- PIN RESIZING START -->
    <script>
@@ -2468,7 +2513,37 @@ document.getElementById('renameCategory').addEventListener('click', () => {
         }
     }
 </script>
+<script>
+// Assuming you have a map object and a pinLayers object which stores each pin layer by id
+var pinLayers = {};
 
+// Call this function when hovering over a table row
+function highlightPinOnMap(pinId) {
+    var pinLayer = pinLayers[pinId];
+    if (pinLayer) {
+        // This is where you would define the style of your highlight
+        var highlightStyle = {
+            color: '#ffffff', // White color
+            weight: 4, // Thickness of the circle border
+            opacity: 1,
+            fillColor: '#ffffff',
+            fillOpacity: 0.7
+        };
+        
+        // Add a circle marker or change the existing layer's style
+        L.circle(pinLayer.getLatLng(), {radius: 20, ...highlightStyle}).addTo(map);
+    }
+}
+
+// Call this function when no longer hovering over a table row
+function unhighlightPinOnMap(pinId) {
+    var pinLayer = pinLayers[pinId];
+    if (pinLayer) {
+        // Here you would remove the highlight or reset the style
+        map.removeLayer(pinLayer); // Remove the highlight circle
+    }
+}
+</script>
 <script>
 function toggleHeatmapMenu() {
   var heatmapSettings = document.getElementById("heatmapSettings");
@@ -2491,6 +2566,29 @@ function toggleHeatmapMenu() {
     }
 	
 	
+</script>
+
+<script>
+function filterPins() {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("search-box");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("pins-list").getElementsByTagName("table")[0];
+    tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those who don't match the search query
+    for (i = 1; i < tr.length; i++) { // Start from i = 1 to skip the table header
+        td = tr[i].getElementsByTagName("td")[1]; // Get the description column
+        if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
 </script>
 <!-- ADMINTOOLS CATEGORY LOADING END-->
 <!-- RESIZING LOGIC GENERAL BEGINNING -->
@@ -3077,7 +3175,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             margin: 0;
         }
 		
-        #videoDiv {
+        #pinlistdiv {
             cursor: pointer;
             margin: 0;
             padding: 0;
@@ -3085,7 +3183,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             align-items: center; /* Vertically center the image */
         }
 
-        #videoDiv img {
+        #pinlistdiv img {
             max-width: 40px;  /* Adjust size as needed */
             height: auto;
             border-radius: 30px;
@@ -3227,7 +3325,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 }
 
 .options {
-    display: block; /* This shows the dropdown on mobile devices by default */
+    display: none; /* This shows the dropdown on mobile devices by default */
 }
 
 @media (max-width: 780px) {
@@ -3508,23 +3606,24 @@ position: relative;
       display: flex;
       align-items: center;
     }
-    .video-div, .info-div, .lightswitch-div, .key-div {
+    .pinlist-div, .info-div, .lightswitch-div, .key-div {
       margin: 0 3px;
     }
 }
 
   
     /* Individual icon divs */
-    .lightswitch-div, .key-div, .video-div, .info-div {
+    .lightswitch-div, .key-div, .pinlist-div, .info-div {
       flex-direction: row;
     }
 
     /* Make the containers hidden when screen width is less than 1271px */
-    @media (max-width: 1271px) {
-      .left-container, .right-container,  .togglebuttoncontainer  {
-        display: none;
-      }
-    }
+    @media (max-width: 1271px) and (min-width: 780px) {
+	  .left-container, .right-container, .togglebuttoncontainer {
+		display: none;
+	  }
+	}
+
 	
 	  /* Make the containers hidden when screen width is less than 1271px */
     @media (max-width: 1050px) {
@@ -3696,10 +3795,23 @@ h2 {
     #dropdown-options {
         display: none !important; /* Important can ensure that this rule takes precedence over inline styles */
     }
+	
+	.options {
+	display:none !important;
 }
-
+}
 @media screen and (max-width: 780px) {
 
+   .mobilesafe {
+        display: block !important;
+        width: 100%;  /* Ensure this container takes the full width */
+        height: 100%;
+        flex-direction: column;
+        align-items: center; 
+        justify-content: flex-start;
+        padding: 0;  /* Ensure no padding */
+        margin: 0;  /* Ensure no margin */
+    }
 
 .dropdown-container {
     width: 100%; /* Ensure the container takes full width of its parent */
@@ -4120,24 +4232,418 @@ handleMapClick(mapMobile);
 </script>
 
 <script>
-        // JavaScript function to toggle the login popup
-        function togglePopup() {
-            const popup = document.getElementById('loginPopup');
-            popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+  <script>
+function handleLogin() {
+  // Assuming you have form inputs with IDs 'username', 'password', and 'otp'
+  var username = document.getElementById('username').value;
+  var password = document.getElementById('password').value;
+  var otp_token = document.getElementById('otp').value;
+
+  // Create an AJAX request to the server for logging in
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/login', true);
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhr.onload = function() {
+    if (this.status === 200) {
+      // If login is successful, load the admin tools
+      loadAdminTools();
+    } else {
+      // Handle login failure, maybe show an error message
+      console.error('Login failed:', this.responseText);
+    }
+  };
+  xhr.onerror = function() {
+    // When an error occurs during the request
+    console.error("Request failed.");
+  };
+  xhr.send(`username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&otp=${encodeURIComponent(otp_token)}`);
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Make sure this is called when the admintools are loaded
+    if (document.getElementById('recolorCategory')) {
+        initializeRecolorFunctionality();
+    }
+});
+
+// Initialize recoloring functionality
+function initializeRecolorFunctionality() {
+    var dropdown = document.getElementById('recolor-category-dropdown');
+    var currentColorDisplay = document.getElementById('current-color-display');
+
+    // Event listener to the recolor button
+    document.getElementById('recolorCategory').addEventListener('click', function() {
+        var selectedCategory = dropdown.value;
+        var newColor = document.getElementById('new-color').value.replace('#', ''); // Make sure to replace '#' in color value
+
+        fetch('/recolor-category', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ categoryName: selectedCategory, newColor: newColor })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log('Category recolored:', result);
+            refreshCategoriesDisplay(); // Make sure this function is defined and updates the display
+            updateCurrentColorDisplay(selectedCategory); // Update the current color display
+        })
+        .catch(error => {
+            console.error('Error recoloring category:', error);
+        });
+		    updateAllCategoryDropdowns();
+
+    });
+}
+
+// Function to initialize the delete category dropdown
+function initializeDeleteCategoryDropdown() {
+  // Fetch the categories from the Flask endpoint
+  fetch('/get-categories-renaming')
+  .then(response => response.json())
+  .then(categories => {
+    var dropdown = document.getElementById('delete-category-dropdown');
+    dropdown.innerHTML = ''; // Clear existing options
+    
+    categories.forEach(function(category) {
+      var option = document.createElement('option');
+      option.value = option.text = category;
+      dropdown.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching categories:', error);
+  });
+}
+
+// Function to initialize the delete button
+function initializeDeleteCategoryButton() {
+  var deleteButton = document.getElementById('deleteCategory');
+  deleteButton.addEventListener('click', function() {
+    var selectedCategory = document.getElementById('delete-category-dropdown').value;
+
+    fetch('/delete-category', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ categoryName: selectedCategory })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(result => {
+      console.log('Category deleted:', result);
+      initializeDeleteCategoryDropdown(); // Re-initialize the dropdown
+      refreshCategoriesDisplay(); // Refresh the categories displayed on the page
+    })
+    .catch(error => {
+      console.error('Error deleting category:', error);
+    });
+	    updateAllCategoryDropdowns();
+  });
+}
+
+function updateAllCategoryDropdowns() {
+  // Fetch the categories from the Flask endpoint
+  fetch('/get-categories-renaming')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(categories => {
+    const dropdowns = [
+      document.getElementById('rename-category-dropdown'),
+      document.getElementById('recolor-category-dropdown'),
+      document.getElementById('delete-category-dropdown')
+    ];
+
+    dropdowns.forEach(dropdown => {
+      dropdown.innerHTML = ''; // Clear existing options
+
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = option.textContent = category;
+        dropdown.appendChild(option);
+      });
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching categories:', error);
+  });
+}
+
+
+function loadAdminTools() {
+  console.log("Attempting to load admin tools..."); // For debugging
+
+  // Make an AJAX request to the server for the admintools content
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/admintools', true);
+  xhr.onload = function() {
+    if (this.status === 200) {
+      // If the content is received successfully, insert it into the page
+      var dynamicArea = document.getElementById('dynamicgeneration-admintools');
+      dynamicArea.innerHTML = this.responseText;
+
+      // Call the initialization functions for dynamic content here
+      initializeCategoryDropdown(); // Initialize the dropdown after content is loaded
+      initializeRenameCategoryButton(); // Initialize the rename button after content is loaded
+      initializeRecolorDropdown(); // Initialize the recolor dropdown
+      initializeRecolorFunctionality(); // Initialize the recolor button
+      initializeAddCategory(); // Initialize the add category button
+      initializeDeleteCategoryDropdown(); // Initialize the delete category dropdown
+      initializeDeleteCategoryButton(); // Initialize the delete category button
+      refreshCategoriesDisplay(); // Refresh categories after admin tools are loaded - This line was updated
+
+    } else {
+      // Handle errors, maybe redirect to login or show a message
+      console.error('Failed to load admin tools:', this.statusText);
+    }
+  };
+  xhr.onerror = function() {
+    // When an error occurs during the request
+    console.error("Request failed.");
+  };
+  xhr.send();
+}
+
+function initializeCategoryDropdown() {
+  // Fetch the categories from the Flask endpoint
+  fetch('/get-categories-renaming')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(categories => {
+    console.log('Categories:', categories); // Add this line for debugging
+    var dropdown = document.getElementById('rename-category-dropdown');
+    
+    // Clear existing options
+    dropdown.innerHTML = '';
+    
+    // Populate dropdown with categories fetched from the server
+    categories.forEach(function(category) {
+      var option = document.createElement('option');
+      option.value = option.text = category;
+      dropdown.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching categories:', error);
+  });
+}
+
+// Function to refresh the categories displayed on the page
+function refreshCategoriesDisplay() {
+  // Make an AJAX request to the server for the updated categories content
+  fetch('/static/categories.html')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.text();
+  })
+  .then(categoriesHtml => {
+    // Insert the updated categories HTML into the page
+    document.getElementById('dynamicgeneration-categorypicker').innerHTML = categoriesHtml;
+  })
+  .catch(error => {
+    console.error('Error refreshing categories:', error);
+  });
+}
+
+// Update the initializeRenameCategoryButton function to call refreshCategoriesDisplay after a successful rename
+function initializeRenameCategoryButton() {
+  var renameButton = document.getElementById('renameCategory');
+  renameButton.addEventListener('click', function() {
+    var selectedCategory = document.getElementById('rename-category-dropdown').value;
+    var newCategoryName = document.getElementById('new-category-name').value;
+
+    if (!selectedCategory || !newCategoryName) {
+      console.error('Please select a category and enter a new name.');
+      return;
+    }
+
+    var data = {
+      oldName: selectedCategory,
+      newName: newCategoryName
+    };
+
+    fetch('/rename-category', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then(result => {
+      console.log('Category renamed:', result);
+      refreshCategoriesDisplay(); // Refresh the categories in the display
+      initializeCategoryDropdown(); // Re-initialize the dropdown to reflect the new changes
+    })
+    .catch(error => {
+      console.error('Error renaming category:', error);
+    });
+	    updateAllCategoryDropdowns();
+
+  });
+}
+
+// Initializes the dropdown for recoloring categories
+function initializeRecolorDropdown() {
+  // Fetch categories and populate dropdown
+  fetch('/get-categories-renaming')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(categories => {
+      const recolorDropdown = document.getElementById('recolor-category-dropdown');
+      recolorDropdown.innerHTML = '';
+
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = option.textContent = category;
+        recolorDropdown.appendChild(option);
+      });
+
+      // Add event listener to update current color display
+      recolorDropdown.addEventListener('change', function() {
+        updateCurrentColorDisplay(this.value);
+      });
+
+      // Update current color display when dropdown is initialized
+      updateCurrentColorDisplay(recolorDropdown.value);
+    })
+    .catch(error => {
+      console.error('Error fetching categories for recoloring:', error);
+    });
+}
+
+// Updates the current color display
+function updateCurrentColorDisplay(categoryName) {
+  fetch('/get-current-color', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ categoryName: categoryName })
+  })
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('current-color-display').style.backgroundColor = '#' + data.currentColor;
+  })
+  .catch(error => {
+    console.error('Error fetching current color:', error);
+  });
+}
+
+
+// Event listener for "Umfärben" button click
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('recolorCategory').addEventListener('click', function() {
+    var selectedCategory = document.getElementById('recolor-category-dropdown').value;
+    var newColor = document.getElementById('new-color').value;
+
+    fetch('/recolor-category', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ categoryName: selectedCategory, newColor: newColor.replace('#', '') })
+    })
+    .then(response => response.json())
+    .then(result => {
+      console.log('Category recolored:', result);
+      updateCurrentColorDisplay(selectedCategory);
+      refreshCategoriesDisplay();
+    })
+    .catch(error => {
+      console.error('Error recoloring category:', error);
+    });
+  });
+});
+
+
+function initializeAddCategory() {
+    var addCategoryButton = document.getElementById('addCategory');
+    addCategoryButton.addEventListener('click', function() {
+        var categoryTitle = document.getElementById('new-category-title').value;
+        var categoryColor = document.getElementById('new-category-color').value.replace('#', '');
+
+        if (!categoryTitle || !categoryColor) {
+            console.error('Please enter a category title and select a color.');
+            return;
         }
 
-        // Your existing addAndRemoveClass function
-        function addAndRemoveClass() {
-    // Get the button element
-    const buttonMenu = document.getElementById('buttonMenu');
+        fetch('/add-category', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: categoryTitle, color: categoryColor })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                console.log('Category added:', data.message);
+                refreshCategoriesDisplay(); // Updated this line
+				                updateAllCategoryDropdowns(); // Update all category dropdowns
 
-    // Add the 'selected' class
-    buttonMenu.classList.add('selected');
-
-    setTimeout(function() {
-        buttonMenu.classList.remove('selected');
-    }, 15000);
+            } else {
+                console.error('Error adding category:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding category:', error);
+        });
+    });
 }
+
+// Call this function after the dynamically loaded content is inserted into the DOM
+function dynamicContentLoaded() {
+    initializeAddCategoryButton();
+    // ... (initialize other dynamic content here if needed)
+}
+
+// Use DOMContentLoaded to ensure the button is available when the script runs
+document.addEventListener('DOMContentLoaded', function() {
+    // Only call this if 'addCategory' exists on initial page load
+    if (document.getElementById('addCategory')) {
+        initializeAddCategoryButton();
+    }
+    // ... (call other initialize functions here if needed)
+});
+
+// If the button is loaded dynamically, call dynamicContentLoaded()
+// after 
+	
+	
+	
+</script>
     </script>
 <script>
 function deletePin(pinId) {
@@ -4202,7 +4708,7 @@ function toggleLightMode() {
   const elements000000 = document.querySelectorAll('.color-000000');
   const textElements = document.querySelectorAll('.text-white');
   const logoElement = document.querySelector('.logo-img');
-  const videoIcon = document.querySelector('#videoDiv img');
+  const pinlisticon = document.querySelector('#pinlistdiv img');
   const infoIcon = document.querySelector('#infoDiv img');
   const sunIcon = document.querySelector('#lightswitchDiv img');
   const keyIcon = document.querySelector('#keyDiv img');
@@ -4225,7 +4731,7 @@ function toggleLightMode() {
     elements000000.forEach(el => el.style.backgroundColor = '#000000');
     textElements.forEach(el => el.style.color = 'white');
     logoElement.src = 'static/logo_long.png';
-	videoIcon.src = 'static/videoicon.png';
+	pinlisticon.src = 'static/pinlisticon.png';
     infoIcon.src = 'static/infoicon.png';
     sunIcon.src = 'static/sunicon.png';
     keyIcon.src = 'static/keyicon.png';
@@ -4256,7 +4762,7 @@ function toggleLightMode() {
     elements000000.forEach(el => el.style.backgroundColor = '#ffffff');
     textElements.forEach(el => el.style.color = 'black');
     logoElement.src = 'static/logo_long2.png';
-	videoIcon.src = 'static/videoicon2.png';
+	pinlisticon.src = 'static/pinlisticon2.png';
     infoIcon.src = 'static/infoicon2.png';
     sunIcon.src = 'static/sunicon2.png';
     keyIcon.src = 'static/keyicon2.png';
@@ -4478,7 +4984,69 @@ function loadHexagon(pins) {
 
 
 
+
+<script>
+var pinLayers = {};
+var highlightLayer;
+
+function highlightPinOnMap(pinId) {
+    var pinLayer = pinLayers[pinId];
+    if (pinLayer) {
+        var highlightStyle = {
+            color: '#ffffff', // White color
+            weight: 4, // Thickness of the circle border
+            opacity: 1,
+            fillColor: '#ffffff',
+            fillOpacity: 0.7
+        };
+        if (highlightLayer) {
+            map.removeLayer(highlightLayer); // Remove existing highlight
+        }
+        highlightLayer = L.circle(pinLayer.getLatLng(), {radius: 20, ...highlightStyle}).addTo(map);
+    }
+}
+
+function unhighlightPinOnMap(pinId) {
+    if (highlightLayer) {
+        map.removeLayer(highlightLayer);
+        highlightLayer = null; // Clear the reference
+    }
+}
+</script>
+
+<script>
+    function togglePopup() {
+        var pinlist = document.getElementById("pinlist-container");
+        var overlayImage = document.getElementById("overlay-image");
+
+        // Check the current display style of the pinlist and toggle it
+        if (pinlist.style.display === "none" || pinlist.style.display === "") {
+            pinlist.style.display = "block";
+            overlayImage.style.display = "none";
+        } else {
+            pinlist.style.display = "none";
+            overlayImage.style.display = "block";
+        }
+    }
+</script>
 </body>
+<script>
+window.addEventListener("DOMContentLoaded", (event) => {
+  fetch("static/categories.html")
+    .then(response => response.text())
+    .then(html => {
+      const sidebar = document.getElementById("categorybutton-container");
+      if (sidebar) {
+        sidebar.innerHTML = html;
+      } else {
+        console.error("Sidebar element not found.");
+      }
+    })
+    .catch(error => {
+      console.error("Failed to load categories:", error);
+    });
+});
+</script>
 <audio id="buttonClickAudio"><source src="static/buttonclick.mp3" type="audio/mp3"/></audio>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -4510,8 +5078,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 	
 	    // Add click event listener to all elements with class 'button-menu'
-    const videoDivs = document.querySelectorAll('.video-div');
-    videoDivs.forEach((button) => {
+    const pinlistdivs = document.querySelectorAll('.pinlist-div');
+    pinlistdivs.forEach((button) => {
         button.addEventListener('click', function() {
             audio.play();
         });
@@ -4591,4 +5159,27 @@ window.addEventListener('load', function() {
 });
 
 // Update Settings button already calls updateHeatmapSettings() as per your HTML
+
+// Function to dynamically adjust the pin size based on the zoom level
+function adjustPinSize(marker, mapInstance) {
+    const zoom = mapInstance.getZoom();
+    const maxZoom = mapInstance.getMaxZoom();
+    const minSize = 10;  // Size at the minimum zoom level, in pixels
+    const maxSize = 40;  // Size at the maximum zoom level, in pixels
+
+    // Calculate the new size
+    const newSize = minSize + ((maxSize - minSize) * (zoom / maxZoom));
+
+    // Update the icon size
+    marker.setIcon(L.divIcon({
+        className: marker.options.className,
+        iconSize: [newSize, newSize]
+    }));
+}
+
+// Listen for the zoomend event to adjust the pin size
+map.on('zoomend', function() {
+    adjustPinSize(marker, map);  // Assuming the marker variable is in scope
+});
 </script>
+ 
